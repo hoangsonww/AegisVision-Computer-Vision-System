@@ -1,0 +1,11 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: pipeline-service-mtls-strict
+  namespace: aegis-system
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pipeline-service
+  mtls:
+    mode: STRICT

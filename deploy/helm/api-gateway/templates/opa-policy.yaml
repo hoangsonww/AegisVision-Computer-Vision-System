@@ -1,0 +1,38 @@
+{{- if .Values.opa.enabled }}
+# Minimum-viable OPA policy. The real policy bundle is delivered by the
+# OPA discovery API in production; this configmap is the local-dev fallback
+# so the chart is deployable end-to-end on day one.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-opa-policy
+  namespace: aegis-system
+data:
+  policy.rego: |
+    package aegisvision.authz
+
+    default allow := false
+
+    # Allow any read by an authenticated tenant.
+    allow if {
+      input.action == "read"
+      input.tenant != ""
+    }
+
+    # Allow mutations only when the caller carries an explicit role.
+    allow if {
+      input.action == "create"
+      some r in input.roles
+      r == "pipelines:writer"
+    }
+    allow if {
+      input.action == "update"
+      some r in input.roles
+      r == "pipelines:writer"
+    }
+    allow if {
+      input.action == "delete"
+      some r in input.roles
+      r == "pipelines:admin"
+    }
+{{- end }}

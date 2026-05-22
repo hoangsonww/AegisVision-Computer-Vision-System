@@ -1,0 +1,69 @@
+// Drift signals (ADR-0025). The platform stores a per-(tenant, model)
+// reference distribution computed at promotion time; the drift service
+// windows production distributions and emits a Signal when divergence
+// crosses thresholds.
+syntax = "proto3";
+
+package aegisvision.autonomy.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/autonomy/v1;autonomyv1";
+
+enum DivergenceMethod {
+  DIVERGENCE_UNSPECIFIED = 0;
+  DIVERGENCE_KL = 1;       // Kullback-Leibler
+  DIVERGENCE_JS = 2;       // Jensen-Shannon (symmetric, bounded 0..1)
+  DIVERGENCE_TVD = 3;      // Total variation distance
+}
+
+message Distribution {
+  // Map from class label to probability mass. Always normalized to sum=1.
+  map<string, double> classes = 1;
+  int64 samples = 2;
+  google.protobuf.Timestamp window_start = 3;
+  google.protobuf.Timestamp window_end = 4;
+}
+
+message DriftPolicy {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  string model_id = 3;
+  DivergenceMethod method = 4;
+  // 0..1 — emit a Signal when divergence >= warn_threshold.
+  double warn_threshold = 5;
+  // 0..1 — emit a CRITICAL signal when divergence >= critical_threshold.
+  double critical_threshold = 6;
+  // Window for the production distribution (seconds).
+  int32 window_seconds = 7;
+  // Minimum samples in a window before evaluation (avoids early-noise false positives).
+  int64 min_samples = 8;
+}
+
+message DriftReference {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  string model_id = 3;
+  // The reference distribution captured at promotion time.
+  Distribution distribution = 4;
+  google.protobuf.Timestamp captured_at = 5;
+}
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_INFO = 1;
+  SEVERITY_WARN = 2;
+  SEVERITY_CRITICAL = 3;
+}
+
+message DriftSignal {
+  string id = 1;
+  string tenant_id = 2;
+  string model_id = 3;
+  DivergenceMethod method = 4;
+  double divergence = 5;
+  Severity severity = 6;
+  Distribution observed = 7;
+  google.protobuf.Timestamp emitted_at = 8;
+}

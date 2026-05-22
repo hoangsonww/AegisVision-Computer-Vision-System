@@ -1,0 +1,13 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: event-service, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: event-service } }
+  action: ALLOW
+  rules:
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-system/sa/api-gateway] }
+      to: [{ operation: { ports: ["8090"] } }]
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
+      to: [{ operation: { ports: ["8091"] } }]

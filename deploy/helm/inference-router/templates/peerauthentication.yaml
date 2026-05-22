@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: inference-router-mtls-strict, namespace: aegis-inference }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: inference-router } }
+  mtls: { mode: STRICT }

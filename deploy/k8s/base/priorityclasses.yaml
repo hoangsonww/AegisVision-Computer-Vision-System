@@ -1,0 +1,42 @@
+# Priority classes per the architecture doc §11.5.
+# Order of preemption is system-critical > data-plane > control-plane >
+# training-batch > best-effort. Service Helm charts pick the class by name.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: aegis-system-critical
+value: 1000000
+globalDefault: false
+description: "Cluster-essential services (auth, gateway, scheduler). Must not be preempted."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: aegis-data-plane
+value: 900000
+globalDefault: false
+description: "Streaming/inference workloads on the per-frame hot path."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: aegis-control-plane
+value: 800000
+globalDefault: false
+description: "Control-plane services (pipeline-service, model-registry, etc)."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: aegis-training-batch
+value: 100000
+globalDefault: false
+description: "Training jobs; preemptible by anything higher."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: aegis-best-effort
+value: 10000
+globalDefault: true
+description: "Default for unclassified workloads."

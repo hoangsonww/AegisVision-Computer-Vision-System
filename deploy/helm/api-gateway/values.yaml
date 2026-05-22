@@ -1,0 +1,55 @@
+image:
+  repository: aegisvision/api-gateway
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 3
+
+env: prod
+logLevel: info
+
+# Where to find the pipeline-service over the mesh.
+pipelineService:
+  addr: pipeline-service.aegis-system.svc.cluster.local:9090
+
+opa:
+  # When enabled the OPA sidecar runs alongside the gateway and the app
+  # consults it via AEGIS_OPA_ENDPOINT. When disabled the app refuses to
+  # start in non-dev environments.
+  enabled: true
+  endpoint: http://127.0.0.1:8181/v1/data/aegisvision/authz/allow
+  image:
+    repository: openpolicyagent/opa
+    tag: 0.69.0-rootless
+
+otel:
+  endpoint: otel-collector.aegis-observability.svc.cluster.local:4317
+  insecure: true # within-mesh; mTLS is enforced by the mesh, not OTLP TLS
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 30
+  targetCPUUtilizationPercentage: 60
+
+podSecurity:
+  runAsNonRoot: true
+  runAsUser: 65532
+  fsGroup: 65532
+  readOnlyRootFilesystem: true
+  seccompProfile: RuntimeDefault
+  drop: [ALL]
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+priorityClassName: aegis-system-critical

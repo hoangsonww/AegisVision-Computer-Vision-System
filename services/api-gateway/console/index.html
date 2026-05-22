@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AegisVision — Walking Skeleton Console</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #141822;
+    --border: #1f2533;
+    --muted: #6b7280;
+    --text: #e5e7eb;
+    --accent: #4ade80;
+    --warn: #f59e0b;
+    --crit: #ef4444;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+  header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; align-items: center; }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+  header .badge { font-size: 11px; color: var(--muted); padding: 2px 8px; border: 1px solid var(--border); border-radius: 10px; }
+  main { display: grid; grid-template-columns: 320px 1fr; gap: 16px; padding: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  input { width: 100%; background: #0b0d12; border: 1px solid var(--border); color: var(--text); padding: 7px 9px; border-radius: 6px; font-family: var(--mono); font-size: 13px; }
+  button { background: var(--accent); color: #042; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .metric { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border); font-family: var(--mono); font-size: 13px; }
+  .metric:last-child { border-bottom: none; }
+  .stat-value { color: var(--accent); }
+  #events { font-family: var(--mono); font-size: 12px; max-height: calc(100vh - 200px); overflow: auto; }
+  .event { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; }
+  .event .head { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
+  .sev-CRITICAL, .sev-SEVERITY_CRITICAL { color: var(--crit); }
+  .sev-HIGH, .sev-SEVERITY_HIGH { color: var(--crit); }
+  .sev-MEDIUM, .sev-SEVERITY_MEDIUM { color: var(--warn); }
+  .sev-LOW, .sev-INFO, .sev-SEVERITY_LOW, .sev-SEVERITY_INFO { color: var(--muted); }
+  .lat { color: var(--muted); font-size: 11px; }
+  .ok { color: var(--accent); }
+  .err { color: var(--crit); }
+</style>
+</head>
+<body>
+<header>
+  <h1>AegisVision Console</h1>
+  <span class="badge">walking-skeleton</span>
+  <span id="conn" class="badge">disconnected</span>
+</header>
+<main>
+  <section class="panel">
+    <h3 style="margin-top:0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Connection</h3>
+    <label>Tenant ID</label>
+    <input id="tenant" value="t-demo" />
+    <label style="margin-top:10px;">Stream ID (optional)</label>
+    <input id="stream" placeholder="empty = all streams" />
+    <div style="margin-top:14px;display:flex;gap:8px;">
+      <button id="connect">Connect</button>
+      <button id="disconnect" class="secondary">Disconnect</button>
+    </div>
+
+    <h3 style="margin-top:18px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Live latency</h3>
+    <div class="metric"><span>Events received</span><span id="count" class="stat-value">0</span></div>
+    <div class="metric"><span>Glass→client p50</span><span id="p50" class="stat-value">– ms</span></div>
+    <div class="metric"><span>Glass→client p95</span><span id="p95" class="stat-value">– ms</span></div>
+    <div class="metric"><span>Glass→client p99</span><span id="p99" class="stat-value">– ms</span></div>
+    <div class="metric"><span>Last event</span><span id="last" class="stat-value">–</span></div>
+  </section>
+
+  <section class="panel">
+    <h3 style="margin-top:0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Events</h3>
+    <div id="events"></div>
+  </section>
+</main>
+<script>
+  // glass-to-client latency: client_ts - capture_time. We compute it client-side
+  // so the console can do its own latency budget check independent of any
+  // server claim.
+  const samples = [];
+  let evtSource = null;
+  let count = 0;
+
+  function quantile(arr, q) {
+    if (!arr.length) return null;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const idx = Math.min(sorted.length - 1, Math.floor(q * sorted.length));
+    return sorted[idx];
+  }
+
+  function fmtMs(v) { return v == null ? "– ms" : `${v.toFixed(0)} ms`; }
+
+  function updateStats() {
+    document.getElementById("count").textContent = String(count);
+    document.getElementById("p50").textContent = fmtMs(quantile(samples, 0.50));
+    document.getElementById("p95").textContent = fmtMs(quantile(samples, 0.95));
+    document.getElementById("p99").textContent = fmtMs(quantile(samples, 0.99));
+  }
+
+  function appendEvent(payload, latencyMs) {
+    const el = document.createElement("div");
+    el.className = "event";
+    const sev = payload.severity || "SEVERITY_INFO";
+    el.innerHTML = `
+      <div class="head">
+        <strong class="sev-${sev}">${sev.replace("SEVERITY_", "")}</strong>
+        <span>${payload.kind || ""}</span>
+        <span class="lat">+${latencyMs.toFixed(0)}ms</span>
+      </div>
+      <div>${payload.summary || ""} · rule=${payload.rule_id || "-"} · track=${payload.track_id || "-"}</div>
+      <div class="lat">stream=${payload.stream_id} pipeline=${payload.pipeline_id} frame=${payload.frame_seq}</div>
+    `;
+    const container = document.getElementById("events");
+    container.prepend(el);
+    while (container.children.length > 100) container.removeChild(container.lastChild);
+    document.getElementById("last").textContent = new Date().toLocaleTimeString();
+  }
+
+  document.getElementById("connect").addEventListener("click", () => {
+    const tenant = document.getElementById("tenant").value.trim();
+    const stream = document.getElementById("stream").value.trim();
+    if (!tenant) { alert("Tenant is required"); return; }
+    if (evtSource) { evtSource.close(); }
+    samples.length = 0; count = 0; updateStats();
+
+    // The browser EventSource API cannot send custom headers, so we route
+    // the tenant via a query param the gateway accepts in dev mode.
+    // Production deployments would use a session cookie or a websocket.
+    const url = `/v1/events:stream?stream_id=${encodeURIComponent(stream)}&tenant=${encodeURIComponent(tenant)}`;
+
+    // We use fetch + ReadableStream so we can set X-Tenant-Id like a real
+    // client would. This is the right thing to do for production too.
+    fetch(url, { headers: { "X-Tenant-Id": tenant, "Accept": "text/event-stream" } }).then(async (resp) => {
+      if (!resp.ok) {
+        document.getElementById("conn").textContent = `error ${resp.status}`;
+        document.getElementById("conn").classList.add("err");
+        return;
+      }
+      document.getElementById("conn").textContent = "connected";
+      document.getElementById("conn").classList.remove("err");
+      document.getElementById("conn").classList.add("ok");
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += dec.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) >= 0) {
+          const chunk = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          for (const line of chunk.split("\n")) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const payload = JSON.parse(line.slice(6));
+              const capture = Date.parse(payload.capture_time);
+              const now = Date.now();
+              const latency = now - capture;
+              samples.push(latency);
+              while (samples.length > 500) samples.shift();
+              count++;
+              appendEvent(payload, latency);
+              updateStats();
+            } catch (e) { /* skip malformed */ }
+          }
+        }
+      }
+      document.getElementById("conn").textContent = "disconnected";
+      document.getElementById("conn").classList.remove("ok");
+    }).catch(err => {
+      document.getElementById("conn").textContent = `error: ${err.message}`;
+      document.getElementById("conn").classList.add("err");
+    });
+  });
+
+  document.getElementById("disconnect").addEventListener("click", () => {
+    if (evtSource) { evtSource.close(); evtSource = null; }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Istio mTLS STRICT for api-gateway. The mesh refuses any peer that doesn't
+# present a SPIFFE-issued cert.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: api-gateway-mtls-strict
+  namespace: aegis-system
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  mtls:
+    mode: STRICT

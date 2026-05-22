@@ -1,0 +1,9 @@
+apiVersion: v2
+name: slo-watchdog
+description: AegisVision Phase 5 SLO burn-rate watchdog
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System

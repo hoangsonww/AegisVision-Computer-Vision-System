@@ -1,0 +1,131 @@
+// LLM/VLM gateway contracts. Per ADR-0018, the platform speaks a single
+// OpenAI-compatible vocabulary internally so the backend can be swapped
+// (Triton+TensorRT-LLM, vLLM, hosted Bedrock/Vertex) without callers caring.
+// Token accounting flows back to metering-service; per-tenant rate limits
+// apply at the gateway, not the model server.
+syntax = "proto3";
+
+package aegisvision.intelligence.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/intelligence/v1;intelligencev1";
+
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_SYSTEM = 1;
+  ROLE_USER = 2;
+  ROLE_ASSISTANT = 3;
+  ROLE_TOOL = 4;
+}
+
+// Image attached to a user turn for VLM models. We never put image bytes on
+// the bus (ADR-008) — vision turns carry a claim-check reference.
+message ImageRef {
+  // claim-check URN in the media store. The gateway dereferences and feeds
+  // the image to the VLM backend; the URN never leaves the cluster.
+  string urn = 1;
+  // Optional MIME type override; otherwise inferred from the object.
+  string mime_type = 2;
+}
+
+message ToolCall {
+  string id = 1;
+  string name = 2;
+  // Arguments as JSON. The gateway forwards opaque; tool schemas live with
+  // the calling service (agent-service / nlq-service).
+  string arguments_json = 3;
+}
+
+message Message {
+  Role role = 1;
+  string content = 2;
+  repeated ImageRef images = 3;
+  repeated ToolCall tool_calls = 4;
+  // For ROLE_TOOL: the tool call this is responding to.
+  string tool_call_id = 5;
+}
+
+message ToolSchema {
+  string name = 1;
+  string description = 2;
+  // JSON-schema for arguments. We deliberately use JSON-schema, not protobuf,
+  // because the LLM is trained on JSON-schema function-calling.
+  string parameters_schema_json = 3;
+  // Risk tier (0=read, 1=advise, 2=reversible, 3=consequential). Tier 3
+  // forces the gateway to refuse direct execution — the agent must instead
+  // open a gate (see policy-gate-service / ADR-0014).
+  int32 risk_tier = 4;
+}
+
+message ChatRequest {
+  string tenant_id = 1;
+  string model = 2;
+  repeated Message messages = 3;
+  repeated ToolSchema tools = 4;
+  // "auto" | "none" | "{name}"
+  string tool_choice = 5;
+  // 0.0..2.0; default 0.2 (deterministic-ish).
+  double temperature = 6;
+  int32 max_tokens = 7;
+  // If true, force JSON-mode (or grammar-constrained generation when the
+  // backend supports it).
+  bool json_mode = 8;
+  // Optional JSON-schema the response must match (best-effort; gateway
+  // validates and retries once on mismatch).
+  string response_schema_json = 9;
+  // Stop sequences.
+  repeated string stop = 10;
+  // Request-scoped seed; same seed + same prompt = deterministic-ish output
+  // for the same model.
+  int64 seed = 11;
+}
+
+message TokenUsage {
+  int32 prompt_tokens = 1;
+  int32 completion_tokens = 2;
+  int32 total_tokens = 3;
+}
+
+message ChatResponse {
+  string id = 1;
+  string model = 2;
+  Message message = 3;
+  TokenUsage usage = 4;
+  // "stop" | "tool_calls" | "length" | "content_filter"
+  string finish_reason = 5;
+  // Diagnostics surfaced by the gateway's safety layer (PII redaction,
+  // prompt-injection signals, refusal). Always present.
+  google.protobuf.Struct safety_signals = 6;
+}
+
+message EmbeddingRequest {
+  string tenant_id = 1;
+  string model = 2;
+  repeated string input = 3;
+}
+
+message EmbeddingResponse {
+  repeated Embedding data = 1;
+  TokenUsage usage = 2;
+}
+
+message Embedding {
+  repeated float vector = 1;
+  int32 index = 2;
+}
+
+message VisionDescribeRequest {
+  string tenant_id = 1;
+  string model = 2;
+  ImageRef image = 3;
+  // Optional instruction (e.g. "describe only safety-relevant objects").
+  string instruction = 4;
+  int32 max_tokens = 5;
+}
+
+message VisionDescribeResponse {
+  string description = 1;
+  TokenUsage usage = 2;
+  google.protobuf.Struct safety_signals = 3;
+}

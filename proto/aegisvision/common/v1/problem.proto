@@ -1,0 +1,31 @@
+// Problem maps to the RFC 9457 application/problem+json wire format used by
+// every public REST endpoint. Internal gRPC errors carry the same shape via
+// google.rpc.Status, normalized at the gateway.
+syntax = "proto3";
+
+package aegisvision.common.v1;
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/common/v1;commonv1";
+
+message Problem {
+  // A URI that identifies the problem type. Default: about:blank
+  string type = 1;
+  // Short human-readable summary, stable across occurrences.
+  string title = 2;
+  // HTTP status code mirrored for clients that ignore the response status.
+  int32 status = 3;
+  // Specific occurrence details.
+  string detail = 4;
+  // URI identifying this specific occurrence (e.g. /trace/<id>).
+  string instance = 5;
+  // Stable machine code used by clients to branch on errors.
+  string code = 6;
+  // Field-level violations for 422 responses.
+  repeated FieldViolation violations = 7;
+}
+
+message FieldViolation {
+  string field = 1;
+  string message = 2;
+  string code = 3;
+}

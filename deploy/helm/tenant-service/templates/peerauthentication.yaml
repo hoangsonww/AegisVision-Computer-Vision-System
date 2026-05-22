@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: tenant-service-mtls-strict, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: tenant-service } }
+  mtls: { mode: STRICT }

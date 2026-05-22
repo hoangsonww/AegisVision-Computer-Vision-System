@@ -1,0 +1,13 @@
+image: { repository: aegisvision/dataplane-runner, tag: "0.1.0", pullPolicy: IfNotPresent }
+replicaCount: 3
+env: prod
+logLevel: info
+nats:
+  url: nats://nats.aegis-data.svc.cluster.local:4222
+otel:
+  endpoint: otel-collector.aegis-observability.svc.cluster.local:4317
+resources:
+  requests: { cpu: 500m, memory: 256Mi }
+  limits:   { cpu: "4",  memory: 1Gi }
+priorityClassName: aegis-data-plane
+serviceMonitor: { enabled: true, interval: 30s }

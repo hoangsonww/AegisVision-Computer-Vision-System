@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: notification-service, namespace: aegis-system, labels: { app.kubernetes.io/name: notification-service } }
+spec:
+  selector: { app.kubernetes.io/name: notification-service }
+  ports:
+    - { name: http, port: 8230, targetPort: 8230, appProtocol: http }
+    - { name: metrics, port: 8231, targetPort: 8231 }

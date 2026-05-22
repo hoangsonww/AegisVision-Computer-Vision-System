@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: active-learning-service, namespace: aegis-system, labels: { app.kubernetes.io/name: active-learning-service } }
+spec:
+  selector: { app.kubernetes.io/name: active-learning-service }
+  ports:
+    - { name: http, port: 8440, targetPort: 8440, appProtocol: http }
+    - { name: metrics, port: 8441, targetPort: 8441 }

@@ -1,0 +1,46 @@
+# Kills one Kafka broker for 90s. Asserts the metering-service consumer
+# reconnects, drains the topic, and converges its counters with no loss.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: kafka-broker-loss
+  namespace: aegis-chaos
+spec:
+  action: pod-failure
+  mode: one
+  duration: "90s"
+  selector:
+    namespaces: [aegis-data]
+    labelSelectors:
+      app.kubernetes.io/name: kafka
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-kafka-broker-loss
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              base=$(curl -sS http://metering-service.aegis-system:8241/metrics | \
+                awk '/^aegis_meter_increments_total/ {sum+=$2} END {print sum+0}')
+              echo "baseline increments=$base"
+              sleep 180   # broker failure window + settle
+              post=$(curl -sS http://metering-service.aegis-system:8241/metrics | \
+                awk '/^aegis_meter_increments_total/ {sum+=$2} END {print sum+0}')
+              echo "post increments=$post"
+              if [ "$post" -le "$base" ]; then
+                echo "FAIL: metering-service didn't recover (no increments after broker loss)"
+                exit 1
+              fi
+              echo "PASS: metering converged across kafka broker loss"

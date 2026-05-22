@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-service
+  namespace: aegis-system
+  labels: { app.kubernetes.io/name: audit-service }
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector: { matchLabels: { app.kubernetes.io/name: audit-service } }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: audit-service }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8093"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: audit-service
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: audit-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          ports:
+            - { name: http, containerPort: 8092 }
+            - { name: metrics, containerPort: 8093 }
+          env:
+            - { name: AEGIS_ENV, value: {{ .Values.env | quote }} }
+            - { name: AEGIS_VERSION, value: {{ .Values.image.tag | quote }} }
+            - { name: AEGIS_LOG_LEVEL, value: {{ .Values.logLevel | quote }} }
+            - { name: AEGIS_HTTP_ADDR, value: ":8092" }
+            - { name: AEGIS_HEALTH_ADDR, value: ":8093" }
+            - { name: AEGIS_NATS_URL, value: {{ .Values.nats.url | quote }} }
+            - { name: AEGIS_DB_DRIVER, value: {{ .Values.db.driver | quote }} }
+            - name: AEGIS_DB_DSN
+              valueFrom: { secretKeyRef: { name: audit-db, key: dsn } }
+            - { name: AEGIS_OTLP_ENDPOINT, value: {{ .Values.otel.endpoint | quote }} }
+          readinessProbe: { httpGet: { path: /readyz, port: metrics }, initialDelaySeconds: 2, periodSeconds: 5 }
+          livenessProbe:  { httpGet: { path: /healthz, port: metrics }, initialDelaySeconds: 10, periodSeconds: 10 }
+          resources: {{ toYaml .Values.resources | nindent 12 }}

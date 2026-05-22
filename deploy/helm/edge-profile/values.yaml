@@ -1,0 +1,52 @@
+# Edge profile — what runs at a camera site on k3s. Per ADR-0005 the edge
+# uses the SAME platform code, just scaled down: ingest + detect + tracker +
+# lightweight rule + edge-gateway. Pipelines/streams/models are pulled from
+# core via control-plane sync; results flow back via the gateway's
+# store-and-forward queue.
+edge:
+  # Replicas per service for the edge node (typically 1).
+  replicas: 1
+  # Core endpoints — pulled from the platform when paired.
+  core:
+    natsURL: nats://core-nats.aegisvision.example:4222
+    pipelineService: pipeline-service.core.aegisvision.example:9090
+    streamManager: stream-manager.core.aegisvision.example:9092
+  # Aggressive retention; edge stores no media.
+  retentionHours: 1
+  # Light operator chain — no LLM, no semantic-search, no model registry.
+  enabledServices:
+    - edge-gateway
+    - dataplane-runner
+    - inference-router
+    - event-service     # ring only; no ClickHouse
+  disabledServices:
+    - llm-gateway       # Phase 4 — agents and LLM ops live on the core
+    - agent-service     # Phase 4 — agent runtime is core-only
+    - policy-gate-service  # Phase 4 — gate decisions flow to core
+    - knowledge-service # Phase 4 — RAG corpus is core-only
+    - active-learning-service # Phase 4 — labeling flows to core
+    - nlq-service       # Phase 4 — NL query lives on core
+    - semantic-search
+    - training-orchestrator
+    - dataset-service
+    - annotation-service
+    - cost-accounting
+    - audit-service     # forwarded to core, not stored locally
+    - canary-controller       # Phase 5 — promotion/rollback lives on core
+    - shadow-inference-service # Phase 5 — comparison runs on core
+    - drift-detection-service # Phase 5 — drift evaluation lives on core
+    - slo-watchdog            # Phase 5 — SLO eval needs core's Prometheus
+    - prefetch-service        # Phase 5 — predictor needs core history
+    - autonomy-orchestrator   # Phase 5 — continuous autonomy lives on core
+  # CPU-only inference unless edge node has a GPU.
+  inferenceMode: cpu
+  resources:
+    edgeGateway:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits: { cpu: "1", memory: 512Mi }
+    dataplaneRunner:
+      requests: { cpu: 500m, memory: 256Mi }
+      limits: { cpu: "2", memory: 1Gi }
+    inferenceRouter:
+      requests: { cpu: 250m, memory: 256Mi }
+      limits: { cpu: "1", memory: 512Mi }

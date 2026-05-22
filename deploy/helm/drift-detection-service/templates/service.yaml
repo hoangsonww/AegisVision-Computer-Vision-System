@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: drift-detection-service, namespace: aegis-system, labels: { app.kubernetes.io/name: drift-detection-service } }
+spec:
+  selector: { app.kubernetes.io/name: drift-detection-service }
+  ports:
+    - { name: http, port: 8480, targetPort: 8480, appProtocol: http }
+    - { name: metrics, port: 8481, targetPort: 8481 }

@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion
+    url: https://github.com/hoangsonww/AegisVision-Computer-Vision-System/discussions
+    about: Questions, ideas, design feedback — start here.
+  - name: 🔒 Security vulnerability
+    url: https://github.com/hoangsonww/AegisVision-Computer-Vision-System/security/policy
+    about: Please do NOT file public issues for security reports. See SECURITY.md.
+  - name: 📖 Documentation
+    url: https://github.com/hoangsonww/AegisVision-Computer-Vision-System/tree/main/docs
+    about: Browse the architecture, runbooks, ADRs, compliance evidence.
+  - name: ✉️ Contact the author
+    url: mailto:hoangson091104@gmail.com
+    about: Email Son Nguyen directly for commercial / consulting questions.

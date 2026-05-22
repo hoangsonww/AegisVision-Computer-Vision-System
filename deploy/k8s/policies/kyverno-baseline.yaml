@@ -1,0 +1,150 @@
+# Kyverno cluster policies. Together these enforce the security posture
+# the conformance test checks at chart-build time — Kyverno catches anything
+# the chart linter missed at admission time.
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-non-root
+  annotations:
+    policies.kyverno.io/title: Require non-root containers
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-non-root
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [aegis-system, aegis-inference, aegis-streaming, aegis-agents, aegis-llm, aegis-data, aegis-security]
+      validate:
+        message: "Pods must run as non-root."
+        pattern:
+          spec:
+            =(securityContext):
+              =(runAsNonRoot): true
+            containers:
+              - name: "*"
+                =(securityContext):
+                  =(runAsNonRoot): true
+                  =(allowPrivilegeEscalation): false
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-privileged
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: block-privileged
+      match:
+        any:
+          - resources: { kinds: [Pod] }
+      validate:
+        message: "Privileged containers are forbidden."
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                =(securityContext):
+                  =(privileged): "false"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-latest-tag
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: no-latest
+      match:
+        any:
+          - resources: { kinds: [Pod] }
+      validate:
+        message: "Container image tags must not be 'latest' or empty."
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                image: "!*:latest | !*:"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-limits
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [aegis-system, aegis-inference, aegis-streaming, aegis-data]
+      validate:
+        message: "Containers must declare resources.requests and resources.limits for cpu+memory."
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                resources:
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+                  limits:
+                    memory: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-readonly-rootfs
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: enforce-readonly
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [aegis-system, aegis-inference, aegis-streaming]
+      validate:
+        message: "Containers must declare readOnlyRootFilesystem: true."
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                securityContext:
+                  readOnlyRootFilesystem: true
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-signed-images
+  annotations:
+    policies.kyverno.io/severity: critical
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  rules:
+    - name: verify-cosign
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [aegis-system, aegis-inference, aegis-streaming, aegis-agents, aegis-llm]
+      verifyImages:
+        - imageReferences:
+            - "ghcr.io/hoangsonww/aegisvision-*"
+          attestors:
+            - entries:
+                - keyless:
+                    subject: "https://github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/ci.yml@refs/heads/main"
+                    issuer: "https://token.actions.githubusercontent.com"
+                    rekor:
+                      url: https://rekor.sigstore.dev

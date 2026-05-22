@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: nlq-service-mtls-strict, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: nlq-service } }
+  mtls: { mode: STRICT }

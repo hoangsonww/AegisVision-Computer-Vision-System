@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: llm-gateway-mtls-strict, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: llm-gateway } }
+  mtls: { mode: STRICT }

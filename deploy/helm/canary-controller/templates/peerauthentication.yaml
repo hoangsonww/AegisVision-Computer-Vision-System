@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: canary-controller-mtls-strict, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: canary-controller } }
+  mtls: { mode: STRICT }

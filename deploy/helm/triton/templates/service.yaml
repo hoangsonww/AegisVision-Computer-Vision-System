@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata: { name: triton, namespace: aegis-inference, labels: { app.kubernetes.io/name: triton } }
+spec:
+  selector: { app.kubernetes.io/name: triton }
+  ports:
+    - { name: http, port: 8000, targetPort: 8000, appProtocol: http }
+    - { name: grpc, port: 8001, targetPort: 8001, appProtocol: grpc }
+    - { name: metrics, port: 8002, targetPort: 8002 }

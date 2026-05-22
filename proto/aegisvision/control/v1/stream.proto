@@ -1,0 +1,107 @@
+// Stream lifecycle API. A Stream is the platform-facing representation of a
+// connected camera feed (RTSP/RTMP/HLS/WebRTC). Per the doc, the public name
+// is "stream" — internal subsystems may call this a "feed" but never expose
+// that vocabulary.
+syntax = "proto3";
+
+package aegisvision.control.v1;
+
+import "google/protobuf/timestamp.proto";
+import "aegisvision/common/v1/types.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/control/v1;controlv1";
+
+enum StreamProtocol {
+  STREAM_PROTOCOL_UNSPECIFIED = 0;
+  STREAM_PROTOCOL_RTSP = 1;
+  STREAM_PROTOCOL_RTMP = 2;
+  STREAM_PROTOCOL_HLS = 3;
+  STREAM_PROTOCOL_WEBRTC = 4;
+  STREAM_PROTOCOL_FILE = 5; // recorded test stream
+}
+
+enum StreamHealth {
+  STREAM_HEALTH_UNSPECIFIED = 0;
+  STREAM_HEALTH_GREEN = 1;
+  STREAM_HEALTH_YELLOW = 2;
+  STREAM_HEALTH_RED = 3;
+  STREAM_HEALTH_DISCONNECTED = 4;
+}
+
+message Stream {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  aegisvision.common.v1.ProjectRef project = 3;
+
+  string camera_id = 4;
+  string site_id = 5;
+
+  string name = 6;
+  StreamProtocol protocol = 7;
+  // URL is redacted in API responses; only the host/path is preserved.
+  string url_redacted = 8;
+
+  StreamHealth health = 9;
+  google.protobuf.Timestamp last_frame_at = 10;
+
+  // Bandwidth and FPS as observed by the most recent ingest. Driven by the
+  // streaming data plane and surfaced here for the console.
+  double observed_fps = 11;
+  int64  observed_kbps = 12;
+
+  aegisvision.common.v1.AuditFields audit = 100;
+}
+
+message GetStreamRequest {
+  string id = 1;
+}
+
+message GetStreamResponse {
+  Stream stream = 1;
+}
+
+message ListStreamsRequest {
+  string tenant_id = 1;
+  string project_id = 2;
+  string site_id = 3;
+  repeated StreamHealth health_in = 4;
+  aegisvision.common.v1.PageRequest page = 100;
+}
+
+message ListStreamsResponse {
+  repeated Stream streams = 1;
+  aegisvision.common.v1.PageResponse page = 100;
+}
+
+message CreateStreamRequest {
+  string idempotency_key = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  aegisvision.common.v1.ProjectRef project = 3;
+
+  string camera_id = 4;
+  string site_id = 5;
+  string name = 6;
+  StreamProtocol protocol = 7;
+  // Full URL with embedded credentials; the server stores it encrypted at
+  // rest and only returns a redacted form.
+  string url = 8;
+  // Which pipeline to dispatch onto this stream when it goes online.
+  string pipeline_id = 9;
+}
+
+message CreateStreamResponse {
+  Stream stream = 1;
+}
+
+message DeleteStreamRequest {
+  string id = 1;
+}
+
+message DeleteStreamResponse {}
+
+service StreamService {
+  rpc GetStream(GetStreamRequest) returns (GetStreamResponse);
+  rpc ListStreams(ListStreamsRequest) returns (ListStreamsResponse);
+  rpc CreateStream(CreateStreamRequest) returns (CreateStreamResponse);
+  rpc DeleteStream(DeleteStreamRequest) returns (DeleteStreamResponse);
+}

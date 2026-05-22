@@ -1,0 +1,47 @@
+{
+  "name": "@aegisvision/console",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AegisVision production console — exposes every platform feature.",
+  "author": "Son Nguyen <hoangson091104@gmail.com>",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/hoangsonww/AegisVision-Computer-Vision-System",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hoangsonww/AegisVision-Computer-Vision-System.git",
+    "directory": "services/console"
+  },
+  "scripts": {
+    "dev": "next dev -p 8090",
+    "build": "next build",
+    "start": "next start -p 8090",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.51.0",
+    "@tanstack/react-query-devtools": "^5.51.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "lucide-react": "^0.412.0",
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.52.1",
+    "recharts": "^2.12.7",
+    "tailwind-merge": "^2.4.0",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.5",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.3"
+  }
+}

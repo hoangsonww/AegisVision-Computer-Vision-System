@@ -1,0 +1,138 @@
+# Release pipeline. release-please cuts the version + CHANGELOG when
+# semantic-commit messages are landed on main. On tag creation the
+# air-gap bundle workflow takes over.
+name: release
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release-please:
+    name: cut release
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+      version: ${{ steps.rp.outputs.version }}
+    steps:
+      - id: rp
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: .github/release-please-config.json
+          manifest-file: .github/release-please-manifest.json
+
+  airgap-bundle:
+    name: air-gapped bundle
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      packages: read
+    env:
+      VERSION: ${{ needs.release-please.outputs.version }}
+      REGISTRY: ghcr.io/hoangsonww
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: set up crane + cosign + syft + zstd
+        run: |
+          set -e
+          curl -sSL "https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin crane
+          curl -sSL "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64" \
+            -o /usr/local/bin/cosign && sudo chmod +x /usr/local/bin/cosign
+          curl -sSL "https://raw.githubusercontent.com/anchore/syft/main/install.sh" | sudo sh -s -- -b /usr/local/bin
+          sudo apt-get update && sudo apt-get install -y zstd
+      - name: log in to ghcr
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: install helm
+        uses: azure/setup-helm@v4
+      - name: build bundle
+        run: |
+          ./tools/airgap/build.sh \
+            --version "${VERSION}" \
+            --registry "${REGISTRY}" \
+            --out dist
+      - name: cosign attest the bundle
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          BUNDLE=$(ls dist/aegisvision-airgap-*.tar.zst | head -1)
+          cosign sign-blob --yes --bundle "${BUNDLE}.cosign.bundle" "$BUNDLE"
+      - name: attach bundle to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: |
+            dist/aegisvision-airgap-*.tar.zst
+            dist/aegisvision-airgap-*.tar.zst.sha256
+            dist/aegisvision-airgap-*.tar.zst.cosign.bundle
+
+  promote-images:
+    name: promote images (ci-sha → version + latest)
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.release-please.outputs.version }}
+      REGISTRY: ghcr.io/hoangsonww
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - pipeline-service
+          - stream-manager
+          - event-service
+          - dataplane-runner
+          - model-registry
+          - inference-router
+          - audit-service
+          - gpu-scheduler
+          - rule-engine
+          - realtime-hub
+          - notification-service
+          - metering-service
+          - dataset-service
+          - annotation-service
+          - training-orchestrator
+          - media-service
+          - semantic-search
+          - tenant-service
+          - auth-proxy
+          - edge-gateway
+          - cost-accounting
+          - llm-gateway
+          - agent-service
+          - policy-gate-service
+          - active-learning-service
+          - nlq-service
+          - knowledge-service
+          - canary-controller
+          - shadow-inference-service
+          - drift-detection-service
+          - slo-watchdog
+          - prefetch-service
+          - autonomy-orchestrator
+          - compliance-evidence-service
+    steps:
+      - uses: imjasonh/setup-crane@v0.4
+      - name: log in to ghcr
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: tag ci-sha as version + latest
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          src="${REGISTRY}/${{ matrix.service }}:${SHA}"
+          crane tag "$src" "${VERSION}"
+          crane tag "$src" "latest"

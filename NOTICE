@@ -1,0 +1,47 @@
+AegisVision
+Copyright 2026 Son Nguyen
+
+This product includes software developed by Son Nguyen.
+
+Author:
+  Son Nguyen <hoangson091104@gmail.com>
+  https://github.com/hoangsonww
+  https://sonnguyenhoang.com
+  https://linkedin.com/in/hoangsonw
+
+Licensed under the Apache License, Version 2.0 (the "License").
+See LICENSE for the full terms.
+
+----------------------------------------------------------------------
+
+This project incorporates the following third-party open-source software.
+Each component is used under its own license; see the respective project
+for the full text of its license.
+
+  - Go (BSD-3-Clause)                       https://golang.org/LICENSE
+  - gRPC + protobuf (Apache-2.0)            https://github.com/grpc/grpc-go
+  - Buf (Apache-2.0)                        https://github.com/bufbuild/buf
+  - NATS / JetStream (Apache-2.0)           https://github.com/nats-io/nats-server
+  - Apache Kafka (Apache-2.0)               https://github.com/apache/kafka
+  - PostgreSQL (PostgreSQL License)         https://www.postgresql.org/about/licence/
+  - ClickHouse (Apache-2.0)                 https://github.com/ClickHouse/ClickHouse
+  - Redis (BSD / RSALv2 + SSPL)             https://redis.io/legal/licenses/
+  - Vault (BSL-1.1)                         https://github.com/hashicorp/vault
+  - Istio (Apache-2.0)                      https://github.com/istio/istio
+  - SPIRE (Apache-2.0)                      https://github.com/spiffe/spire
+  - External Secrets Operator (Apache-2.0)  https://github.com/external-secrets/external-secrets
+  - Kyverno (Apache-2.0)                    https://github.com/kyverno/kyverno
+  - ArgoCD (Apache-2.0)                     https://github.com/argoproj/argo-cd
+  - Cosign / sigstore (Apache-2.0)          https://github.com/sigstore/cosign
+  - Syft (Apache-2.0)                       https://github.com/anchore/syft
+  - chaos-mesh (Apache-2.0)                 https://github.com/chaos-mesh/chaos-mesh
+  - k6 (AGPL-3.0)                           https://github.com/grafana/k6
+  - OpenTelemetry (Apache-2.0)              https://opentelemetry.io
+  - Prometheus (Apache-2.0)                 https://github.com/prometheus/prometheus
+  - Loki (AGPL-3.0)                         https://github.com/grafana/loki
+  - Tempo (AGPL-3.0)                        https://github.com/grafana/tempo
+  - Grafana (AGPL-3.0)                      https://github.com/grafana/grafana
+  - NVIDIA Triton Inference Server (BSD-3)  https://github.com/triton-inference-server/server
+  - NVIDIA DeepStream SDK (NVIDIA EULA)     https://developer.nvidia.com/deepstream-sdk
+
+This NOTICE file is informational only and does not modify the LICENSE.

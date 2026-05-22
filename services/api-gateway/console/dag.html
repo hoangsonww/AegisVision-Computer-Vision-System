@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AegisVision — Pipeline DAG Editor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #141822;
+    --border: #1f2533;
+    --muted: #6b7280;
+    --text: #e5e7eb;
+    --accent: #4ade80;
+    --crit: #ef4444;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; align-items: center; }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header .badge { font-size: 11px; color: var(--muted); padding: 2px 8px; border: 1px solid var(--border); border-radius: 10px; }
+  main { flex: 1; display: grid; grid-template-columns: 320px 1fr 300px; gap: 0; }
+  aside { padding: 14px; border-right: 1px solid var(--border); overflow: auto; }
+  aside.right { border-right: none; border-left: 1px solid var(--border); }
+  #canvas { background: #0b0d12; }
+  .palette-item { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; cursor: grab; font-family: var(--mono); font-size: 12px; }
+  .palette-item:hover { background: var(--panel); }
+  h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 0 0 8px 0; }
+  textarea, input { width: 100%; background: #0b0d12; border: 1px solid var(--border); color: var(--text); padding: 7px 9px; border-radius: 6px; font-family: var(--mono); font-size: 12px; }
+  textarea { min-height: 280px; resize: vertical; }
+  button { background: var(--accent); color: #042; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .row { display: flex; gap: 8px; margin-top: 8px; }
+  .row > * { flex: 1; }
+  #compile-status { padding: 8px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; margin-top: 8px; }
+  #compile-status.ok  { background: rgba(74,222,128,.08); border: 1px solid var(--accent); color: var(--accent); }
+  #compile-status.err { background: rgba(239,68,68,.08); border: 1px solid var(--crit); color: var(--crit); }
+  pre { background: var(--panel); padding: 10px; border-radius: 6px; font-size: 11px; overflow: auto; max-height: 200px; }
+</style>
+<script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>AegisVision DAG Editor</h1>
+  <span class="badge">phase-2</span>
+  <span style="margin-left:auto;color:var(--muted);font-size:12px;">drag operators onto the canvas — connect with shift+click</span>
+</header>
+<main>
+  <aside>
+    <h3>Operator palette</h3>
+    <div class="palette-item" data-type="source">source — ingest</div>
+    <div class="palette-item" data-type="decode">decode</div>
+    <div class="palette-item" data-type="sampler">sampler — FPS clamp</div>
+    <div class="palette-item" data-type="model.infer">model.infer</div>
+    <div class="palette-item" data-type="tracker">tracker</div>
+    <div class="palette-item" data-type="ocr">ocr</div>
+    <div class="palette-item" data-type="segmentation">segmentation</div>
+    <div class="palette-item" data-type="pose">pose</div>
+    <div class="palette-item" data-type="embedding">embedding</div>
+    <div class="palette-item" data-type="rule.spatial">rule.spatial — zone dwell</div>
+    <div class="palette-item" data-type="rule.temporal">rule.temporal — abandoned/rate</div>
+    <div class="palette-item" data-type="rule.composite">rule.composite — AND/OR</div>
+    <div class="palette-item" data-type="redact">redact — face/plate</div>
+    <div class="palette-item" data-type="branch">branch</div>
+    <div class="palette-item" data-type="aggregate">aggregate</div>
+    <div class="palette-item" data-type="sink.event">sink.event</div>
+    <div class="palette-item" data-type="sink.webhook">sink.webhook</div>
+    <div class="palette-item" data-type="sink.store">sink.store</div>
+
+    <h3 style="margin-top:18px;">Actions</h3>
+    <div class="row"><button id="add">Add node</button><button id="clear" class="secondary">Clear</button></div>
+    <div class="row"><button id="compile">Validate</button><button id="deploy" class="secondary">Deploy</button></div>
+    <div id="compile-status">— ready —</div>
+  </aside>
+  <div id="canvas"></div>
+  <aside class="right">
+    <h3>YAML</h3>
+    <textarea id="yaml" spellcheck="false"></textarea>
+    <div class="row"><button id="render-yaml" class="secondary">YAML → graph</button></div>
+    <h3 style="margin-top:14px;">Compile output</h3>
+    <pre id="output">{}</pre>
+  </aside>
+</main>
+<script>
+const cy = cytoscape({
+  container: document.getElementById('canvas'),
+  style: [
+    { selector: 'node',
+      style: {
+        'background-color': '#141822',
+        'border-color': '#1f2533',
+        'border-width': 1,
+        'color': '#e5e7eb',
+        'label': 'data(label)',
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'font-family': 'ui-monospace, monospace',
+        'font-size': 11,
+        'width': 'label',
+        'height': 36,
+        'padding': '12px',
+        'shape': 'round-rectangle'
+      } },
+    { selector: 'edge',
+      style: {
+        'width': 2,
+        'line-color': '#4b5563',
+        'target-arrow-color': '#4b5563',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier'
+      } },
+    { selector: ':selected', style: { 'border-color': '#4ade80', 'border-width': 2, 'line-color': '#4ade80', 'target-arrow-color': '#4ade80' } },
+  ],
+  layout: { name: 'breadthfirst', directed: true, padding: 30 },
+});
+
+let selectedForEdge = null;
+let counter = 1;
+
+function addNode(type) {
+  const id = `${type.replace(/\./g, '_')}-${counter++}`;
+  cy.add({ group: 'nodes', data: { id, label: `${id}\n[${type}]`, type } });
+  cy.layout({ name: 'breadthfirst', directed: true, padding: 30 }).run();
+  exportYAML();
+}
+
+cy.on('tap', 'node', (e) => {
+  if (selectedForEdge && selectedForEdge !== e.target.id()) {
+    cy.add({ group: 'edges', data: { source: selectedForEdge, target: e.target.id() } });
+    selectedForEdge = null;
+    cy.elements().unselect();
+    exportYAML();
+  } else {
+    selectedForEdge = e.target.id();
+  }
+});
+
+document.querySelectorAll('.palette-item').forEach(el => {
+  el.addEventListener('dblclick', () => addNode(el.dataset.type));
+  el.addEventListener('click', () => addNode(el.dataset.type));
+});
+
+document.getElementById('clear').onclick = () => { cy.elements().remove(); counter = 1; exportYAML(); };
+
+function exportYAML() {
+  let out = 'id: dock-watch\nnodes:\n';
+  cy.nodes().forEach(n => {
+    const type = n.data('type');
+    const id = n.id();
+    out += `  - id: ${id}\n    type: ${type}\n`;
+    const after = cy.edges(`[target="${id}"]`).map(e => e.source().id());
+    if (after.length) out += `    after: [${after.join(', ')}]\n`;
+  });
+  document.getElementById('yaml').value = out;
+}
+
+document.getElementById('render-yaml').onclick = () => {
+  const txt = document.getElementById('yaml').value;
+  const nodes = [];
+  let cur = null;
+  for (const line of txt.split('\n')) {
+    const m = line.match(/^\s*-\s+id:\s*(\S+)/);
+    if (m) { if (cur) nodes.push(cur); cur = { id: m[1] }; continue; }
+    const mt = line.match(/^\s+type:\s*(\S+)/);
+    if (mt && cur) { cur.type = mt[1]; continue; }
+    const ma = line.match(/^\s+after:\s*\[(.*)\]/);
+    if (ma && cur) { cur.after = ma[1].split(',').map(s => s.trim()).filter(Boolean); }
+  }
+  if (cur) nodes.push(cur);
+  cy.elements().remove();
+  counter = 1;
+  for (const n of nodes) {
+    cy.add({ group: 'nodes', data: { id: n.id, type: n.type, label: `${n.id}\n[${n.type}]` } });
+  }
+  for (const n of nodes) {
+    for (const a of (n.after || [])) {
+      cy.add({ group: 'edges', data: { source: a, target: n.id } });
+    }
+  }
+  cy.layout({ name: 'breadthfirst', directed: true, padding: 30 }).run();
+};
+
+document.getElementById('compile').onclick = async () => {
+  const yaml = document.getElementById('yaml').value;
+  const status = document.getElementById('compile-status');
+  status.className = '';
+  status.textContent = 'validating…';
+  try {
+    const tenant = prompt('Tenant ID for validate call?', 't-demo');
+    if (!tenant) { status.textContent = 'cancelled'; return; }
+    const res = await fetch('/v1/pipelines:validate', {
+      method: 'POST',
+      headers: { 'X-Tenant-Id': tenant, 'Content-Type': 'application/yaml' },
+      body: yaml,
+    });
+    const body = await res.text();
+    document.getElementById('output').textContent = body;
+    if (res.ok) {
+      status.classList.add('ok');
+      status.textContent = `valid — ${body.split('"id"').length - 1} nodes compiled`;
+    } else {
+      status.classList.add('err');
+      status.textContent = `invalid: HTTP ${res.status}`;
+    }
+  } catch (e) {
+    status.classList.add('err');
+    status.textContent = `error: ${e.message}`;
+  }
+};
+
+document.getElementById('add').onclick = () => {
+  const type = prompt('Operator type (e.g. model.infer)', 'model.infer');
+  if (type) addNode(type);
+};
+
+// Seed example.
+addNode('source'); addNode('model.infer'); addNode('tracker'); addNode('rule.spatial'); addNode('sink.event');
+</script>
+</body>
+</html>

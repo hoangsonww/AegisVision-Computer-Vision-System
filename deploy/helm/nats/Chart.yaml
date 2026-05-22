@@ -1,0 +1,13 @@
+apiVersion: v2
+name: nats
+description: NATS JetStream broker for the AegisVision event bus.
+type: application
+version: 0.1.0
+appVersion: "2.10.22"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+maintainers:
+  - name: Son Nguyen
+    email: hoangson091104@gmail.com
+    url: https://github.com/hoangsonww

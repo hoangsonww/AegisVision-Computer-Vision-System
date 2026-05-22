@@ -1,0 +1,49 @@
+# Rolling restart of the ClickHouse cluster. event-service writes (via
+# the Kafka consumer) must keep landing — no detection loss permitted
+# per ADR-0002. The check job samples the detections counter before, mid,
+# and post; the post sample must be > pre after a settle period.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: clickhouse-rolling-restart
+  namespace: aegis-chaos
+spec:
+  action: pod-kill
+  mode: fixed-percent
+  value: "33"
+  duration: "180s"
+  selector:
+    namespaces: [aegis-data]
+    labelSelectors:
+      clickhouse.altinity.com/chi: aegis
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-clickhouse-rolling-restart
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              base=$(curl -s http://event-service.aegis-system:8091/metrics | \
+                awk '/^aegis_events_consumed_total/ {print $2; exit}')
+              echo "baseline consumed=$base"
+              sleep 240   # wait for restart + settle
+              post=$(curl -s http://event-service.aegis-system:8091/metrics | \
+                awk '/^aegis_events_consumed_total/ {print $2; exit}')
+              echo "post consumed=$post"
+              if [ "$(echo "$post > $base" | bc)" -ne 1 ]; then
+                echo "FAIL: event-service stopped consuming during ClickHouse rolling restart"
+                exit 1
+              fi
+              echo "PASS: events kept flowing across ClickHouse rolling restart"

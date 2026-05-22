@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: nats-conf, namespace: aegis-data }
+data:
+  nats.conf: |
+    # JetStream cluster config. Sized at 3 replicas for HA; in production set
+    # max_memory_store / max_file_store from PVC sizing.
+    listen: 0.0.0.0:4222
+    http: 0.0.0.0:8222
+    jetstream {
+      store_dir: "/data/jetstream"
+    }
+    cluster {
+      name: aegis
+      listen: 0.0.0.0:6222
+      routes: [
+        nats-route://nats-0.nats:6222,
+        nats-route://nats-1.nats:6222,
+        nats-route://nats-2.nats:6222,
+      ]
+    }

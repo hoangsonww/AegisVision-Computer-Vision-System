@@ -1,0 +1,13 @@
+apiVersion: v2
+name: inference-router
+description: HTTP boundary in front of Triton; pluggable Detector interface.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+maintainers:
+  - name: Son Nguyen
+    email: hoangson091104@gmail.com
+    url: https://github.com/hoangsonww

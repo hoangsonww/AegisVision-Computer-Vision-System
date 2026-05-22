@@ -1,0 +1,9 @@
+apiVersion: v2
+name: llm-gateway
+description: AegisVision Phase 4 LLM/VLM uniform gateway
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System

@@ -1,0 +1,95 @@
+# SPIFFE/SPIRE workload identity. SPIRE issues SVIDs (SPIFFE Verifiable
+# Identity Documents) to every pod via SPIRE agent + Workload API socket.
+# Istio Ambient ztunnel consumes these for mTLS peer identity.
+---
+apiVersion: v1
+kind: Namespace
+metadata: { name: spire-system, labels: { security.istio.io/tlsMode: istio } }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: spire-server, namespace: spire-system }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: spire-server, namespace: spire-system }
+data:
+  server.conf: |
+    server {
+      bind_address = "0.0.0.0"
+      bind_port    = "8081"
+      trust_domain = "aegisvision.local"
+      data_dir     = "/run/spire/data"
+      log_level    = "INFO"
+      ca_subject = {
+        country      = ["US"]
+        organization = ["AegisVision"]
+        common_name  = "aegisvision-ca"
+      }
+    }
+    plugins {
+      DataStore "sql" {
+        plugin_data {
+          database_type = "sqlite3"
+          connection_string = "/run/spire/data/datastore.sqlite3"
+        }
+      }
+      NodeAttestor "k8s_psat" {
+        plugin_data {
+          clusters = {
+            "aegis-prod" = {
+              service_account_allow_list = ["spire-system:spire-agent"]
+            }
+          }
+        }
+      }
+      KeyManager "disk" { plugin_data { keys_path = "/run/spire/data/keys.json" } }
+      Notifier "k8sbundle" {
+        plugin_data {
+          api_service_label_selector = "spire-bundle"
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: spire-server, namespace: spire-system }
+spec:
+  serviceName: spire-server
+  replicas: 1
+  selector: { matchLabels: { app: spire-server } }
+  template:
+    metadata: { labels: { app: spire-server } }
+    spec:
+      serviceAccountName: spire-server
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: spire-server
+          image: ghcr.io/spiffe/spire-server:1.10.4
+          imagePullPolicy: IfNotPresent
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+          ports: [{ containerPort: 8081 }]
+          args: ["-config", "/run/spire/config/server.conf"]
+          volumeMounts:
+            - { name: spire-config, mountPath: /run/spire/config, readOnly: true }
+            - { name: spire-data,   mountPath: /run/spire/data }
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits:   { cpu: "1",  memory: 1Gi }
+      volumes:
+        - name: spire-config
+          configMap: { name: spire-server }
+  volumeClaimTemplates:
+    - metadata: { name: spire-data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 5Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: spire-server, namespace: spire-system }
+spec:
+  type: ClusterIP
+  selector: { app: spire-server }
+  ports:
+    - { name: grpc, port: 8081, targetPort: 8081 }

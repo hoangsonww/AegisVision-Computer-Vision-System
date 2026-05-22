@@ -1,0 +1,70 @@
+// Model registry API. Per ADR-012, the model catalog is data, not architecture
+// — adding a YOLO12 detector or a new VLM does not require code changes here.
+syntax = "proto3";
+
+package aegisvision.control.v1;
+
+import "aegisvision/common/v1/types.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/control/v1;controlv1";
+
+enum ModelKind {
+  MODEL_KIND_UNSPECIFIED = 0;
+  MODEL_KIND_DETECTOR = 1;
+  MODEL_KIND_SEGMENTATION = 2;
+  MODEL_KIND_TRACKER = 3;
+  MODEL_KIND_OCR = 4;
+  MODEL_KIND_POSE = 5;
+  MODEL_KIND_EMBEDDING = 6;
+  MODEL_KIND_VLM = 7;
+  MODEL_KIND_LLM = 8;
+  MODEL_KIND_FACE = 9; // gated; requires explicit licensing
+}
+
+enum ModelChannel {
+  MODEL_CHANNEL_UNSPECIFIED = 0;
+  MODEL_CHANNEL_CANARY = 1;
+  MODEL_CHANNEL_STABLE = 2;
+  MODEL_CHANNEL_DEPRECATED = 3;
+}
+
+// A measured resource cost profile for a (model, GPU SKU, precision,
+// resolution) tuple. Required before promotion to STABLE — see ADR-003 and the
+// production lesson on the GPU reservation ledger.
+message CostProfile {
+  string gpu_sku = 1;          // e.g. "L4", "L40S", "H100"
+  string mig_profile = 2;      // e.g. "1g.10gb"
+  string precision = 3;        // "fp16" | "fp8" | "int8" | "fp32"
+  int32  input_height = 4;
+  int32  input_width = 5;
+  int32  batch = 6;
+
+  int64  vram_bytes = 7;       // resident memory at steady state
+  double inference_ms = 8;     // p50 single-batch
+  double inference_ms_p95 = 9; // p95 single-batch
+  double watts = 10;
+  bool   verified = 11;        // false until the profiler signs off
+}
+
+message ModelVersion {
+  string id = 1;
+  string model_id = 2;
+  string semver = 3;
+  ModelChannel channel = 4;
+  string artifact_uri = 5;    // OCI artifact reference (ADR-007 supply chain)
+  string signature = 6;       // cosign signature
+  string sbom_uri = 7;
+  string fairness_eval_uri = 8; // mandatory for face/person models
+  repeated CostProfile cost_profiles = 9;
+  aegisvision.common.v1.AuditFields audit = 100;
+}
+
+message Model {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  string name = 3;
+  ModelKind kind = 4;
+  string family = 5;        // e.g. "yolo11", "rtdetrv2"
+  repeated string labels = 6;
+  aegisvision.common.v1.AuditFields audit = 100;
+}

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: training-orchestrator, namespace: aegis-system, labels: { app.kubernetes.io/name: training-orchestrator } }
+spec:
+  selector: { app.kubernetes.io/name: training-orchestrator }
+  ports:
+    - { name: http, port: 8270, targetPort: 8270, appProtocol: http }
+    - { name: metrics, port: 8271, targetPort: 8271 }

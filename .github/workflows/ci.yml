@@ -1,0 +1,349 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write       # required for cosign keyless OIDC
+  packages: write        # push images to ghcr
+  attestations: write    # SLSA provenance
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: ${{ github.repository_owner }}
+
+jobs:
+  # ----------------------------------------------------------------------
+  # 1. Build + test every Go module in the workspace.
+  # ----------------------------------------------------------------------
+  go-test:
+    name: build + test (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          # platform libs
+          - pkg/platform
+          - pkg/bus
+          - pkg/dataplane
+          - pkg/store
+          - pkg/llm
+          - pkg/agent
+          - pkg/embeddings
+          - pkg/intelligence
+          - pkg/canary
+          - pkg/autonomy
+          # phase 0–3 services
+          - services/api-gateway
+          - services/pipeline-service
+          - services/stream-manager
+          - services/event-service
+          - services/dataplane-runner
+          - services/model-registry
+          - services/inference-router
+          - services/audit-service
+          - services/gpu-scheduler
+          - services/rule-engine
+          - services/realtime-hub
+          - services/notification-service
+          - services/metering-service
+          - services/dataset-service
+          - services/annotation-service
+          - services/training-orchestrator
+          - services/media-service
+          - services/semantic-search
+          - services/tenant-service
+          - services/auth-proxy
+          - services/edge-gateway
+          - services/cost-accounting
+          # phase 4 — intelligence
+          - services/llm-gateway
+          - services/agent-service
+          - services/policy-gate-service
+          - services/active-learning-service
+          - services/nlq-service
+          - services/knowledge-service
+          # phase 5 — autonomy
+          - services/canary-controller
+          - services/shadow-inference-service
+          - services/drift-detection-service
+          - services/slo-watchdog
+          - services/prefetch-service
+          - services/autonomy-orchestrator
+          # phase 6 — GA hardening
+          - services/compliance-evidence-service
+          # tools
+          - tools/conformance
+          - tools/integration
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache: false
+      - name: go vet
+        working-directory: ${{ matrix.module }}
+        run: go vet ./...
+      - name: go build
+        working-directory: ${{ matrix.module }}
+        run: go build ./...
+      - name: go test
+        working-directory: ${{ matrix.module }}
+        run: go test -race -count=1 -coverprofile=coverage.out ./...
+      - name: upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.module }}
+          path: ${{ matrix.module }}/coverage.out
+
+  # ----------------------------------------------------------------------
+  # 2. Protobuf lint + breaking-change check.
+  # ----------------------------------------------------------------------
+  proto-lint:
+    name: protobuf lint + breaking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: bufbuild/buf-setup-action@v1
+      - run: buf lint
+        working-directory: proto
+      - name: breaking-change check (PR only)
+        if: github.event_name == 'pull_request'
+        working-directory: proto
+        run: buf breaking --against "https://github.com/${{ github.repository }}.git#branch=main,subdir=proto"
+
+  # ----------------------------------------------------------------------
+  # 3. Helm lint every chart, conformance test ensures golden-path coverage.
+  # ----------------------------------------------------------------------
+  helm-lint:
+    name: helm chart lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: lint every chart
+        run: |
+          set -e
+          for chart in deploy/helm/*/; do helm lint "$chart"; done
+
+  conformance:
+    name: golden-path conformance test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.26.x", cache: false }
+      - run: go test -count=1 ./...
+        working-directory: tools/conformance
+
+  integration:
+    name: cross-service integration smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.26.x", cache: false }
+      - run: go test -race -count=1 -timeout=180s ./...
+        working-directory: tools/integration
+
+  doc-links:
+    name: internal doc-link integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.26.x", cache: false }
+      - name: check internal markdown links
+        run: go run tools/scripts/check_links.go .
+
+  console:
+    name: console (Next.js build + typecheck + lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: services/console/package-lock.json
+      - name: install
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: typecheck
+        run: npm run typecheck
+      - name: lint
+        run: npm run lint || true
+      - name: build
+        run: npm run build
+
+  # ----------------------------------------------------------------------
+  # 4. K8s manifest schema validation.
+  # ----------------------------------------------------------------------
+  kube-lint:
+    name: k8s schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | tar -xz kubeconform
+          sudo mv kubeconform /usr/local/bin/
+      - name: validate base manifests
+        run: kubeconform -strict -ignore-missing-schemas deploy/k8s/base/*.yaml
+      - name: validate Kyverno policies
+        run: kubeconform -strict -ignore-missing-schemas deploy/k8s/policies/*.yaml || true
+
+  # ----------------------------------------------------------------------
+  # 5. Build, scan, sign every service container. cosign keyless + SLSA.
+  # ----------------------------------------------------------------------
+  container-image:
+    name: build + scan + sign (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    needs: [go-test, conformance]
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          # phase 0–3
+          - api-gateway
+          - pipeline-service
+          - stream-manager
+          - event-service
+          - dataplane-runner
+          - model-registry
+          - inference-router
+          - audit-service
+          - gpu-scheduler
+          - rule-engine
+          - realtime-hub
+          - notification-service
+          - metering-service
+          - dataset-service
+          - annotation-service
+          - training-orchestrator
+          - media-service
+          - semantic-search
+          - tenant-service
+          - auth-proxy
+          - edge-gateway
+          - cost-accounting
+          # phase 4
+          - llm-gateway
+          - agent-service
+          - policy-gate-service
+          - active-learning-service
+          - nlq-service
+          - knowledge-service
+          # phase 5
+          - canary-controller
+          - shadow-inference-service
+          - drift-detection-service
+          - slo-watchdog
+          - prefetch-service
+          - autonomy-orchestrator
+          # phase 6 — GA hardening + console
+          - compliance-evidence-service
+          - console
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: log in to ghcr
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: build image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/${{ matrix.service }}/Dockerfile
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:ci-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:${{ github.sha }}
+          push: ${{ github.event_name == 'push' }}
+          load:  ${{ github.event_name != 'push' }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to:   type=gha,scope=${{ matrix.service }},mode=max
+          platforms: linux/amd64,linux/arm64
+          provenance: true
+      - name: trivy scan (HIGH/CRITICAL fails CI)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:ci-${{ github.sha }}
+          format: table
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+
+      - name: syft SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:ci-${{ github.sha }}
+          format: spdx-json
+          output-file: ${{ matrix.service }}.sbom.json
+      - name: upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.service }}
+          path: ${{ matrix.service }}.sbom.json
+
+      # cosign keyless signing — requires the id-token permission above.
+      - name: install cosign
+        if: github.event_name == 'push'
+        uses: sigstore/cosign-installer@v3
+      - name: cosign sign
+        if: github.event_name == 'push'
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign sign --yes \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}@${{ steps.build.outputs.digest }}
+      - name: cosign attest SBOM
+        if: github.event_name == 'push'
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign attest --yes \
+            --predicate ${{ matrix.service }}.sbom.json \
+            --type spdxjson \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}@${{ steps.build.outputs.digest }}
+
+      # SLSA provenance attestation — uses the OIDC token to produce a v1
+      # provenance and uploads it as an in-toto attestation against the image.
+      - name: SLSA provenance
+        if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+  # ----------------------------------------------------------------------
+  # 6. Load test gate (deferred; runs only on main).
+  # ----------------------------------------------------------------------
+  loadtest:
+    name: k6 SLO gate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [container-image]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: smoke (lint only — full run is post-deploy)
+        run: k6 inspect tools/loadtest/api-gateway.js

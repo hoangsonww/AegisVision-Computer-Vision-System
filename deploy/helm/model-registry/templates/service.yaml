@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: model-registry, namespace: aegis-system, labels: { app.kubernetes.io/name: model-registry } }
+spec:
+  selector: { app.kubernetes.io/name: model-registry }
+  ports:
+    - { name: grpc, port: 9094, targetPort: 9094, appProtocol: grpc }
+    - { name: metrics, port: 9097, targetPort: 9097 }

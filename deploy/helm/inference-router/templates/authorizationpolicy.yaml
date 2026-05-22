@@ -1,0 +1,13 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: inference-router, namespace: aegis-inference }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: inference-router } }
+  action: ALLOW
+  rules:
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-streaming/sa/dataplane-runner] }
+      to: [{ operation: { ports: ["8094"] } }]
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
+      to: [{ operation: { ports: ["8095"] } }]

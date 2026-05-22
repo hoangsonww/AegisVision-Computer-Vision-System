@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: notification-service, namespace: aegis-system }
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/name: notification-service } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app.kubernetes.io/name: api-gateway } }
+      ports: [{ port: 8230, protocol: TCP }]
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: aegis-observability } }
+          podSelector: { matchLabels: { app.kubernetes.io/name: prometheus } }
+      ports: [{ port: 8231, protocol: TCP }]

@@ -1,0 +1,695 @@
+<div align="center">
+
+<h1>🛡️ AegisVision</h1>
+
+<p><b>A distributed, autonomous, GPU-native visual-intelligence operating system
+for realtime multimodal perception, reasoning, and orchestration at planetary
+scale.</b></p>
+
+<p>
+  <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-AegisVision-181717?style=for-the-badge&logo=github&logoColor=white"></a>
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge"></a>
+  <a href="./CITATION.cff"><img alt="Cite" src="https://img.shields.io/badge/Cite-CITATION.cff-success.svg?style=for-the-badge"></a>
+  <img alt="Status" src="https://img.shields.io/badge/Status-Phase_0%E2%80%936_Complete-brightgreen.svg?style=for-the-badge">
+  <img alt="Services" src="https://img.shields.io/badge/Services-35-blueviolet.svg?style=for-the-badge">
+  <img alt="ADRs" src="https://img.shields.io/badge/ADRs-30-informational.svg?style=for-the-badge">
+  <img alt="Helm Charts" src="https://img.shields.io/badge/Helm_Charts-38-0F1689.svg?style=for-the-badge&logo=helm&logoColor=white">
+</p>
+
+<!-- Languages & runtime -->
+<p>
+  <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00ADD8.svg?style=flat-square&logo=go&logoColor=white">
+  <img alt="gRPC" src="https://img.shields.io/badge/gRPC-protobuf-244c5a.svg?style=flat-square&logo=grpc&logoColor=white">
+  <img alt="Protobuf" src="https://img.shields.io/badge/Protobuf-Buf-1A1A1A.svg?style=flat-square&logo=protobuf&logoColor=white">
+  <img alt="Bash" src="https://img.shields.io/badge/Bash-CLI-4EAA25.svg?style=flat-square&logo=gnubash&logoColor=white">
+  <img alt="HTML5" src="https://img.shields.io/badge/HTML5-Console-E34F26.svg?style=flat-square&logo=html5&logoColor=white">
+  <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-Console-F7DF1E.svg?style=flat-square&logo=javascript&logoColor=black">
+  <img alt="Mermaid" src="https://img.shields.io/badge/Mermaid-diagrams-FF3670.svg?style=flat-square&logo=mermaid&logoColor=white">
+</p>
+
+<!-- Cloud-native platform -->
+<p>
+  <img alt="Kubernetes" src="https://img.shields.io/badge/Kubernetes-1.27%2B-326CE5.svg?style=flat-square&logo=kubernetes&logoColor=white">
+  <img alt="Helm" src="https://img.shields.io/badge/Helm-charts-0F1689.svg?style=flat-square&logo=helm&logoColor=white">
+  <img alt="Istio" src="https://img.shields.io/badge/Istio-Ambient_mTLS-466BB0.svg?style=flat-square&logo=istio&logoColor=white">
+  <img alt="ArgoCD" src="https://img.shields.io/badge/ArgoCD-GitOps-EF7B4D.svg?style=flat-square&logo=argo&logoColor=white">
+  <img alt="OPA" src="https://img.shields.io/badge/OPA-AuthZ-7D4698.svg?style=flat-square&logo=openpolicyagent&logoColor=white">
+  <img alt="Kyverno" src="https://img.shields.io/badge/Kyverno-admission-1D8BF1.svg?style=flat-square&logo=kubernetes&logoColor=white">
+  <img alt="SPIRE" src="https://img.shields.io/badge/SPIRE-SPIFFE-1F4493.svg?style=flat-square">
+  <img alt="External Secrets" src="https://img.shields.io/badge/External_Secrets-ESO-3A2D7E.svg?style=flat-square">
+  <img alt="Vault" src="https://img.shields.io/badge/Vault-transit_keys-FFEC6E.svg?style=flat-square&logo=vault&logoColor=black">
+  <img alt="Terraform" src="https://img.shields.io/badge/Terraform-IaC-7B42BC.svg?style=flat-square&logo=terraform&logoColor=white">
+</p>
+
+<!-- Data tier -->
+<p>
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-Patroni_HA-316192.svg?style=flat-square&logo=postgresql&logoColor=white">
+  <img alt="ClickHouse" src="https://img.shields.io/badge/ClickHouse-3%C3%972_replicated-FFCC01.svg?style=flat-square&logo=clickhouse&logoColor=black">
+  <img alt="Redis" src="https://img.shields.io/badge/Redis-Sentinel_HA-DC382D.svg?style=flat-square&logo=redis&logoColor=white">
+  <img alt="NATS" src="https://img.shields.io/badge/NATS-JetStream-27AAE1.svg?style=flat-square&logo=natsdotio&logoColor=white">
+  <img alt="Kafka" src="https://img.shields.io/badge/Kafka-durable_bus-231F20.svg?style=flat-square&logo=apachekafka&logoColor=white">
+  <img alt="Object Store" src="https://img.shields.io/badge/Object_Store-S3%2FMinIO%2FCeph-569A31.svg?style=flat-square&logo=amazons3&logoColor=white">
+  <img alt="SQLite" src="https://img.shields.io/badge/SQLite-dev_mode-003B57.svg?style=flat-square&logo=sqlite&logoColor=white">
+  <img alt="pgvector" src="https://img.shields.io/badge/pgvector-RAG-336791.svg?style=flat-square">
+</p>
+
+<!-- GPU + inference -->
+<p>
+  <img alt="NVIDIA Triton" src="https://img.shields.io/badge/NVIDIA-Triton_Inference-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
+  <img alt="TensorRT-LLM" src="https://img.shields.io/badge/TensorRT--LLM-LLM_serving-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
+  <img alt="DeepStream" src="https://img.shields.io/badge/DeepStream-SDK-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
+  <img alt="MIG" src="https://img.shields.io/badge/MIG-default_partitioning-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
+  <img alt="ByteTrack" src="https://img.shields.io/badge/ByteTrack-tracker-555555.svg?style=flat-square">
+  <img alt="DeepSORT" src="https://img.shields.io/badge/DeepSORT-tracker-555555.svg?style=flat-square">
+  <img alt="vLLM" src="https://img.shields.io/badge/vLLM-OSS_backend-3F6FE0.svg?style=flat-square">
+  <img alt="OpenAI compat" src="https://img.shields.io/badge/OpenAI-compatible_API-412991.svg?style=flat-square&logo=openai&logoColor=white">
+  <img alt="Anthropic" src="https://img.shields.io/badge/Anthropic-supported_backend-D97757.svg?style=flat-square">
+  <img alt="Bedrock" src="https://img.shields.io/badge/AWS_Bedrock-supported_backend-FF9900.svg?style=flat-square&logo=amazonaws&logoColor=white">
+</p>
+
+<!-- Observability -->
+<p>
+  <img alt="OpenTelemetry" src="https://img.shields.io/badge/OpenTelemetry-OTLP-425CC7.svg?style=flat-square&logo=opentelemetry&logoColor=white">
+  <img alt="Prometheus" src="https://img.shields.io/badge/Prometheus-RED_metrics-E6522C.svg?style=flat-square&logo=prometheus&logoColor=white">
+  <img alt="Loki" src="https://img.shields.io/badge/Loki-logs-FCB037.svg?style=flat-square&logo=grafana&logoColor=white">
+  <img alt="Tempo" src="https://img.shields.io/badge/Tempo-traces-F46800.svg?style=flat-square&logo=grafana&logoColor=white">
+  <img alt="Grafana" src="https://img.shields.io/badge/Grafana-dashboards-F46800.svg?style=flat-square&logo=grafana&logoColor=white">
+  <img alt="slog" src="https://img.shields.io/badge/slog-structured_logs-00ADD8.svg?style=flat-square&logo=go&logoColor=white">
+</p>
+
+<!-- Supply chain + security -->
+<p>
+  <img alt="Cosign" src="https://img.shields.io/badge/Cosign-keyless_signing-3D8B40.svg?style=flat-square&logo=sigstore&logoColor=white">
+  <img alt="Sigstore" src="https://img.shields.io/badge/Sigstore-Rekor-3D8B40.svg?style=flat-square&logo=sigstore&logoColor=white">
+  <img alt="SLSA" src="https://img.shields.io/badge/SLSA-v1_provenance-1D5CC8.svg?style=flat-square">
+  <img alt="Syft" src="https://img.shields.io/badge/Syft-SBOM_SPDX-1B6EC2.svg?style=flat-square">
+  <img alt="OIDC" src="https://img.shields.io/badge/OIDC-JWT%20%2B%20JWKS-1D5CC8.svg?style=flat-square">
+  <img alt="RFC 9457" src="https://img.shields.io/badge/RFC_9457-problem%2Bjson-555555.svg?style=flat-square">
+  <img alt="GDPR" src="https://img.shields.io/badge/GDPR-DPIA-005EB8.svg?style=flat-square">
+  <img alt="SOC 2" src="https://img.shields.io/badge/SOC_2-controls-005EB8.svg?style=flat-square">
+  <img alt="EU AI Act" src="https://img.shields.io/badge/EU_AI_Act-conformity-003399.svg?style=flat-square">
+</p>
+
+<!-- Chaos + load -->
+<p>
+  <img alt="chaos-mesh" src="https://img.shields.io/badge/chaos--mesh-resilience_gate-A21B7B.svg?style=flat-square">
+  <img alt="k6" src="https://img.shields.io/badge/k6-load_tests-7D64FF.svg?style=flat-square&logo=k6&logoColor=white">
+  <img alt="WAL-G" src="https://img.shields.io/badge/WAL--G-PostgreSQL_backup-316192.svg?style=flat-square">
+  <img alt="clickhouse-backup" src="https://img.shields.io/badge/clickhouse--backup-snapshots-FFCC01.svg?style=flat-square&logo=clickhouse&logoColor=black">
+</p>
+
+<!-- Tooling -->
+<p>
+  <img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-CI-2088FF.svg?style=flat-square&logo=githubactions&logoColor=white">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-distroless-2496ED.svg?style=flat-square&logo=docker&logoColor=white">
+  <img alt="Buf" src="https://img.shields.io/badge/Buf-proto_lint_%2B_breaking-1A1A1A.svg?style=flat-square">
+  <img alt="release-please" src="https://img.shields.io/badge/release--please-versioning-4285F4.svg?style=flat-square&logo=googlecloud&logoColor=white">
+  <img alt="Task" src="https://img.shields.io/badge/Task-runner-29BEB0.svg?style=flat-square&logo=task&logoColor=white">
+  <img alt="zstd" src="https://img.shields.io/badge/zstd-bundle_compression-555555.svg?style=flat-square">
+</p>
+
+<!-- Edge -->
+<p>
+  <img alt="k3s" src="https://img.shields.io/badge/k3s-edge-FFC61C.svg?style=flat-square&logo=k3s&logoColor=black">
+  <img alt="Jetson" src="https://img.shields.io/badge/NVIDIA_Jetson-edge-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
+  <img alt="RTSP" src="https://img.shields.io/badge/RTSP-stream_ingest-555555.svg?style=flat-square">
+  <img alt="WebRTC" src="https://img.shields.io/badge/WebRTC-stream_ingest-333333.svg?style=flat-square&logo=webrtc&logoColor=white">
+  <img alt="SSE" src="https://img.shields.io/badge/SSE-realtime_push-555555.svg?style=flat-square">
+  <img alt="WebSocket" src="https://img.shields.io/badge/WebSocket-realtime-555555.svg?style=flat-square">
+</p>
+
+<p>
+  <a href="https://github.com/hoangsonww"><img alt="Author" src="https://img.shields.io/badge/Author-Son%20Nguyen-black?style=for-the-badge&logo=github&logoColor=white"></a>
+  <a href="https://linkedin.com/in/hoangsonw"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-hoangsonw-0A66C2.svg?style=for-the-badge&logo=linkedin&logoColor=white"></a>
+  <a href="https://sonnguyenhoang.com"><img alt="Website" src="https://img.shields.io/badge/Website-sonnguyenhoang.com-1F6FEB.svg?style=for-the-badge&logo=safari&logoColor=white"></a>
+  <a href="mailto:hoangson091104@gmail.com"><img alt="Email" src="https://img.shields.io/badge/Email-hoangson091104@gmail.com-D14836.svg?style=for-the-badge&logo=gmail&logoColor=white"></a>
+</p>
+
+<hr/>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=900&color=00ADD8&center=true&vCenter=true&width=900&lines=Frames+never+go+on+the+bus.+(ADR-0008);Agents+do+not+auto-execute+consequential+actions.+(ADR-0014%2F0017);One+LLM+gateway.+(ADR-0018);Wilson+lower-bound+%2B+min-sample+floor.+(ADR-0023);Air-gapped+bundle+as+day-one+CI+artifact.+(ADR-0027)" alt="taglines" />
+
+</div>
+
+---
+
+
+
+AegisVision is what you get when you take the hardest lessons learned from
+operating large computer-vision platforms (Matroid, Scale, Roboflow, ClearML,
+Sensible) — and rebuild the platform from first principles around the
+constraints that *actually* dominate at scale:
+
+- **Frames must never go on the bus.** (Claim-check, ADR-0008.)
+- **The control plane must never see per-frame work.** (Two-plane separation,
+  ADR-0001.)
+- **GPUs are partitioned, not shared by hope.** (MIG-default, ADR-0003.)
+- **Agents must not auto-execute consequential actions.** (Bounded autonomy,
+  ADR-0014/0017.)
+- **Every public answer about platform state must cite its source.** (RAG over
+  plain LLM, ADR-0020.)
+- **Canary promotion is a statistical test, not a hand-wave.** (Wilson lower
+  bound, ADR-0023.)
+- **Air-gapped installation is a first-class CI artifact, not an afterthought.**
+  (Bundle-as-day-one, ADR-0027.)
+
+This repository contains **35 Go services + 1 Next.js console**, **14
+shared libraries**, **39 Helm charts**, **30 Architecture Decision
+Records**, and a complete set of **compliance evidence packages** (SOC 2,
+EU AI Act, GDPR DPIA, pen-test scope). Phases 0–7 of the delivery plan are
+complete; the platform is **code-functional end-to-end** with a 5-test
+cross-service integration smoke suite and a 39-chart Helm conformance
+test, plus a production-ready Next.js console at
+[`services/console/`](./services/console) that exposes every public API as
+a usable page.
+
+---
+
+## Table of contents
+
+1. [What is AegisVision?](#what-is-aegisvision)
+2. [Status at a glance](#status-at-a-glance)
+3. [Repository layout](#repository-layout)
+4. [Quickstart — walking skeleton](#quickstart--walking-skeleton)
+5. [The 35 services](#the-35-services)
+6. [Architectural commitments (the ADRs)](#architectural-commitments-the-adrs)
+7. [Public API discipline](#public-api-discipline)
+8. [Errors, idempotency, pagination](#errors-idempotency-pagination)
+9. [Observability](#observability)
+10. [Security posture](#security-posture)
+11. [Deploy](#deploy)
+12. [How to contribute](#how-to-contribute)
+13. [Further reading](#further-reading)
+
+---
+
+## What is AegisVision?
+
+AegisVision is a **horizontally-scaled, multi-tenant, GPU-native visual
+intelligence platform**. In one sentence: it ingests video streams from any
+source, runs configurable detection / tracking / reasoning pipelines on
+GPUs, fires rule-based and ML-based events, supports an agentic conversational
+interface over the platform, continuously learns from operator feedback, and
+deploys to anything from a single laptop to a 10,000-stream production
+Kubernetes cluster (or an air-gapped DMZ).
+
+Concretely, the platform answers questions like:
+
+- *"Was there a person on the loading dock between 02:00 and 02:15?"*
+- *"How many forklifts crossed zone 7 today, and which ones lingered more
+  than 60 seconds?"*
+- *"This new model improves recall by 4% — promote it if the drop in
+  precision is statistically insignificant."*
+- *"Alert me whenever the dwell-time SLO burns a quarter of its monthly
+  error budget in under an hour."*
+- *"Show me the five most recent uncertain detections so I can label them."*
+- *"Has data drift in stream pool A crossed the model owner's threshold?"*
+
+It does this with **bounded autonomy**: agents can answer, advise, and execute
+reversible work, but anything consequential (promoting a model, overriding a
+retention policy, force-rolling-back a canary) routes through a
+human-approval gate by design. There is no force-promote endpoint anywhere
+in the platform — that is a deliberate architectural property, not an
+omission.
+
+```mermaid
+flowchart LR
+    subgraph Edge / On-prem
+        CAM[Cameras / RTSP / Files]
+    end
+    subgraph Stream tier
+        SM[stream-manager]
+        DR[dataplane-runner]
+    end
+    subgraph GPU tier
+        IR[inference-router]
+        TRT[Triton + TRT-LLM]
+        GS[gpu-scheduler]
+    end
+    subgraph Control plane
+        AG[api-gateway]
+        PS[pipeline-service]
+        MR[model-registry]
+        TS[tenant-service]
+    end
+    subgraph Event tier
+        ES[event-service]
+        RH[realtime-hub]
+        NS[notification-service]
+    end
+    subgraph Storage
+        CH[(ClickHouse)]
+        PG[(Postgres)]
+        OBJ[(Object store)]
+    end
+    subgraph Intelligence tier
+        LG[llm-gateway]
+        AS[agent-service]
+        PG2[policy-gate-service]
+        KS[knowledge-service]
+    end
+
+    CAM --> SM
+    SM --> DR
+    DR --> IR
+    IR --> TRT
+    DR -- detections --> ES
+    ES --> CH
+    ES --> RH
+    RH --> NS
+    AG --> PS
+    AG --> ES
+    AG --> AS
+    AS --> LG
+    AS --> KS
+    AS --> PG2
+    IR --> GS
+    PS --> MR
+```
+
+---
+
+## Status at a glance
+
+| Phase | Theme | Status |
+| --- | --- | --- |
+| 0 | Foundations: protobuf contracts, `pkg/platform`, walking-skeleton spine | **complete** |
+| 1 | Glass-to-event walking skeleton (5 services + NATS) | **complete** (p95 ≈ 2.7 ms on local hardware vs 300 ms target) |
+| 2 | GPU hot path: Triton + MIG + inference-router + canary plumbing | **complete** |
+| 3 | Multi-tenant + edge + storage tier (Patroni / Clickhouse / Vault) | **complete** |
+| 4 | Intelligence tier: LLM gateway + agent + RAG + bounded autonomy | **complete** |
+| 5 | Adaptive autonomy: canary controller + shadow + drift + SLO + prefetch | **complete** |
+| 6 | GA hardening: compliance evidence + air-gap bundle + chaos + DR drills + release | **complete** |
+| 7 | Production console: Next.js UI exposing every platform feature | **complete** |
+
+**49 of 49 Go modules** build and test green under `-race`.
+**39 of 39 Helm charts** pass the conformance test (mTLS STRICT, AuthZ ALLOW
+list, NetworkPolicy default-deny, ServiceMonitor, HPA, PDB).
+**5 of 5 cross-service integration smoke tests** pass (bus subjects,
+wildcards, concurrent gate resolutions, bounded-autonomy round trip, LLM
+safety refusal).
+
+The system has **not yet been deployed** to a real production cluster, nor
+been audited by an external SOC 2 / EU AI Act assessor. Those activities
+need physical clusters and an actual audit window; the platform is *ready
+for* them.
+
+---
+
+## Repository layout
+
+```
+/proto                    Buf-managed protobuf contracts. ADR-0007.
+/pkg
+  /platform               Golden-path Go library: logging, OTel, metrics,
+                          problem+json, health, pagination, idempotency,
+                          shutdown, config, auth, middleware, RFC9457.
+  /bus                    Event bus abstraction: NATS, Kafka, in-process, DualBus.
+  /dataplane              Streaming operator runtime + claim-check ring +
+                          operators (ingest, sampler, detect, tracker, rule, emit).
+  /store                  SQL access + migrate runner (Patroni, sqlite for dev).
+  /llm                    LLM gateway client + safety layer (sanitize + redact +
+                          refusal threshold).
+  /agent                  Bounded-autonomy agent runtime + tool router + gate hook.
+  /embeddings             Vector store + chunker; pgvector + faiss-compatible.
+  /intelligence           Active learning + uncertainty + NLQ types.
+  /canary                 Wilson lower bound + min-sample floor + traffic split.
+  /autonomy               Cron + signal scheduler + divergence math (JS / KL / TVD).
+/services                 35 Go services + 1 Next.js console. Each its own
+                          bounded context, each its own deployable.
+/deploy
+  /helm                   39 charts. One per service, plus nats, dataplane
+                          runtime, triton, edge-profile, and the console.
+  /argocd                 ApplicationSet for GitOps reconciliation of all charts.
+  /k8s
+    /base                 Namespaces, priority classes, default-deny network policy.
+    /policies             Kyverno admission policies.
+    /quotas               Per-namespace resource quotas.
+  /platform
+    /istio                Ambient mTLS STRICT + AuthorizationPolicies.
+    /observability        OpenTelemetry collector, Prometheus, Loki, Tempo.
+    /spire                SPIRE workload identity.
+    /vault                Vault + transit + ExternalSecrets bootstrap.
+    /data                 Patroni Postgres, Redis Sentinel, ClickHouse Operator.
+    /argocd               ArgoCD bootstrap.
+  /chaos                  10 chaos experiments (chaos-mesh manifests).
+  /terraform              Cloud-side infrastructure (managed Kubernetes etc.).
+/tools
+  /airgap                 build.sh / install.sh / verify.sh — bundle the world
+                          for offline install. ADR-0027.
+  /conformance            38-chart Helm chart conformance test (mTLS, AuthZ, NP).
+  /integration            5-test cross-service contract smoke suite.
+  /loadtest               k6 scripts: 10k streams, 1k agents, slo gate.
+  /dr-drills              Quarterly DR drill harness + per-component restore.
+  /audit                  Audit-log append validator + signature verifier.
+  /proto                  Lint + breaking-change checker for /proto.
+  /scaffold               Service scaffolder (used to bootstrap a new service).
+  /scripts                Misc operational scripts.
+/docs
+  /adr                    30 Architecture Decision Records.
+  /compliance             SOC 2 controls, EU AI Act conformity, GDPR DPIA,
+                          pen-test scope, full evidence packages.
+  /runbooks               Operational runbooks (incident, oncall, DR, chaos,
+                          drift spike, canary rollback, agent incident).
+```
+
+---
+
+## Quickstart — walking skeleton
+
+The walking skeleton (Phase 1, ADR-0016) runs five services + an embedded
+NATS in five terminals and produces a real end-to-end detection event in
+under five seconds.
+
+```bash
+brew install go-task                       # task runner
+task bootstrap                             # install tools + first build
+task proto                                 # regenerate protobuf bindings
+task build                                 # build every Go module
+task test                                  # run unit tests with -race
+```
+
+Then in five terminals:
+
+```bash
+# 1) event-service embeds NATS in dev mode
+AEGIS_EMBED_NATS=true task run:event-service
+# Note the URL it logs, then export it for the others:
+export AEGIS_NATS_URL=nats://127.0.0.1:NNNNN
+
+# 2-4) The control + data plane
+task run:pipeline-service
+AEGIS_NATS_URL=$AEGIS_NATS_URL task run:stream-manager
+AEGIS_NATS_URL=$AEGIS_NATS_URL task run:dataplane-runner
+
+# 5) The public REST + SSE entrypoint + console
+AEGIS_STREAM_MANAGER_ADDR=localhost:9092 \
+AEGIS_EVENT_SERVICE_URL=http://localhost:8090 \
+AEGIS_CONSOLE_DIR=$(pwd)/services/api-gateway/console \
+  task run:api-gateway
+```
+
+In two more terminals:
+
+```bash
+# Subscribe to the SSE feed:
+curl -N -H 'X-Tenant-Id: t-demo' \
+  'http://localhost:8080/v1/events:stream?stream_id=stream-dock-1'
+
+# Create a stream (this fires the synthetic detector, the dwell rule
+# trips at ~5 s, the event lands on NATS, event-service consumes it, and
+# the SSE pushes it to your subscriber):
+curl -X POST -H 'X-Tenant-Id: t-demo' -H 'Idempotency-Key: 1' \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"dock-1","project_id":"p1","protocol":"file","url":"file:///x","pipeline_id":"p-walking"}' \
+  http://localhost:8080/v1/streams
+```
+
+Or, simpler, open <http://localhost:8080/console/> in a browser.
+
+The walking-skeleton flow is:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant AG as api-gateway
+    participant SM as stream-manager
+    participant DR as dataplane-runner
+    participant NATS as NATS JetStream
+    participant ES as event-service
+
+    User->>AG: POST /v1/streams (Idempotency-Key)
+    AG->>SM: gRPC CreateStream
+    SM->>NATS: operator.control (start)
+    NATS->>DR: receive control msg
+    DR->>DR: build operator DAG<br/>(ingest→sampler→detect→tracker→rule→emit)
+    DR->>NATS: events.v1 (KIND_DWELL)
+    NATS->>ES: consume
+    ES-->>User: SSE event push
+```
+
+For full deployment paths (online ArgoCD / offline air-gapped), see
+[`SETUP_GUIDE.md`](./SETUP_GUIDE.md).
+
+---
+
+## The 35 services
+
+The platform is decomposed into **35 services**, each in its own Go module,
+each with a single bounded responsibility, each communicating over typed
+protobuf contracts (gRPC + JSON/REST for tenant-facing APIs).
+
+### Control plane (Temporal-friendly)
+
+| Service | Purpose |
+| --- | --- |
+| `api-gateway` | Public REST entrypoint. JWT verify via JWKS, OPA AuthZ, RFC 9457 errors, idempotency, cursor pagination, SSE proxy. |
+| `pipeline-service` | CRUD + revisions for pipeline DAGs. ADR-friendly resource model. |
+| `stream-manager` | Stream lifecycle. Dispatches control messages to dataplane-runner via NATS `operator.control`. |
+| `model-registry` | Versioned model artifacts + signatures + canary planning. |
+| `dataset-service` | Datasets + dataset versions + lineage. |
+| `annotation-service` | Labels + label-policy versions. |
+| `training-orchestrator` | Wraps training jobs (Kubeflow / Ray). Tracks artifacts. |
+| `media-service` | Recordings + clips + retention policies (crypto-shredded by tenant key). |
+| `tenant-service` | Tenants + projects + members + RBAC. |
+| `auth-proxy` | JWT verify against JWKS. Tenant injection. No HMAC support (ADR-0018). |
+| `audit-service` | Append-only audit log. Hash-chained. Failed-audit-required (ADR-0014). |
+
+### Data plane (per-frame, never on Temporal)
+
+| Service | Purpose |
+| --- | --- |
+| `dataplane-runner` | Hosts the streaming operator DAG. Walking-skeleton impl in Go; DeepStream swap-in in Phase 2 via the `Detector` interface. |
+| `inference-router` | Routes inference requests to Triton; publishes `inference.completed.v1` + `inference.baseline.v1`. |
+| `gpu-scheduler` | MIG-default GPU reservation ledger. Hard bound on blast radius. |
+| `rule-engine` | Rule evaluation: dwell, count, line-cross, zone-enter. |
+| `event-service` | Consumes `events.v1` from NATS; serves SSE feed; persists to ClickHouse. |
+| `realtime-hub` | Fan-out WebSocket hub for console + integrations. |
+| `notification-service` | Webhooks, email, Slack with replay-safe idempotency. |
+| `edge-gateway` | k3s-friendly reduced-operator runtime; sync to core via outbox. |
+
+### Intelligence tier (Phase 4)
+
+| Service | Purpose |
+| --- | --- |
+| `llm-gateway` | OpenAI-compatible internal endpoint. Sanitizer + PII redactor + refusal threshold + token accounting. No raw model calls anywhere else (ADR-0018). |
+| `agent-service` | Bounded-autonomy agent runtime. Tier-3 tools route through policy-gate-service. Auto-resume on `gate.resolved.>`. |
+| `policy-gate-service` | Human-in-the-loop approval gate. Audit on every decision. |
+| `knowledge-service` | RAG corpus over docs + ADRs + runbooks. Citation-mandatory (ADR-0020). |
+| `active-learning-service` | Uncertainty + diversity sampling (ADR-0019). |
+| `nlq-service` | Natural-language query → structured queries against event-service / ClickHouse. |
+
+### Adaptive autonomy (Phase 5)
+
+| Service | Purpose |
+| --- | --- |
+| `canary-controller` | Wilson lower-bound + min-sample floor proportion test. Promotion gated; rollback automatic (ADR-0023). |
+| `shadow-inference-service` | Same-URN candidate-vs-baseline comparator (ADR-0024). |
+| `drift-detection-service` | JS / KL / TVD divergence vs reference (ADR-0025). |
+| `slo-watchdog` | Multi-window burn-rate. Google SRE workbook implementation. |
+| `prefetch-service` | 7×24 EMA grid; warm-ups dispatched at horizon ahead of demand (ADR-0026). |
+| `autonomy-orchestrator` | Cron + signal-driven agent sessions (ADR-0022). |
+
+### GA hardening (Phase 6)
+
+| Service | Purpose |
+| --- | --- |
+| `compliance-evidence-service` | Owns no data; composes evidence via Collector interface (ADR-0029). |
+| `semantic-search` | Cross-tenant semantic search over events + clips. |
+| `cost-accounting` | Per-tenant GPU-second + token + storage accounting. |
+| `metering-service` | Billable-event aggregation (consumes `inference.completed.v1`). |
+
+### Production console (Phase 7)
+
+| Service | Purpose |
+| --- | --- |
+| `console` | Next.js 14 + TanStack Query + Tailwind. Exposes every public REST endpoint as a usable page. 33 routes covering dashboard, streams, pipelines, models, datasets, annotations, training, media, rules, events, agents (chat UI with citations + tier-3 gate banner), gates inbox, canary decision board, drift, SLO, prefetch heatmap, knowledge RAG, NLQ, active-learning, semantic search, tenants/projects/members, cost, compliance evidence bundles, audit log + chain-verify, settings. Read the per-service README at [`services/console/`](./services/console). |
+
+---
+
+## Architectural commitments (the ADRs)
+
+Violating any of these is the kind of change that should be flagged for the
+architecture working group, not slipped into a feature PR.
+
+| ADR | Decision |
+| --- | --- |
+| 0001 | Control plane / data plane are **hard-separated**. Temporal never sees a frame; the data plane never persists per-step history. |
+| 0002 | ClickHouse holds the detection firehose. PostgreSQL holds metadata. Neither alone is sufficient. |
+| 0003 | MIG is the **default** GPU sharing mode for production inference. Hard isolation bounds blast radius. |
+| 0007 | Protobuf-everywhere, Buf-managed. `/proto` has the strictest CODEOWNERS review. |
+| 0008 | Frames and media **never** travel on Kafka or NATS. The bus carries references (claim-check). |
+| 0014 | Bounded autonomy. Agents auto-execute read/advisory + reversible ops; consequential actions require a human-signal gate. |
+| 0016 | Walking skeleton first — thin but complete on the real architecture before going wide. |
+| 0017 | 4-tier risk model encoded in tool schemas; tier-3 tools route through `policy-gate-service`. Refusal is in code. |
+| 0018 | One LLM/VLM gateway speaks OpenAI-compatible internally; backends are swappable without caller changes. |
+| 0019 | Active learning samples by uncertainty + diversity, never random firehose draw. |
+| 0020 | Platform-fact answers are retrieval-augmented; no plain-LLM hallucinated identifiers. |
+| 0021 | Prompt-injection defense in depth — sanitizer + PII redactor + translator hardening + rate limit + gate. |
+| 0022 | Continuous autonomy: cron + signal-driven agent sessions; bounded-autonomy unchanged. |
+| 0023 | Canary uses Wilson lower-bound proportion test + min-sample floor. Promotion gated, rollback automatic. |
+| 0024 | Shadow inference compares candidate vs baseline on the same frame URN; tenant traffic untouched. |
+| 0025 | Drift = JS / KL / TVD over class distributions vs reference; SLO = multi-window burn-rate. |
+| 0026 | Predictive prefetch via 7×24 EMA grid; warm-ups dispatched at horizon ahead of demand. |
+| 0027 | Air-gapped bundle as day-one CI artifact (images + charts + manifests + signatures, one tarball). |
+| 0028 | Chaos engineering as production-readiness gate; every resilience claim has an experiment + assertion. |
+| 0029 | `compliance-evidence-service` owns no data; composes per-control evidence from authoritative stores. |
+| 0030 | release-please + signed air-gap bundle promotion; single platform version. |
+
+Full text: [`docs/adr/`](./docs/adr/).
+
+---
+
+## Public API discipline
+
+Public API uses **product nouns**, never internal model names:
+
+- `/v1/pipelines` (not `/v1/pipeline-revisions/`)
+- `/v1/streams` (not `/v1/feeds/`)
+- `/v1/models` (not `/v1/networks/`)
+
+IDs are **opaque strings**. Storage details (Postgres keys, Mongo
+ObjectIDs) never leak. Path segments are plural. This is direct scar
+tissue from operating CV platforms at scale.
+
+---
+
+## Errors, idempotency, pagination
+
+- **Errors** use **RFC 9457 `application/problem+json`**. Construct them
+  with `pkg/platform/problem`.
+- **Mutating endpoints** accept `Idempotency-Key`; replays within 24h
+  return the cached response. Wire via `pkg/platform/middleware`.
+- **List endpoints** use **opaque cursor pagination** (never offset).
+  Use `pkg/platform/pagination`. Keys are HMAC-signed with a key ≥ 32
+  bytes (`AEGIS_CURSOR_KEY`).
+- **Versioning** is URI-based (`/v1/`); N-1 compatibility for ≥2
+  releases.
+
+---
+
+## Observability
+
+- **Logs** are structured (`slog`), with `tenant_id`, `request_id`,
+  `trace_id` propagated through context.
+- **Metrics** follow **RED** (rate / errors / duration). Use
+  `pkg/platform/metrics`. Every chart ships a `ServiceMonitor`.
+- **Traces** use OpenTelemetry over OTLP; the collector lives in
+  `deploy/platform/observability`. Sample rate is per-tenant
+  configurable.
+- **Dashboards** live in `deploy/platform/observability/grafana/`.
+
+See [`docs/observability.md`](./docs/observability.md).
+
+---
+
+## Security posture
+
+- **Istio Ambient mTLS STRICT** between every pod.
+- **OPA AuthorizationPolicy** ALLOW list per service.
+- **NetworkPolicy** default-deny per namespace.
+- **SPIRE** workload identity issued to every pod.
+- **Vault transit** for per-tenant crypto-shredding keys.
+- **External Secrets Operator** for all credentials; nothing in git.
+- **Cosign keyless** signing of every image; **Kyverno** admission
+  verifies signatures against `github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/ci.yml@refs/heads/main`.
+- **SLSA v1** build provenance + **Syft SBOM** attached to every release.
+
+See [`docs/security.md`](./docs/security.md) and
+[`docs/compliance/`](./docs/compliance/).
+
+---
+
+## Deploy
+
+Three paths, each documented in `SETUP_GUIDE.md`:
+
+1. **Local walking skeleton** — five terminals, zero external deps.
+2. **Online cluster** — ArgoCD reconciles the ApplicationSet against a
+   real Kubernetes cluster with Istio Ambient + ESO + SPIRE + Patroni +
+   Redis Sentinel + ClickHouse Operator + NATS JetStream.
+3. **Air-gapped** — `./tools/airgap/build.sh` produces a single signed
+   tarball containing every image, chart, manifest, and signature; the
+   target environment runs `./install.sh --registry <internal>`.
+
+---
+
+## How to contribute
+
+See [`docs/contributing.md`](./docs/contributing.md) and the per-directory
+READMEs. The TL;DR:
+
+1. Define the API in `/proto` first. Run `task proto`.
+2. Copy the structure of `services/pipeline-service` (smallest reference).
+3. Wire `pkg/platform` for logging / OTel / metrics / health / shutdown.
+4. Add a Helm chart under `deploy/helm/<service>` (mTLS STRICT, OPA
+   AuthorizationPolicy, NetworkPolicy default-deny, ServiceMonitor, HPA).
+5. Add it to `go.work`.
+6. Add it to the ArgoCD ApplicationSet in `deploy/argocd/`.
+
+Don't bypass `pkg/platform` for "just this one log line." Don't add a new
+transport without a protobuf contract. Don't grow a second agent runtime.
+
+---
+
+## Further reading
+
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — the canonical architecture deep dive.
+- [`SETUP_GUIDE.md`](./SETUP_GUIDE.md) — local dev → online cluster → air-gapped install.
+- [`CHANGELOG.md`](./CHANGELOG.md) — release notes.
+- [`CLAUDE.md`](./CLAUDE.md) — working notes for Claude Code.
+- [`docs/adr/`](./docs/adr/) — 30 Architecture Decision Records.
+- [`docs/compliance/`](./docs/compliance/) — SOC 2, EU AI Act, GDPR, pen-test.
+- [`docs/runbooks/`](./docs/runbooks/) — operational runbooks.
+- [`docs/`](./docs/) — concepts, data flow, security, agents, autonomy,
+  observability, deployment, troubleshooting, glossary.
+- [`index.html`](./index.html) — the project landing page / wiki.
+- [`ACKNOWLEDGMENTS.md`](./ACKNOWLEDGMENTS.md) — the open-source giants this stands on.
+- [`ROADMAP.md`](./ROADMAP.md) — what's next.
+- [`AUTHORS`](./AUTHORS), [`MAINTAINERS`](./MAINTAINERS), [`GOVERNANCE.md`](./GOVERNANCE.md) — who runs this.
+
+---
+
+## Author
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center">
+  <a href="https://github.com/hoangsonww">
+    <img src="https://github.com/hoangsonww.png" width="120" height="120" style="border-radius:50%" alt="Son Nguyen"/>
+  </a>
+  <br/>
+  <b>Son Nguyen</b>
+  <br/>
+  <sub>Author · Sole maintainer · BDFL</sub>
+  <br/>
+  <br/>
+  <a href="https://github.com/hoangsonww"><img src="https://img.shields.io/badge/GitHub-hoangsonww-181717?style=flat-square&logo=github&logoColor=white"></a>
+  <a href="https://linkedin.com/in/hoangsonw"><img src="https://img.shields.io/badge/LinkedIn-hoangsonw-0A66C2?style=flat-square&logo=linkedin&logoColor=white"></a>
+  <a href="https://sonnguyenhoang.com"><img src="https://img.shields.io/badge/Web-sonnguyenhoang.com-1F6FEB?style=flat-square&logo=safari&logoColor=white"></a>
+  <a href="mailto:hoangson091104@gmail.com"><img src="https://img.shields.io/badge/Email-hoangson091104@gmail.com-D14836?style=flat-square&logo=gmail&logoColor=white"></a>
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## License
+
+**AegisVision** is published under the **Apache License, Version 2.0**.
+See [`LICENSE`](./LICENSE) for the full text and [`NOTICE`](./NOTICE) for
+attribution of the open-source projects this stands on. Cite via
+[`CITATION.cff`](./CITATION.cff).
+
+<div align="center">
+
+<sub>
+  Copyright © 2026 <a href="https://sonnguyenhoang.com">Son Nguyen</a>.
+  Built with care.
+</sub>
+
+</div>

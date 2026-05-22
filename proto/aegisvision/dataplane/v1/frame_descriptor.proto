@@ -1,0 +1,67 @@
+// FrameDescriptor is the claim-check envelope that crosses the bus.
+// ADR-008 — frames and media NEVER travel on Kafka or NATS. The bus carries
+// references; pixels live in shared-memory rings on-node, CUDA-IPC across
+// adjacent operators, or object storage when escalated for clip retention.
+syntax = "proto3";
+
+package aegisvision.dataplane.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/dataplane/v1;dataplanev1";
+
+// PayloadLocation is the only field that is allowed to vary in size; even so,
+// it should be < 1KB. If you find yourself wanting to inline pixels here, stop
+// and re-read ADR-008.
+message PayloadLocation {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_SHARED_MEMORY = 1;    // /dev/shm or hugepages ring
+    KIND_CUDA_IPC = 2;         // GPU-resident, IPC-shared
+    KIND_OBJECT_STORE = 3;     // s3://bucket/key (escalated for retention)
+    KIND_LOCAL_FILE = 4;       // dev / test only
+  }
+  Kind kind = 1;
+  // For SHM/CUDA_IPC: ring name + slot index.
+  // For OBJECT_STORE: full URI.
+  string locator = 2;
+  // Optional; populated only when the consumer needs an integrity check
+  // that the shared-memory ring couldn't already guarantee.
+  string sha256 = 3;
+}
+
+// Compact descriptor for one frame in flight. Should fit in a few hundred
+// bytes on the wire after protobuf encoding.
+message FrameDescriptor {
+  string stream_id = 1;
+  string pipeline_id = 2;
+
+  // Monotonic frame counter within the stream; survives restarts via
+  // checkpoint replay so consumers can deduplicate.
+  int64 frame_seq = 3;
+  // Capture time on the camera, or, if not present in the source feed, the
+  // ingest wall-clock — flagged so downstream can tell the difference.
+  google.protobuf.Timestamp capture_time = 4;
+  bool capture_time_was_estimated = 5;
+
+  int32 width = 10;
+  int32 height = 11;
+  string pixel_format = 12; // "NV12" | "RGBA" | "YUV420P" | …
+  // Color space tagging matters for inference correctness on cameras that
+  // ship full-range vs limited-range YUV — this used to be a source of
+  // subtle accuracy bugs in production.
+  string color_space = 13;  // "BT.601" | "BT.709" | "BT.2020"
+
+  // Where the pixels actually live.
+  PayloadLocation payload = 20;
+
+  // Carrier of upstream provenance so each operator can refuse to act on
+  // frames it doesn't trust (e.g. unsigned edge devices in a compliance
+  // mode).
+  repeated string provenance_attestations = 30;
+
+  // Span context propagation so we get a full trace from camera to event.
+  // Encoded as W3C traceparent / tracestate strings.
+  string traceparent = 40;
+  string tracestate = 41;
+}

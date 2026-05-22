@@ -1,0 +1,29 @@
+# Only api-gateway, agent-service, and the Prometheus scraper may talk to
+# pipeline-service. Anything else (including a bug in a sibling service that
+# picks the wrong upstream) gets a 403 at the mesh layer.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: pipeline-service
+  namespace: aegis-system
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pipeline-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/aegis-system/sa/api-gateway
+              - cluster.local/ns/aegis-system/sa/agent-service
+      to:
+        - operation:
+            ports: ["9090"]
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/aegis-observability/sa/prometheus
+      to:
+        - operation:
+            ports: ["9091"]

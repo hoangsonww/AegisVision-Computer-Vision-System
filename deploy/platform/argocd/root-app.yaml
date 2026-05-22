@@ -1,0 +1,73 @@
+# Root Application — "App of Apps" pattern. After bootstrapping ArgoCD itself,
+# applying this manifest pulls everything else under deploy/ into the cluster.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aegisvision-root
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: aegisvision
+  source:
+    repoURL: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+    targetRevision: main
+    path: deploy/argocd
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+---
+# Companion: the platform tier (Istio, Vault, ESO, SPIRE, observability,
+# Kyverno). These are infrastructure charts/manifests installed before any
+# service chart syncs.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: aegisvision-platform
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: kyverno-policies
+            path: deploy/k8s/policies
+            namespace: kyverno
+          - name: istio
+            path: deploy/platform/istio
+            namespace: istio-system
+          - name: vault
+            path: deploy/platform/vault
+            namespace: aegis-security
+          - name: external-secrets
+            path: deploy/platform/external-secrets
+            namespace: external-secrets
+          - name: spire
+            path: deploy/platform/spire
+            namespace: spire-system
+          - name: observability
+            path: deploy/platform/observability
+            namespace: aegis-observability
+  template:
+    metadata:
+      name: '{{name}}'
+      labels: { aegisvision.io/tier: platform }
+    spec:
+      project: aegisvision
+      source:
+        repoURL: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated: { prune: true, selfHeal: true }
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

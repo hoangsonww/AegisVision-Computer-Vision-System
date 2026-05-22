@@ -1,0 +1,24 @@
+name: 📖 Documentation
+description: Report a doc bug, gap, or improvement.
+title: "[Docs]: "
+labels: ["documentation", "triage"]
+assignees:
+  - hoangsonww
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Which page / file?
+      placeholder: e.g. docs/security.md, services/llm-gateway/README.md
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's wrong / missing / unclear?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested fix

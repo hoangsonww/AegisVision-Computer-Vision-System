@@ -1,0 +1,6 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: edge-gateway, namespace: aegis-system }
+spec:
+  minAvailable: 50%
+  selector: { matchLabels: { app.kubernetes.io/name: edge-gateway } }

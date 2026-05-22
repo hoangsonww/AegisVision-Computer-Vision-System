@@ -1,0 +1,6 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: dataplane-runner, namespace: aegis-streaming }
+spec:
+  minAvailable: 50%
+  selector: { matchLabels: { app.kubernetes.io/name: dataplane-runner } }

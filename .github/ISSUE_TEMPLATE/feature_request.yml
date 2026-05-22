@@ -1,0 +1,68 @@
+name: ✨ Feature Request
+description: Suggest a new feature, integration, or enhancement.
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees:
+  - hoangsonww
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion!
+
+        Before filing:
+        - Search existing issues + discussions.
+        - Check `ROADMAP.md` — your idea might already be planned.
+        - Read the relevant ADR(s) in `docs/adr/` — your idea may conflict with a load-bearing decision (e.g. force-promote is deliberately not supported per ADR-0023).
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the user / operator / developer pain point.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work? Sketch the API, UX, or architecture.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about, and why this one is better.
+
+  - type: dropdown
+    id: scale
+    attributes:
+      label: Scope
+      options:
+        - Small (single service, no contract change)
+        - Medium (one service + minor contract)
+        - Large (multiple services + new bus subjects)
+        - Architectural (needs an ADR)
+    validations:
+      required: true
+
+  - type: textarea
+    id: adr-touch
+    attributes:
+      label: Which ADR(s) does this touch?
+      description: List any. If "architectural" above, an ADR will likely be required.
+
+  - type: checkboxes
+    id: confirms
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues + discussions.
+          required: true
+        - label: I checked `ROADMAP.md` and the ADRs.
+          required: true
+        - label: This proposal does not violate ADR-0008, ADR-0014/0017, ADR-0018, ADR-0022, or ADR-0023.
+          required: true

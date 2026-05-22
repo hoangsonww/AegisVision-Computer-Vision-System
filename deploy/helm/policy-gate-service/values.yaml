@@ -1,0 +1,14 @@
+image: { repository: aegisvision/policy-gate-service, tag: "0.1.0", pullPolicy: IfNotPresent }
+replicaCount: 2
+env: prod
+logLevel: info
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits:   { cpu: "2",  memory: 1Gi }
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+priorityClassName: aegis-control-plane
+serviceMonitor: { enabled: true, interval: 30s }

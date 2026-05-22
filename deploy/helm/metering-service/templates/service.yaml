@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: metering-service, namespace: aegis-system, labels: { app.kubernetes.io/name: metering-service } }
+spec:
+  selector: { app.kubernetes.io/name: metering-service }
+  ports:
+    - { name: http, port: 8240, targetPort: 8240, appProtocol: http }
+    - { name: metrics, port: 8241, targetPort: 8241 }

@@ -1,0 +1,54 @@
+// Knowledge corpus. RAG store the agents and NLQ service consult before
+// answering. Per-tenant collection isolation; documents are tagged with the
+// source ADR / runbook / incident so citations are first-class (ADR-0020).
+syntax = "proto3";
+
+package aegisvision.intelligence.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/intelligence/v1;intelligencev1";
+
+enum DocKind {
+  DOC_KIND_UNSPECIFIED = 0;
+  DOC_KIND_ADR = 1;
+  DOC_KIND_RUNBOOK = 2;
+  DOC_KIND_INCIDENT = 3;
+  DOC_KIND_README = 4;
+  DOC_KIND_API_REFERENCE = 5;
+  DOC_KIND_TENANT_NOTE = 6; // tenant-authored
+}
+
+message Doc {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2; // empty tenant => platform-global
+  DocKind kind = 3;
+  string title = 4;
+  string body = 5;
+  // URI back to the canonical source (file path, Notion page, etc.).
+  string source_uri = 6;
+  // Free-form tags for filtering ("phase:4", "service:agent-service").
+  repeated string tags = 7;
+  google.protobuf.Timestamp ingested_at = 8;
+}
+
+message SearchRequest {
+  aegisvision.common.v1.TenantRef tenant = 1;
+  string query = 2;
+  int32 limit = 3;
+  // Restrict to certain kinds (empty = all).
+  repeated DocKind kinds = 4;
+  // Required tag intersection.
+  repeated string require_tags = 5;
+}
+
+message SearchHit {
+  Doc doc = 1;
+  double score = 2; // cosine similarity, normalized 0..1
+  string snippet = 3;
+}
+
+message SearchResponse {
+  repeated SearchHit hits = 1;
+}

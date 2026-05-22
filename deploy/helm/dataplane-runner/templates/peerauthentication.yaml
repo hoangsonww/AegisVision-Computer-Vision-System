@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: dataplane-runner-mtls-strict, namespace: aegis-streaming }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: dataplane-runner } }
+  mtls: { mode: STRICT }

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-gateway
+  namespace: aegis-system
+  labels: { app.kubernetes.io/name: edge-gateway }
+spec:
+  replicas: {{"{{ .Values.replicaCount }}"}}
+  selector: { matchLabels: { app.kubernetes.io/name: edge-gateway } }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: edge-gateway }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8321"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: edge-gateway
+      priorityClassName: {{"{{ .Values.priorityClassName | quote }}"}}
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: edge-gateway
+          image: "{{"{{ .Values.image.repository }}:{{ .Values.image.tag }}"}}"
+          imagePullPolicy: {{"{{ .Values.image.pullPolicy }}"}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          ports:
+            - { name: http, containerPort: 8320 }
+            - { name: metrics, containerPort: 8321 }
+          env:
+            - { name: AEGIS_ENV, value: {{"{{ .Values.env | quote }}"}} }
+            - { name: AEGIS_LOG_LEVEL, value: {{"{{ .Values.logLevel | quote }}"}} }
+            - { name: AEGIS_HTTP_ADDR, value: ":8320" }
+            - { name: AEGIS_HEALTH_ADDR, value: ":8321" }
+          readinessProbe: { httpGet: { path: /readyz, port: metrics }, initialDelaySeconds: 2, periodSeconds: 5 }
+          livenessProbe:  { httpGet: { path: /healthz, port: metrics }, initialDelaySeconds: 10, periodSeconds: 10 }
+          resources: {{"{{ toYaml .Values.resources | nindent 12 }}"}}

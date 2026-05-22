@@ -1,0 +1,59 @@
+# IstioOperator manifest for the Istio Ambient install used by AegisVision.
+# Ambient = sidecar-less data plane; namespaces opt in via the
+# `istio.io/dataplane-mode: ambient` label (set in deploy/k8s/base/namespaces.yaml).
+#
+# Production deployments install Istio via `istioctl install -f` against this
+# file or via the istio-system Helm chart; either path reads the same spec.
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: aegis-istio
+  namespace: istio-system
+spec:
+  profile: ambient
+  meshConfig:
+    accessLogFile: /dev/stdout
+    defaultConfig:
+      tracing:
+        zipkin:
+          address: otel-collector.aegis-observability.svc.cluster.local:9411
+    enableTracing: true
+    extensionProviders:
+      - name: otel-tracing
+        opentelemetry:
+          service: otel-collector.aegis-observability.svc.cluster.local
+          port: 4317
+  components:
+    pilot:
+      k8s:
+        resources:
+          requests: { cpu: 500m, memory: 2Gi }
+        hpaSpec:
+          minReplicas: 2
+          maxReplicas: 5
+    cni:
+      enabled: true
+    ztunnel:
+      enabled: true
+      k8s:
+        resources:
+          requests: { cpu: 200m, memory: 512Mi }
+    ingressGateways:
+      - name: istio-ingressgateway
+        enabled: true
+        namespace: aegis-ingress
+        k8s:
+          service:
+            type: LoadBalancer
+            ports:
+              - { name: status-port, port: 15021, targetPort: 15021 }
+              - { name: http2,       port: 80,    targetPort: 8080 }
+              - { name: https,       port: 443,   targetPort: 8443 }
+  values:
+    global:
+      proxy:
+        autoInject: disabled  # ambient mode — no sidecar injection
+      pilotCertProvider: istiod
+    pilot:
+      env:
+        PILOT_ENABLE_AMBIENT: "true"

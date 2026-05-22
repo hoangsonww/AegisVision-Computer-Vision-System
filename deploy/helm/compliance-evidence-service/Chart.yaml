@@ -1,0 +1,9 @@
+apiVersion: v2
+name: compliance-evidence-service
+description: AegisVision Phase 6 read-only auditor evidence query API
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System

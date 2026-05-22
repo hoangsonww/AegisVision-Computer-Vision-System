@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: nlq-service, namespace: aegis-system }
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/name: nlq-service } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app.kubernetes.io/name: api-gateway } }
+      ports: [{ port: 8450, protocol: TCP }]
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: aegis-observability } }
+          podSelector: { matchLabels: { app.kubernetes.io/name: prometheus } }
+      ports: [{ port: 8451, protocol: TCP }]

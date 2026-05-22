@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: semantic-search-mtls-strict, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: semantic-search } }
+  mtls: { mode: STRICT }

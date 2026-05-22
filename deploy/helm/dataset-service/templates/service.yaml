@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: dataset-service, namespace: aegis-system, labels: { app.kubernetes.io/name: dataset-service } }
+spec:
+  selector: { app.kubernetes.io/name: dataset-service }
+  ports:
+    - { name: http, port: 8250, targetPort: 8250, appProtocol: http }
+    - { name: metrics, port: 8251, targetPort: 8251 }

@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+message: "If you use AegisVision in your research or commercial work, please cite it as below."
+title: "AegisVision: A Distributed, Autonomous, GPU-Native Visual Intelligence Operating System"
+type: software
+version: "0.5.0"
+date-released: "2026-05-21"
+license: Apache-2.0
+repository-code: "https://github.com/hoangsonww/AegisVision-Computer-Vision-System"
+url: "https://sonnguyenhoang.com"
+authors:
+  - given-names: "Son"
+    family-names: "Nguyen"
+    email: "hoangson091104@gmail.com"
+    orcid: ""
+    affiliation: "Independent"
+    website: "https://sonnguyenhoang.com"
+    alias: "hoangsonww"
+keywords:
+  - "computer vision"
+  - "video analytics"
+  - "distributed systems"
+  - "GPU"
+  - "Kubernetes"
+  - "agents"
+  - "LLM"
+  - "bounded autonomy"
+  - "canary deployment"
+  - "shadow inference"
+  - "drift detection"
+  - "SLO"
+  - "Istio"
+  - "Vault"
+  - "Cosign"
+  - "SLSA"
+  - "air-gap"
+abstract: >
+  AegisVision is a distributed, autonomous, GPU-native visual-intelligence
+  operating system for realtime multimodal perception, reasoning, and
+  orchestration at planetary scale. It is composed of 35 Go services,
+  14 shared libraries, 38 Helm charts, 30 Architecture Decision Records,
+  and a complete set of compliance evidence packages (SOC 2, EU AI Act,
+  GDPR DPIA, pen-test scope). The platform implements bounded-autonomy
+  agentic AI, Wilson lower-bound canary promotion, same-URN shadow
+  inference, multi-window burn-rate SLOs, JS/KL/TVD drift detection,
+  predictive prefetch via a 7×24 EMA grid, and a signed air-gapped
+  install bundle as a day-one CI artifact.
+preferred-citation:
+  type: software
+  title: "AegisVision: A Distributed, Autonomous, GPU-Native Visual Intelligence Operating System"
+  authors:
+    - given-names: "Son"
+      family-names: "Nguyen"
+      email: "hoangson091104@gmail.com"
+  year: 2026
+  version: "0.5.0"
+  url: "https://github.com/hoangsonww/AegisVision-Computer-Vision-System"

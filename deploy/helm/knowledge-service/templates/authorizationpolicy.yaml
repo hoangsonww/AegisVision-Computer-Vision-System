@@ -1,0 +1,13 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: knowledge-service, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: knowledge-service } }
+  action: ALLOW
+  rules:
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-system/sa/agent-service, cluster.local/ns/aegis-system/sa/nlq-service, cluster.local/ns/aegis-system/sa/api-gateway] }
+      to: [{ operation: { ports: ["8430"] } }]
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
+      to: [{ operation: { ports: ["8431"] } }]

@@ -1,0 +1,17 @@
+title: "[Idea]: "
+labels: ["idea"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What's the idea?
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why?
+  - type: textarea
+    id: first-step
+    attributes:
+      label: Smallest first step that would prove the idea

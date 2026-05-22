@@ -1,0 +1,20 @@
+image: { repository: aegisvision/model-registry, tag: "0.1.0", pullPolicy: IfNotPresent }
+replicaCount: 2
+env: prod
+logLevel: info
+db:
+  driver: postgres
+  # DSN provided via secret in production; values here are dev placeholders.
+  dsn: postgresql://aegis:aegis@postgres.aegis-data.svc:5432/model_registry?sslmode=require
+otel:
+  endpoint: otel-collector.aegis-observability.svc.cluster.local:4317
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits:   { cpu: "1",  memory: 512Mi }
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+priorityClassName: aegis-control-plane
+serviceMonitor: { enabled: true, interval: 30s }
