@@ -1,0 +1,62 @@
+# Force a Patroni Postgres failover by killing the current primary. The
+# new primary should be elected within 30s (per the Patroni etcd-DCS lock
+# TTL); in-flight writes from pipeline-service and tenant-service should
+# retry against the new primary without exception leakage.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: postgres-primary-kill
+  namespace: aegis-chaos
+spec:
+  action: pod-kill
+  mode: one
+  duration: "1s"
+  selector:
+    namespaces: [aegis-data]
+    labelSelectors:
+      role: master
+      cluster-name: aegis-postgres
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-postgres-failover
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Run a continuous write loop against pipeline-service while
+              # the failover happens. Tally created vs failed.
+              ok=0; fail=0
+              for i in $(seq 1 60); do
+                if curl -fsS -X POST http://api-gateway.aegis-system:8080/v1/pipelines \
+                   -H 'X-Tenant-Id: chaos' \
+                   -H "Idempotency-Key: chaos-$i" \
+                   -H 'Content-Type: application/json' \
+                   -d "{\"name\":\"chaos-pipeline-$i\",\"project_id\":\"chaos\",\"dag_json\":\"{}\"}" \
+                   > /dev/null; then
+                  ok=$((ok+1))
+                else
+                  fail=$((fail+1))
+                fi
+                sleep 1
+              done
+              echo "writes ok=$ok fail=$fail"
+              # Acceptable: < 5 failures (~ 5 seconds of write hole during
+              # the failover). More than that means writes weren't being
+              # retried — the postgres driver pool would need investigation.
+              if [ "$fail" -gt 5 ]; then
+                echo "FAIL: $fail writes failed during failover (budget: 5)"
+                exit 1
+              fi
+              echo "PASS: failover within budget"

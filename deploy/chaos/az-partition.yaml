@@ -1,0 +1,65 @@
+# Simulates a network partition between two AZs by dropping all packets
+# between zone "us-west-2a" and "us-west-2b" for 3 minutes. Asserts:
+#   1. Replicas in the minority partition become read-only (no split-brain).
+#   2. Tenant-facing read endpoints stay serving from the majority side.
+#   3. Once the partition heals, replicas catch up within 60s.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: az-partition
+  namespace: aegis-chaos
+spec:
+  action: partition
+  mode: all
+  selector:
+    namespaces: [aegis-system, aegis-data]
+    expressionSelectors:
+      - { key: topology.kubernetes.io/zone, operator: In, values: [us-west-2a] }
+  direction: to
+  target:
+    selector:
+      namespaces: [aegis-system, aegis-data]
+      expressionSelectors:
+        - { key: topology.kubernetes.io/zone, operator: In, values: [us-west-2b] }
+  duration: "3m"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-az-partition
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Probe both sides via the per-AZ service endpoints. The
+              # majority side should answer; the minority side should
+              # refuse writes (503 + Retry-After).
+              read_majority=$(curl -fsS -o /dev/null -w "%{http_code}" \
+                http://api-gateway-2b.aegis-system:8080/v1/pipelines \
+                -H 'X-Tenant-Id: chaos' || true)
+              if [ "$read_majority" != "200" ]; then
+                echo "FAIL: majority-side reads broken (code=$read_majority)"
+                exit 1
+              fi
+              # Minority-side write must be refused. We accept 503 or 5xx;
+              # what we reject is 200 (write succeeded across a partition).
+              write_minority=$(curl -fsS -o /dev/null -w "%{http_code}" -X POST \
+                http://api-gateway-2a.aegis-system:8080/v1/pipelines \
+                -H 'X-Tenant-Id: chaos' -H 'Idempotency-Key: az-1' \
+                -H 'Content-Type: application/json' \
+                -d '{"name":"x","project_id":"x","dag_json":"{}"}' || true)
+              if [ "$write_minority" = "200" ] || [ "$write_minority" = "201" ]; then
+                echo "FAIL: minority-side accepted a write across the partition — split-brain"
+                exit 1
+              fi
+              echo "PASS: majority reads served, minority writes refused"

@@ -1,0 +1,61 @@
+// Event is the events.v1 schema. Events are the platform's first-class user-
+// visible output: an Incident is just an Event with additional metadata. The
+// schema is denormalized so a single Kafka/NATS message is sufficient for the
+// downstream consumer (event-service, webhooks, agent runtime) without a
+// secondary lookup into Postgres.
+syntax = "proto3";
+
+package aegisvision.dataplane.v1;
+
+import "google/protobuf/timestamp.proto";
+import "aegisvision/common/v1/types.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/dataplane/v1;dataplanev1";
+
+enum EventKind {
+  EVENT_KIND_UNSPECIFIED = 0;
+  EVENT_KIND_DETECTION = 1;        // A detection that crossed a configured threshold
+  EVENT_KIND_RULE_FIRED = 2;       // A spatial/temporal rule fired
+  EVENT_KIND_TRACK_STARTED = 3;
+  EVENT_KIND_TRACK_ENDED = 4;
+  EVENT_KIND_STREAM_DEGRADED = 5;  // Operator-emitted health event
+}
+
+message Event {
+  string id = 1;
+  string tenant_id = 2;
+  string project_id = 3;
+  string pipeline_id = 4;
+  string stream_id = 5;
+
+  EventKind kind = 6;
+  aegisvision.common.v1.Severity severity = 7;
+
+  // The frame that triggered the event. capture_time gives us the
+  // numerator for glass-to-event latency; emitted_at the denominator.
+  int64  frame_seq = 10;
+  google.protobuf.Timestamp capture_time = 11;
+  google.protobuf.Timestamp emitted_at = 12;
+
+  // Human-readable summary; not stable across releases.
+  string summary = 20;
+
+  // Optional rule and zone references for rule.fired events.
+  string rule_id = 30;
+  string zone_id = 31;
+
+  // Track context — present for detection / rule.fired events on tracked
+  // objects.
+  string track_id = 40;
+  string class_label = 41;
+  float  score = 42;
+
+  // Bounding box of the trigger object, normalized [0,1].
+  float bbox_x = 50;
+  float bbox_y = 51;
+  float bbox_w = 52;
+  float bbox_h = 53;
+
+  // W3C trace context so client traces can chain back to operator spans.
+  string traceparent = 60;
+}

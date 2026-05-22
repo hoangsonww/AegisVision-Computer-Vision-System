@@ -1,0 +1,28 @@
+# Mesh-level authorization layered on top of the application's OPA.
+# We allow ingress from the ingress gateway and the Prometheus scraper SA,
+# and deny everything else by default.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-gateway
+  namespace: aegis-system
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/aegis-ingress/sa/ingress-gateway
+      to:
+        - operation:
+            ports: ["8080"]
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/aegis-observability/sa/prometheus
+      to:
+        - operation:
+            ports: ["8081"]

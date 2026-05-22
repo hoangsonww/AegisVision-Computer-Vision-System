@@ -1,0 +1,66 @@
+# Platform-wide guardrails: drop ALL caps, require seccomp, deny hostNetwork.
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-drop-all-caps
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: drop-all-caps
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [aegis-system, aegis-inference, aegis-streaming, aegis-agents, aegis-llm]
+      validate:
+        message: "Containers must drop ALL capabilities."
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                securityContext:
+                  capabilities:
+                    drop:
+                      - ALL
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-seccomp
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-runtime-default-seccomp
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [aegis-system, aegis-inference, aegis-streaming, aegis-agents, aegis-llm]
+      validate:
+        message: "Pods must declare seccompProfile.type."
+        pattern:
+          spec:
+            =(securityContext):
+              =(seccompProfile):
+                type: "RuntimeDefault | Localhost"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-host-namespaces
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: no-host-network
+      match: { any: [{ resources: { kinds: [Pod] } }] }
+      validate:
+        message: "hostNetwork, hostPID, hostIPC are forbidden."
+        pattern:
+          spec:
+            =(hostNetwork): "false"
+            =(hostPID): "false"
+            =(hostIPC): "false"

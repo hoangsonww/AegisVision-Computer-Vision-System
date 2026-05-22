@@ -1,0 +1,13 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: shadow-inference-service, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: shadow-inference-service } }
+  action: ALLOW
+  rules:
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-system/sa/canary-controller, cluster.local/ns/aegis-system/sa/api-gateway] }
+      to: [{ operation: { ports: ["8470"] } }]
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
+      to: [{ operation: { ports: ["8471"] } }]

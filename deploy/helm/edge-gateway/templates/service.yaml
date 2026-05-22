@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: edge-gateway, namespace: aegis-system, labels: { app.kubernetes.io/name: edge-gateway } }
+spec:
+  selector: { app.kubernetes.io/name: edge-gateway }
+  ports:
+    - { name: http, port: 8320, targetPort: 8320, appProtocol: http }
+    - { name: metrics, port: 8321, targetPort: 8321 }

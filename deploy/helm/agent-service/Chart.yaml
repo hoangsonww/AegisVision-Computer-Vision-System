@@ -1,0 +1,9 @@
+apiVersion: v2
+name: agent-service
+description: AegisVision Phase 4 autonomous agents runtime
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System

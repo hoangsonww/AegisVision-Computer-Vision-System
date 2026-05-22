@@ -1,0 +1,10 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: dataplane-runner, namespace: aegis-streaming }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: dataplane-runner } }
+  action: ALLOW
+  rules:
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
+      to: [{ operation: { ports: ["9095"] } }]

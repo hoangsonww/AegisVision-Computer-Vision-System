@@ -1,0 +1,119 @@
+# Path-based PR auto-labeller. Used by .github/workflows/labeler.yml.
+
+area/proto:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'proto/**'
+
+area/platform-lib:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'pkg/**'
+
+area/control-plane:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'services/api-gateway/**'
+      - 'services/pipeline-service/**'
+      - 'services/stream-manager/**'
+      - 'services/model-registry/**'
+      - 'services/dataset-service/**'
+      - 'services/annotation-service/**'
+      - 'services/training-orchestrator/**'
+      - 'services/media-service/**'
+      - 'services/tenant-service/**'
+      - 'services/auth-proxy/**'
+      - 'services/audit-service/**'
+
+area/data-plane:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'services/dataplane-runner/**'
+      - 'services/inference-router/**'
+      - 'services/gpu-scheduler/**'
+      - 'services/rule-engine/**'
+      - 'services/event-service/**'
+      - 'services/realtime-hub/**'
+      - 'services/notification-service/**'
+      - 'services/edge-gateway/**'
+
+area/intelligence:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'services/llm-gateway/**'
+      - 'services/agent-service/**'
+      - 'services/policy-gate-service/**'
+      - 'services/knowledge-service/**'
+      - 'services/active-learning-service/**'
+      - 'services/nlq-service/**'
+
+area/adaptive-autonomy:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'services/canary-controller/**'
+      - 'services/shadow-inference-service/**'
+      - 'services/drift-detection-service/**'
+      - 'services/slo-watchdog/**'
+      - 'services/prefetch-service/**'
+      - 'services/autonomy-orchestrator/**'
+
+area/compliance:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'services/compliance-evidence-service/**'
+      - 'docs/compliance/**'
+
+area/deploy:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'deploy/**'
+
+area/tools:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'tools/**'
+
+area/ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**'
+
+area/docs:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'docs/**'
+      - '*.md'
+      - 'index.html'
+
+area/security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'pkg/llm/safety.go'
+      - 'pkg/llm/safety_test.go'
+      - 'services/agent-service/**'
+      - 'services/policy-gate-service/**'
+      - 'services/audit-service/**'
+      - 'services/auth-proxy/**'
+      - 'SECURITY.md'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/go.mod'
+      - '**/go.sum'
+      - '.github/dependabot.yml'
+
+breaking-change:
+  - head-branch: ['^break/', '^breaking/']
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'docs/**'
+      - '*.md'
+      - 'index.html'
+
+needs-adr:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'docs/adr/**'

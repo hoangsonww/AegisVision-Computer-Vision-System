@@ -1,0 +1,13 @@
+version: v2
+modules:
+  - path: .
+    name: buf.build/aegisvision/api
+lint:
+  use:
+    - STANDARD
+  except:
+    - PACKAGE_VERSION_SUFFIX
+breaking:
+  use:
+    - FILE
+deps: []

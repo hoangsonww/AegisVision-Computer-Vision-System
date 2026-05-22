@@ -1,0 +1,36 @@
+# Edge-tier namespaces. k3s edge clusters use the same labels as core so
+# the platform CRs/policies render identically.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-edge
+  labels:
+    aegisvision.io/tier: edge
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata: { name: aegis-edge-critical }
+value: 950000
+description: "Edge-tier essentials (edge-gateway, dataplane-runner)"
+---
+# Default-deny per the architecture commitments — edge has the same posture
+# as core.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: default-deny-all, namespace: aegis-edge }
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# Edge config map carrying the core endpoints. Consumed by edge-gateway and
+# the local dataplane-runner.
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: edge-core-endpoints, namespace: aegis-edge }
+data:
+  AEGIS_CORE_NATS_URL: {{ .Values.edge.core.natsURL | quote }}
+  AEGIS_PIPELINE_SERVICE_ADDR: {{ .Values.edge.core.pipelineService | quote }}
+  AEGIS_STREAM_MANAGER_ADDR: {{ .Values.edge.core.streamManager | quote }}

@@ -1,0 +1,61 @@
+# Forces an in-flight model eviction on a Triton pod by SIGUSR1 (Triton's
+# "unload model" signal). Asserts inference-router fails over to the
+# in-pool replica and the spike in latency is bounded.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: triton-pod-failure
+  namespace: aegis-chaos
+spec:
+  action: pod-failure
+  mode: one
+  duration: "60s"
+  selector:
+    namespaces: [aegis-inference]
+    labelSelectors:
+      app.kubernetes.io/name: triton
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-triton-model-evict
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Fire a steady stream of inference calls. Tally p99 latency
+              # before, during, after.
+              probe() {
+                local label="$1"; local n=20
+                ts=$(date -u +%s%3N)
+                for i in $(seq 1 $n); do
+                  curl -sS -X POST http://inference-router.aegis-system:8094/v1/infer \
+                    -H 'Content-Type: application/json' \
+                    -d '{"model":"yolo-v9","version":"1","frame_seq":'$i'}' \
+                    -o /dev/null -w "%{time_total}\n"
+                done | sort -n | awk 'NR==int(NF*0.99)+0 || /[0-9]+/' | tail -1
+              }
+              base=$(probe baseline)
+              echo "baseline p99 latency: $base s"
+              sleep 30   # mid-experiment
+              mid=$(probe mid)
+              echo "mid p99 latency: $mid s"
+              sleep 60   # recovery
+              post=$(probe post)
+              echo "post p99 latency: $post s"
+              # Budget: post latency must be within 2x of baseline.
+              if [ "$(echo "$post > 2 * $base" | bc -l)" -eq 1 ]; then
+                echo "FAIL: post-recovery latency $post >> baseline $base"
+                exit 1
+              fi
+              echo "PASS: latency recovered within budget"

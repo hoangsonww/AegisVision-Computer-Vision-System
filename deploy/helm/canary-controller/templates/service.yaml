@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: canary-controller, namespace: aegis-system, labels: { app.kubernetes.io/name: canary-controller } }
+spec:
+  selector: { app.kubernetes.io/name: canary-controller }
+  ports:
+    - { name: http, port: 8460, targetPort: 8460, appProtocol: http }
+    - { name: metrics, port: 8461, targetPort: 8461 }

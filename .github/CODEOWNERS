@@ -1,0 +1,34 @@
+# CODEOWNERS — AegisVision
+#
+# Solo project authored + maintained by Son Nguyen (@hoangsonww).
+# All paths default to the project owner. The proto/ + docs/adr/ +
+# security-sensitive paths are highlighted explicitly so the owner
+# review requirement is unambiguous.
+
+# Default: project owner reviews everything.
+*                                            @hoangsonww
+
+# Protobuf contracts — the most-CODEOWNERS-reviewed directory. ADR-0007.
+/proto/                                      @hoangsonww
+
+# Architecture Decision Records.
+/docs/adr/                                   @hoangsonww
+
+# Security-relevant code paths.
+/pkg/llm/                                    @hoangsonww
+/pkg/agent/                                  @hoangsonww
+/services/agent-service/                     @hoangsonww
+/services/policy-gate-service/               @hoangsonww
+/services/audit-service/                     @hoangsonww
+/services/auth-proxy/                        @hoangsonww
+/services/tenant-service/                    @hoangsonww
+
+# Supply chain.
+/.github/workflows/                          @hoangsonww
+/tools/airgap/                               @hoangsonww
+/deploy/platform/                            @hoangsonww
+/deploy/chaos/                               @hoangsonww
+
+# Compliance evidence packages.
+/docs/compliance/                            @hoangsonww
+/services/compliance-evidence-service/       @hoangsonww

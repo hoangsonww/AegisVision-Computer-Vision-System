@@ -1,0 +1,159 @@
+# Patroni-managed Postgres HA. 3-replica StatefulSet with automatic failover.
+# Backups via WAL-G to S3 — see tools/scripts/wal-g-config.env.
+---
+apiVersion: v1
+kind: Namespace
+metadata: { name: aegis-data, labels: { istio.io/dataplane-mode: ambient } }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: postgres-patroni, namespace: aegis-data }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: patroni-config, namespace: aegis-data }
+data:
+  patroni.yml: |
+    scope: aegis-postgres
+    namespace: /aegis/
+    name: ${POD_NAME}
+    restapi:
+      listen: 0.0.0.0:8008
+      connect_address: ${POD_IP}:8008
+    etcd3:
+      hosts: etcd.aegis-data.svc:2379
+    bootstrap:
+      dcs:
+        ttl: 30
+        loop_wait: 10
+        retry_timeout: 10
+        maximum_lag_on_failover: 1048576
+        postgresql:
+          parameters:
+            max_connections: 200
+            wal_level: replica
+            hot_standby: "on"
+            archive_mode: "on"
+            archive_command: "wal-g wal-push %p"
+      initdb:
+        - encoding: UTF8
+        - data-checksums
+    postgresql:
+      listen: 0.0.0.0:5432
+      connect_address: ${POD_IP}:5432
+      data_dir: /home/postgres/pgdata
+      pg_hba:
+        - host all all 0.0.0.0/0 md5
+        - host replication replicator 0.0.0.0/0 md5
+      authentication:
+        replication:
+          username: replicator
+          password: ${REPLICATION_PASSWORD}
+        superuser:
+          username: postgres
+          password: ${POSTGRES_PASSWORD}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-patroni
+  namespace: aegis-data
+  labels: { app.kubernetes.io/name: postgres }
+spec:
+  serviceName: postgres-headless
+  replicas: 3
+  selector: { matchLabels: { app.kubernetes.io/name: postgres } }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: postgres }
+    spec:
+      serviceAccountName: postgres-patroni
+      priorityClassName: aegis-system-critical
+      terminationGracePeriodSeconds: 60
+      securityContext: { runAsNonRoot: true, runAsUser: 999, fsGroup: 999, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: patroni
+          image: registry.opensource.zalan.do/acid/spilo-16:3.3-p1
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities: { drop: [ALL] }
+          ports:
+            - { containerPort: 5432, name: postgres }
+            - { containerPort: 8008, name: patroni }
+            - { containerPort: 9187, name: metrics }
+          env:
+            - { name: POD_NAME, valueFrom: { fieldRef: { fieldPath: metadata.name } } }
+            - { name: POD_IP, valueFrom: { fieldRef: { fieldPath: status.podIP } } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: postgres-credentials, key: superuser } }
+            - name: REPLICATION_PASSWORD
+              valueFrom: { secretKeyRef: { name: postgres-credentials, key: replication } }
+            - name: WALG_S3_PREFIX
+              value: s3://aegis-postgres-wal/
+            - name: AWS_REGION
+              value: us-east-1
+            - { name: SCOPE, value: aegis-postgres }
+          volumeMounts:
+            - { name: data, mountPath: /home/postgres/pgdata }
+            - { name: patroni-config, mountPath: /etc/patroni }
+          readinessProbe:
+            httpGet: { path: /readiness, port: patroni }
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /liveness, port: patroni }
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests: { cpu: "2", memory: 8Gi }
+            limits: { cpu: "8", memory: 32Gi }
+      volumes:
+        - name: patroni-config
+          configMap: { name: patroni-config }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: standard
+        resources: { requests: { storage: 500Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres-headless, namespace: aegis-data, labels: { app.kubernetes.io/name: postgres } }
+spec:
+  clusterIP: None
+  selector: { app.kubernetes.io/name: postgres }
+  ports:
+    - { name: postgres, port: 5432, targetPort: 5432 }
+    - { name: patroni, port: 8008, targetPort: 8008 }
+---
+# postgres (primary, read-write) — Patroni labels the leader pod.
+apiVersion: v1
+kind: Service
+metadata: { name: postgres, namespace: aegis-data, labels: { app.kubernetes.io/name: postgres, role: master } }
+spec:
+  selector: { app.kubernetes.io/name: postgres, role: master }
+  ports: [{ name: postgres, port: 5432, targetPort: 5432, appProtocol: tcp }]
+---
+# postgres-ro (replicas, read-only).
+apiVersion: v1
+kind: Service
+metadata: { name: postgres-ro, namespace: aegis-data, labels: { app.kubernetes.io/name: postgres, role: replica } }
+spec:
+  selector: { app.kubernetes.io/name: postgres, role: replica }
+  ports: [{ name: postgres, port: 5432, targetPort: 5432, appProtocol: tcp }]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: postgres-patroni, namespace: aegis-data }
+spec:
+  minAvailable: 2
+  selector: { matchLabels: { app.kubernetes.io/name: postgres } }
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: { name: postgres, namespace: aegis-data, labels: { release: prometheus } }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: postgres } }
+  endpoints: [{ port: metrics, interval: 30s }]

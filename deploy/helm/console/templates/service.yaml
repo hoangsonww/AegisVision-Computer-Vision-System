@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: console
+  namespace: aegis-system
+  labels:
+    app.kubernetes.io/name: console
+spec:
+  selector:
+    app.kubernetes.io/name: console
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+    - name: metrics
+      port: {{ .Values.service.metricsPort }}
+      targetPort: http

@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: model-registry, namespace: aegis-system }
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/name: model-registry } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app.kubernetes.io/name: api-gateway } }
+        - podSelector: { matchLabels: { app.kubernetes.io/name: pipeline-service } }
+      ports: [{ port: 9094, protocol: TCP }]
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: aegis-observability } }
+          podSelector: { matchLabels: { app.kubernetes.io/name: prometheus } }
+      ports: [{ port: 9097, protocol: TCP }]
+  egress:
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: aegis-data } }
+          podSelector: { matchLabels: { app.kubernetes.io/name: postgres } }
+      ports: [{ port: 5432, protocol: TCP }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: aegis-observability } }
+          podSelector: { matchLabels: { app.kubernetes.io/name: otel-collector } }
+      ports: [{ port: 4317, protocol: TCP }]

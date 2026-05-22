@@ -1,0 +1,50 @@
+// AuditRecord is the canonical schema for the audit.v1 Kafka topic.
+// Every consequential action — by humans or agents — writes one.
+syntax = "proto3";
+
+package aegisvision.common.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/common/v1;commonv1";
+
+enum ActorKind {
+  ACTOR_KIND_UNSPECIFIED = 0;
+  ACTOR_KIND_USER = 1;
+  ACTOR_KIND_SERVICE = 2;
+  ACTOR_KIND_AGENT = 3;
+  ACTOR_KIND_SYSTEM = 4;
+}
+
+message Actor {
+  ActorKind kind = 1;
+  string subject = 2;
+  string tenant_id = 3;
+}
+
+message AuditRecord {
+  string id = 1;
+  google.protobuf.Timestamp at = 2;
+  Actor actor = 3;
+
+  // Verb identifies the operation (CamelCase, e.g. "PromoteModel",
+  // "DeployPipeline", "DeleteTenant"). Verbs are an enum on the producing
+  // service side, but free strings across the bus to allow services to ship
+  // independently.
+  string verb = 4;
+
+  // The resource the verb operated on, in URN form
+  //   "urn:aegisvision:<tenant>:<kind>:<id>"
+  string resource = 5;
+
+  // Snapshot of relevant context — request id, trace id, before/after diffs
+  // for mutations, etc.
+  google.protobuf.Struct context = 6;
+
+  // Outcome of the action. Failed audit records are required, not just
+  // successes — for compliance you must be able to prove that an attempt
+  // was made and rejected.
+  string outcome = 7; // SUCCESS | DENIED | ERROR
+  string reason = 8;
+}

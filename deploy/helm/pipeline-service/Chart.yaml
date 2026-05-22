@@ -1,0 +1,15 @@
+apiVersion: v2
+name: pipeline-service
+description: Control-plane gRPC service that owns pipeline declarations and lifecycle.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+maintainers:
+  - name: Son Nguyen
+    email: hoangson091104@gmail.com
+    url: https://github.com/hoangsonww
+keywords:
+  - aegisvision
+  - pipeline-service
+  - control-plane

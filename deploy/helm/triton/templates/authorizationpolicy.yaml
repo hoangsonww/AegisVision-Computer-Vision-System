@@ -1,0 +1,13 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: triton, namespace: aegis-inference }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: triton } }
+  action: ALLOW
+  rules:
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-inference/sa/inference-router] }
+      to: [{ operation: { ports: ["8000", "8001"] } }]
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
+      to: [{ operation: { ports: ["8002"] } }]

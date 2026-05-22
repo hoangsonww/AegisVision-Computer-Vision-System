@@ -1,0 +1,73 @@
+// Canary plans + traffic-split state for model / pipeline promotions
+// (ADR-0023). A plan is a declarative ladder of percentages with a
+// regression detector watching each step; the controller advances the
+// ladder only when the candidate is not statistically worse than the
+// baseline.
+syntax = "proto3";
+
+package aegisvision.autonomy.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/autonomy/v1;autonomyv1";
+
+enum CanaryStatus {
+  CANARY_STATUS_UNSPECIFIED = 0;
+  CANARY_STATUS_DRAFT = 1;
+  CANARY_STATUS_RAMPING = 2;        // moving up the ladder
+  CANARY_STATUS_HOLDING = 3;        // at a step, observing
+  CANARY_STATUS_PROMOTED = 4;       // candidate is now primary
+  CANARY_STATUS_ROLLED_BACK = 5;    // regression triggered rollback
+  CANARY_STATUS_FAILED = 6;         // controller could not act
+  CANARY_STATUS_PAUSED = 7;         // operator-paused
+}
+
+message Step {
+  // Percent traffic to the candidate at this step (1..100).
+  int32 candidate_percent = 1;
+  // Minimum observation window before advancing (seconds).
+  int32 hold_seconds = 2;
+  // Minimum sample size before the regression detector reports.
+  int64 min_samples = 3;
+}
+
+message CanaryPlan {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  // Resource being promoted — typically a model_id or a pipeline_id.
+  // Convention: "model:<id>" or "pipeline:<id>".
+  string resource_urn = 3;
+  // Baseline that the candidate is compared against.
+  string baseline_urn = 4;
+  string candidate_urn = 5;
+  // Ladder: ordered steps. Controller stops at the last step + holds.
+  repeated Step ladder = 6;
+  // Acceptable degradation in success-rate proportion (e.g. 0.005 = 0.5pp).
+  double max_proportion_delta = 7;
+  // Acceptable latency p95 increase, in ms.
+  int32 max_latency_p95_ms_delta = 8;
+  // If true, controller auto-promotes at the last step instead of holding.
+  bool auto_promote = 9;
+  CanaryStatus status = 10;
+  int32 current_step = 11;
+  google.protobuf.Timestamp last_step_at = 12;
+  string failure_reason = 13;
+  aegisvision.common.v1.AuditFields audit = 14;
+}
+
+// CanaryObservation is an incremental signal the controller folds into
+// its statistics. One row per (tenant, plan, window). Emitted by
+// shadow-inference-service and the canary-controller's own scrape of
+// metrics.
+message CanaryObservation {
+  string plan_id = 1;
+  string variant = 2;             // "baseline" | "candidate"
+  int64 successes = 3;
+  int64 failures = 4;
+  int64 latency_p50_ms = 5;
+  int64 latency_p95_ms = 6;
+  int64 latency_p99_ms = 7;
+  google.protobuf.Timestamp window_start = 8;
+  google.protobuf.Timestamp window_end = 9;
+}

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: nlq-service, namespace: aegis-system, labels: { app.kubernetes.io/name: nlq-service } }
+spec:
+  selector: { app.kubernetes.io/name: nlq-service }
+  ports:
+    - { name: http, port: 8450, targetPort: 8450, appProtocol: http }
+    - { name: metrics, port: 8451, targetPort: 8451 }

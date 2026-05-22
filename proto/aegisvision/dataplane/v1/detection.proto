@@ -1,0 +1,43 @@
+// Detection is a single object inferred by a model at one frame. Detections
+// flow on the detections.v1 Kafka topic; they are persisted to ClickHouse
+// (ADR-002) for the firehose and projected to Postgres only as aggregate
+// counters.
+syntax = "proto3";
+
+package aegisvision.dataplane.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/dataplane/v1;dataplanev1";
+
+message BoundingBox {
+  // Normalized [0,1] coordinates so detections are robust to letterboxing.
+  float x = 1;
+  float y = 2;
+  float w = 3;
+  float h = 4;
+}
+
+message Detection {
+  string tenant_id = 1;
+  string pipeline_id = 2;
+  string stream_id = 3;
+  int64  frame_seq = 4;
+  google.protobuf.Timestamp capture_time = 5;
+
+  string model_id = 10;
+  string model_version_id = 11;
+  string class_label = 12;
+  float  score = 13;
+
+  BoundingBox bbox = 20;
+
+  // Optional per-detection embedding (e.g. CLIP/SigLIP) for semantic search.
+  // Stored separately in Qdrant; the bytes here are an embedded reference,
+  // not the vector itself.
+  string embedding_ref = 30;
+
+  // Track ID is attached by the tracker operator downstream; absent on the
+  // first hop out of the model.
+  string track_id = 40;
+}

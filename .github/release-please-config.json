@@ -1,0 +1,32 @@
+{
+  "release-type": "go",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
+  "draft": false,
+  "prerelease": false,
+  "changelog-sections": [
+    { "type": "feat",     "section": "Features" },
+    { "type": "fix",      "section": "Bug Fixes" },
+    { "type": "perf",     "section": "Performance" },
+    { "type": "deps",     "section": "Dependency updates", "hidden": false },
+    { "type": "revert",   "section": "Reverts" },
+    { "type": "security", "section": "Security" },
+    { "type": "docs",     "section": "Documentation" },
+    { "type": "build",    "section": "Build" },
+    { "type": "ci",       "section": "CI" },
+    { "type": "refactor", "section": "Refactoring",       "hidden": true },
+    { "type": "test",     "section": "Tests",             "hidden": true },
+    { "type": "chore",    "section": "Chore",             "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "package-name": "aegisvision",
+      "release-type": "go",
+      "extra-files": [
+        "README.md"
+      ]
+    }
+  }
+}

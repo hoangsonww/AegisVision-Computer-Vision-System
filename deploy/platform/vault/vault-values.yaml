@@ -1,0 +1,63 @@
+# Values for the HashiCorp Vault Helm chart. Production runs HA mode with
+# integrated Raft storage and auto-unseal via cloud KMS. This file defines
+# the Aegis-specific overlay; install via:
+#
+#   helm upgrade --install vault hashicorp/vault \
+#     -n aegis-security --create-namespace \
+#     -f deploy/platform/vault/vault-values.yaml
+server:
+  ha:
+    enabled: true
+    replicas: 3
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+        listener "tcp" {
+          address     = "[::]:8200"
+          cluster_address = "[::]:8201"
+          tls_disable = false
+          tls_cert_file = "/vault/tls/tls.crt"
+          tls_key_file  = "/vault/tls/tls.key"
+        }
+        storage "raft" {
+          path = "/vault/data"
+        }
+        seal "awskms" {
+          # Production: configure region + kms_key_id from env (Vault honors it).
+          region     = "us-east-1"
+          # kms_key_id is sourced from the AWS_KMS_KEY_ID env injected via the
+          # External Secrets Operator from a cloud-managed secret.
+        }
+        service_registration "kubernetes" {}
+  resources:
+    requests: { cpu: 250m, memory: 1Gi }
+    limits:   { cpu: "1",  memory: 4Gi }
+  dataStorage:
+    enabled: true
+    size: 50Gi
+    storageClass: standard
+  auditStorage:
+    enabled: true
+    size: 20Gi
+  serviceAccount:
+    create: true
+    name: vault
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 100
+    fsGroup: 1000
+  containerSecurityContext:
+    runAsNonRoot: true
+    readOnlyRootFilesystem: false  # Vault writes /vault/data; PVC mount is the writable layer
+    capabilities:
+      drop: [ALL]
+      add: [IPC_LOCK]               # mlock; required to prevent secret swap-out
+ui:
+  enabled: true
+  serviceType: ClusterIP
+csi:
+  enabled: true                     # vault-secrets-csi driver, used by services that prefer csi over ESO
+injector:
+  enabled: false                    # we use External Secrets Operator instead

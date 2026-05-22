@@ -1,0 +1,78 @@
+# Binaries
+bin/
+dist/
+*.exe
+*.test
+*.out
+
+# Go
+vendor/
+go.sum.lock
+
+# Proto generated code (we commit; uncomment if you switch to gen-on-build)
+# gen/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Local env
+.env
+.env.local
+*.local
+
+# Coverage
+coverage.out
+coverage.html
+
+# Build artifacts
+*.sbom.json
+*.sig
+*.pem
+
+# Locally-built Go binaries — `go build` in a service dir produces an
+# executable named after the directory. We don't commit those.
+tools/scaffold/scaffold
+services/*/auth-proxy
+services/*/api-gateway
+services/*/pipeline-service
+services/*/stream-manager
+services/*/event-service
+services/*/dataplane-runner
+services/*/model-registry
+services/*/inference-router
+services/*/audit-service
+services/*/gpu-scheduler
+services/*/rule-engine
+services/*/realtime-hub
+services/*/notification-service
+services/*/metering-service
+services/*/dataset-service
+services/*/annotation-service
+services/*/training-orchestrator
+services/*/media-service
+services/*/semantic-search
+services/*/tenant-service
+services/*/edge-gateway
+services/*/cost-accounting
+services/*/llm-gateway
+services/*/agent-service
+services/*/policy-gate-service
+services/*/active-learning-service
+services/*/nlq-service
+services/*/knowledge-service
+services/*/canary-controller
+services/*/shadow-inference-service
+services/*/drift-detection-service
+services/*/slo-watchdog
+services/*/prefetch-service
+services/*/autonomy-orchestrator
+services/*/compliance-evidence-service
+
+# Console (Next.js) build artifacts — node_modules / .next / out etc are
+# in the per-service services/console/.gitignore already.
+services/console/node_modules/
+services/console/.next/
+services/console/out/

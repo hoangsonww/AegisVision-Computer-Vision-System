@@ -1,0 +1,18 @@
+image: { repository: aegisvision/inference-router, tag: "0.1.0", pullPolicy: IfNotPresent }
+replicaCount: 4
+env: prod
+logLevel: info
+triton:
+  url: http://triton.aegis-inference.svc.cluster.local:8000
+otel:
+  endpoint: otel-collector.aegis-observability.svc.cluster.local:4317
+resources:
+  requests: { cpu: 250m, memory: 256Mi }
+  limits:   { cpu: "2",  memory: 1Gi }
+autoscaling:
+  enabled: true
+  minReplicas: 4
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 70
+priorityClassName: aegis-data-plane
+serviceMonitor: { enabled: true, interval: 30s }

@@ -1,0 +1,59 @@
+name: 🏛 ADR Proposal
+description: Propose a new Architecture Decision Record.
+title: "[ADR]: "
+labels: ["adr", "architecture", "triage"]
+assignees:
+  - hoangsonww
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for **architectural changes**. The platform's
+        load-bearing decisions live in `docs/adr/`. Adding a new ADR is the
+        right path when:
+
+        - Your change conflicts with an existing decision.
+        - Your change introduces a new cross-service invariant.
+        - Your change affects security, multi-tenancy, or autonomy.
+
+  - type: input
+    id: title
+    attributes:
+      label: Proposed title
+      placeholder: "Decision to do X about Y"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What problem is this addressing? What constraints apply?
+    validations:
+      required: true
+
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision
+      description: The choice being made.
+    validations:
+      required: true
+
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences
+      description: What does this make easier? Harder?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: refs
+    attributes:
+      label: Related ADRs

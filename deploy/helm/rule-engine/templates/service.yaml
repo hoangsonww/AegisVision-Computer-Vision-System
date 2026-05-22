@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: rule-engine, namespace: aegis-system, labels: { app.kubernetes.io/name: rule-engine } }
+spec:
+  selector: { app.kubernetes.io/name: rule-engine }
+  ports:
+    - { name: http, port: 8210, targetPort: 8210, appProtocol: http }
+    - { name: metrics, port: 8211, targetPort: 8211 }

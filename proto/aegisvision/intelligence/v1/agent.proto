@@ -1,0 +1,111 @@
+// Agentic runtime. Agents are autonomous for reads/advisory and reversible
+// ops; consequential actions are routed to policy-gate-service for human
+// approval (ADR-0014, ADR-0017).
+syntax = "proto3";
+
+package aegisvision.intelligence.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "aegisvision/intelligence/v1/llm.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/intelligence/v1;intelligencev1";
+
+enum AgentRole {
+  AGENT_ROLE_UNSPECIFIED = 0;
+  AGENT_ROLE_OPERATOR = 1;     // helps operators diagnose / propose actions
+  AGENT_ROLE_OPTIMIZER = 2;    // proposes pipeline/cost optimizations
+  AGENT_ROLE_INVESTIGATOR = 3; // walks detections / events to summarize incidents
+}
+
+enum SessionStatus {
+  SESSION_STATUS_UNSPECIFIED = 0;
+  SESSION_STATUS_ACTIVE = 1;
+  SESSION_STATUS_AWAITING_GATE = 2; // blocked on consequential approval
+  SESSION_STATUS_COMPLETED = 3;
+  SESSION_STATUS_FAILED = 4;
+  SESSION_STATUS_CANCELED = 5;
+}
+
+message AgentSession {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  AgentRole role = 3;
+  string goal = 4;
+  SessionStatus status = 5;
+  int32 step_count = 6;
+  int32 max_steps = 7;
+  aegisvision.common.v1.AuditFields audit = 8;
+}
+
+enum StepKind {
+  STEP_KIND_UNSPECIFIED = 0;
+  STEP_KIND_PLAN = 1;
+  STEP_KIND_TOOL_CALL = 2;
+  STEP_KIND_TOOL_RESULT = 3;
+  STEP_KIND_GATE_REQUESTED = 4;
+  STEP_KIND_GATE_RESOLVED = 5;
+  STEP_KIND_FINAL = 6;
+}
+
+message AgentStep {
+  string id = 1;
+  string session_id = 2;
+  int32 index = 3;
+  StepKind kind = 4;
+  // Free-form summary (model output / tool name / final answer).
+  string summary = 5;
+  // Tool call details (for STEP_KIND_TOOL_CALL/RESULT). Opaque JSON.
+  string payload_json = 6;
+  // For GATE_REQUESTED: the gate id pending resolution.
+  string gate_id = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message StartSessionRequest {
+  aegisvision.common.v1.TenantRef tenant = 1;
+  AgentRole role = 2;
+  string goal = 3;
+  int32 max_steps = 4;
+  // Optional initial context (recent incident summary, etc.).
+  google.protobuf.Struct context = 5;
+}
+
+message SendMessageRequest {
+  string session_id = 1;
+  string content = 2;
+  // For continuing after a gate resolution.
+  string gate_id = 3;
+}
+
+// Decision a consequential tool wants approved. The agent never executes;
+// policy-gate-service stores this and waits for a human.
+message GateRequest {
+  string id = 1;
+  string session_id = 2;
+  string tenant_id = 3;
+  string tool_name = 4;
+  string action_summary = 5;
+  // Arguments the tool would run with (JSON).
+  string arguments_json = 6;
+  // Estimated blast radius — surfaced to the approver.
+  string blast_radius = 7; // "low" | "medium" | "high" | "critical"
+  google.protobuf.Timestamp requested_at = 8;
+}
+
+enum GateDecision {
+  GATE_DECISION_UNSPECIFIED = 0;
+  GATE_DECISION_PENDING = 1;
+  GATE_DECISION_APPROVED = 2;
+  GATE_DECISION_REJECTED = 3;
+  GATE_DECISION_EXPIRED = 4;
+}
+
+message Gate {
+  GateRequest request = 1;
+  GateDecision decision = 2;
+  string decided_by = 3;
+  string decision_reason = 4;
+  google.protobuf.Timestamp decided_at = 5;
+}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: edge-profile
+description: Reduced-operator-set values for k3s edge deployments (ADR-0005).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System

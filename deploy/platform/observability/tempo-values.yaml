@@ -1,0 +1,32 @@
+# Tempo for distributed traces. Tail-sampling and trace-to-metrics are
+# enabled so the platform can produce metrics from spans without the
+# OTel SDK round trip.
+tempo:
+  storage:
+    trace:
+      backend: s3
+      s3:
+        bucket: aegis-tempo
+  metricsGenerator:
+    enabled: true
+    remoteWriteUrl: http://kube-prometheus-stack-prometheus.aegis-observability.svc:9090/api/v1/write
+  receivers:
+    jaeger: { protocols: { thrift_http: { endpoint: 0.0.0.0:14268 } } }
+    zipkin: { endpoint: 0.0.0.0:9411 }
+    otlp:
+      protocols:
+        grpc: { endpoint: 0.0.0.0:4317 }
+        http: { endpoint: 0.0.0.0:4318 }
+ingester:
+  replicas: 3
+  persistence:
+    enabled: true
+    size: 50Gi
+distributor:
+  replicas: 3
+querier:
+  replicas: 3
+queryFrontend:
+  replicas: 2
+compactor:
+  replicas: 2

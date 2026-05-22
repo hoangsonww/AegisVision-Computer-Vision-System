@@ -1,0 +1,16 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: model-registry, namespace: aegis-system }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: model-registry } }
+  action: ALLOW
+  rules:
+    - from:
+        - source: { principals:
+            [cluster.local/ns/aegis-system/sa/api-gateway,
+             cluster.local/ns/aegis-system/sa/pipeline-service,
+             cluster.local/ns/aegis-streaming/sa/dataplane-runner] }
+      to: [{ operation: { ports: ["9094"] } }]
+    - from:
+        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
+      to: [{ operation: { ports: ["9097"] } }]

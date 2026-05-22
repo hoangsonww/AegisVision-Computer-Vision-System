@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: compliance-evidence-service, namespace: aegis-system, labels: { app.kubernetes.io/name: compliance-evidence-service } }
+spec:
+  selector: { app.kubernetes.io/name: compliance-evidence-service }
+  ports:
+    - { name: http, port: 8520, targetPort: 8520, appProtocol: http }
+    - { name: metrics, port: 8521, targetPort: 8521 }

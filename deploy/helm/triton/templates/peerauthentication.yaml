@@ -1,0 +1,6 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: triton-mtls-strict, namespace: aegis-inference }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: triton } }
+  mtls: { mode: STRICT }

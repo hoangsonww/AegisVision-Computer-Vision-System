@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: shadow-inference-service, namespace: aegis-system, labels: { app.kubernetes.io/name: shadow-inference-service } }
+spec:
+  selector: { app.kubernetes.io/name: shadow-inference-service }
+  ports:
+    - { name: http, port: 8470, targetPort: 8470, appProtocol: http }
+    - { name: metrics, port: 8471, targetPort: 8471 }

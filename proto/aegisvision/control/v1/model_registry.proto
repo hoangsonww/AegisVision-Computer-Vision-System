@@ -1,0 +1,66 @@
+// ModelRegistryService is the control-plane API for the model catalog.
+// Per ADR-0012 the catalog is data, not architecture: adding a new YOLO12
+// detector or a VLM is just a Model + ModelVersion insert.
+//
+// Promotion gates (server-side):
+//   - STABLE channel requires at least one verified CostProfile.
+//   - FACE/PERSON-class models require a non-empty FairnessEvalUri.
+//   - Mutating endpoints accept Idempotency-Key.
+syntax = "proto3";
+
+package aegisvision.control.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "aegisvision/control/v1/model.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/control/v1;controlv1";
+
+message GetModelRequest { string id = 1; }
+message GetModelResponse { Model model = 1; }
+
+message ListModelsRequest {
+  string tenant_id = 1;
+  ModelKind kind = 2;
+  aegisvision.common.v1.PageRequest page = 100;
+}
+message ListModelsResponse {
+  repeated Model models = 1;
+  aegisvision.common.v1.PageResponse page = 100;
+}
+
+message CreateModelRequest {
+  string idempotency_key = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  string name = 3;
+  ModelKind kind = 4;
+  string family = 5;
+  repeated string labels = 6;
+}
+message CreateModelResponse { Model model = 1; }
+
+message CreateModelVersionRequest {
+  string idempotency_key = 1;
+  string model_id = 2;
+  string semver = 3;
+  string artifact_uri = 4;
+  string signature = 5;
+  string sbom_uri = 6;
+  string fairness_eval_uri = 7;
+  repeated CostProfile cost_profiles = 8;
+}
+message CreateModelVersionResponse { ModelVersion version = 1; }
+
+message PromoteModelVersionRequest {
+  string idempotency_key = 1;
+  string model_version_id = 2;
+  ModelChannel channel = 3;
+}
+message PromoteModelVersionResponse { ModelVersion version = 1; }
+
+service ModelRegistryService {
+  rpc GetModel(GetModelRequest) returns (GetModelResponse);
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
+  rpc CreateModel(CreateModelRequest) returns (CreateModelResponse);
+  rpc CreateModelVersion(CreateModelVersionRequest) returns (CreateModelVersionResponse);
+  rpc PromoteModelVersion(PromoteModelVersionRequest) returns (PromoteModelVersionResponse);
+}

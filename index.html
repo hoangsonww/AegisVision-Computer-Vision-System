@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AegisVision — A distributed, autonomous, GPU-native visual-intelligence OS</title>
+<meta name="description" content="AegisVision is a 35-service Go monorepo for distributed GPU-native realtime visual intelligence: bounded-autonomy agents, Wilson canary promotion, same-URN shadow inference, multi-window SLOs, signed air-gapped install. Built by Son Nguyen.">
+<meta name="keywords" content="AegisVision, computer vision, distributed systems, GPU, Kubernetes, agents, LLM, bounded autonomy, canary, shadow inference, drift, SLO, Istio, Vault, Cosign, SLSA, air-gap, Son Nguyen, hoangsonww">
+<meta name="author" content="Son Nguyen">
+<meta name="theme-color" content="#0a1530">
+<meta property="og:title" content="AegisVision — distributed GPU-native visual intelligence">
+<meta property="og:description" content="35 Go services. 38 Helm charts. 30 ADRs. Bounded-autonomy agents. Wilson canary. Same-URN shadow. Signed air-gapped install. Built by Son Nguyen.">
+<meta property="og:url" content="https://github.com/hoangsonww/AegisVision-Computer-Vision-System">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@hoangsonww">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1a2752',
+      primaryTextColor: '#e0e7ff',
+      primaryBorderColor: '#3d5af1',
+      lineColor: '#7d92ff',
+      secondaryColor: '#0f1d3d',
+      tertiaryColor: '#1d2d5a',
+      background: '#0a1530',
+      mainBkg: '#1a2752',
+      secondBkg: '#0f1d3d',
+      tertiaryBkg: '#1d2d5a',
+      fontFamily: '"Inter", -apple-system, sans-serif',
+    },
+    flowchart: { curve: 'basis', useMaxWidth: true, htmlLabels: true },
+    sequence: { useMaxWidth: true },
+    gantt: { useMaxWidth: true },
+  });
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-0:     #050a1c;
+    --bg-1:     #0a1530;
+    --bg-2:     #0f1d3d;
+    --bg-3:     #1a2752;
+    --bg-4:     #1d2d5a;
+    --border-1: rgba(125, 146, 255, 0.18);
+    --border-2: rgba(125, 146, 255, 0.34);
+    --text-0:   #f0f4ff;
+    --text-1:   #c5cee0;
+    --text-2:   #94a3b8;
+    --text-3:   #64748b;
+    --acc-1:    #3d5af1;
+    --acc-2:    #00d4ff;
+    --acc-3:    #b88aff;
+    --acc-4:    #ffd166;
+    --acc-5:    #06d6a0;
+    --acc-warn: #f59e0b;
+    --acc-err:  #ef4444;
+    --shadow:   0 8px 40px rgba(0, 0, 0, 0.45);
+    --glow:     0 0 60px rgba(61, 90, 241, 0.35);
+    --radius:   14px;
+    --radius-sm:8px;
+    --mono:     "JetBrains Mono", ui-monospace, monospace;
+    --display:  "Space Grotesk", "Inter", sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-0);
+    color: var(--text-0);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--acc-2); text-decoration: none; transition: color .2s ease; }
+  a:hover { color: var(--acc-3); }
+  code, pre { font-family: var(--mono); }
+
+  /* === Animated star background === */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(61, 90, 241, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(184, 138, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+  }
+  .stars::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, white, transparent),
+      radial-gradient(1px 1px at 25% 45%, white, transparent),
+      radial-gradient(1px 1px at 40% 75%, white, transparent),
+      radial-gradient(1px 1px at 60% 15%, white, transparent),
+      radial-gradient(1px 1px at 75% 65%, white, transparent),
+      radial-gradient(1px 1px at 90% 35%, white, transparent),
+      radial-gradient(2px 2px at 15% 85%, rgba(255,255,255,0.55), transparent),
+      radial-gradient(2px 2px at 55% 35%, rgba(255,255,255,0.55), transparent),
+      radial-gradient(2px 2px at 95% 75%, rgba(255,255,255,0.55), transparent);
+    background-size: 200px 200px;
+    opacity: 0.7;
+    animation: twinkle 8s infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.85; }
+  }
+
+  /* === Top marquee === */
+  .marquee {
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(90deg, #3d5af1 0%, #00d4ff 50%, #b88aff 100%);
+    color: #0a1530;
+    font-weight: 700;
+    font-family: var(--mono);
+    padding: 9px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(61, 90, 241, 0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .marquee-track {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 40s linear infinite;
+  }
+  .marquee-track span { padding: 0 32px; font-size: 0.92rem; letter-spacing: 0.02em; }
+  .marquee-track span::after {
+    content: "◆"; margin-left: 32px; opacity: 0.55;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100%); }
+  }
+
+  /* === Nav === */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(5, 10, 28, 0.92);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border-1);
+  }
+  .nav-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 14px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 700; font-size: 1.2rem; letter-spacing: -0.01em; }
+  .nav-brand .logo {
+    width: 32px; height: 32px;
+    background: conic-gradient(from 180deg, var(--acc-1), var(--acc-2), var(--acc-3), var(--acc-1));
+    border-radius: 8px;
+    box-shadow: 0 0 18px rgba(61, 90, 241, 0.5);
+    position: relative;
+  }
+  .nav-brand .logo::before {
+    content: "🛡"; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.6));
+  }
+  .nav-links {
+    display: flex; gap: 4px; flex-wrap: wrap; align-items: center;
+  }
+  .nav-links a {
+    color: var(--text-1); padding: 8px 14px; border-radius: 6px;
+    font-size: 0.92rem; font-weight: 500; transition: all .2s ease;
+  }
+  .nav-links a:hover { background: var(--bg-3); color: var(--acc-2); }
+  .nav-links a.cta {
+    background: linear-gradient(90deg, var(--acc-1), var(--acc-2));
+    color: #0a1530; font-weight: 700;
+    box-shadow: 0 4px 16px rgba(61, 90, 241, 0.4);
+  }
+  .nav-links a.cta:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(61, 90, 241, 0.55); }
+
+  /* === Hero === */
+  header.hero {
+    position: relative; z-index: 1;
+    padding: 90px 32px 70px;
+    text-align: center;
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; }
+  .hero-shield {
+    width: 110px; height: 110px; margin: 0 auto 28px;
+    background: conic-gradient(from 180deg, var(--acc-1), var(--acc-2), var(--acc-3), var(--acc-1));
+    border-radius: 26px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 56px;
+    box-shadow: 0 12px 50px rgba(61, 90, 241, 0.5);
+    animation: float 5.5s ease-in-out infinite;
+    position: relative;
+  }
+  .hero-shield::before {
+    content: ""; position: absolute; inset: -10px;
+    background: conic-gradient(from 180deg, var(--acc-1), var(--acc-2), var(--acc-3), var(--acc-1));
+    border-radius: 30px;
+    filter: blur(28px); opacity: .55; z-index: -1;
+    animation: pulse 3.5s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  @keyframes pulse { 0%,100%{opacity:.45;transform:scale(1)} 50%{opacity:.75;transform:scale(1.08)} }
+
+  h1.hero-title {
+    font-family: var(--display);
+    font-size: clamp(2.4rem, 5.6vw, 4.4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin-bottom: 14px;
+  }
+  .hero-title .accent {
+    background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-tag {
+    font-size: clamp(1rem, 1.5vw, 1.18rem);
+    color: var(--text-1); max-width: 760px; margin: 0 auto 18px;
+    font-weight: 400;
+  }
+  .hero-subtag {
+    font-family: var(--mono); color: var(--text-2);
+    font-size: .9rem; margin-bottom: 36px;
+  }
+  .hero-buttons { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 50px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 28px; border-radius: 10px;
+    font-weight: 700; font-size: 0.97rem; letter-spacing: 0.005em;
+    transition: all .25s ease;
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: linear-gradient(90deg, var(--acc-1), var(--acc-2));
+    color: #0a1530;
+    box-shadow: 0 6px 30px rgba(61, 90, 241, 0.5);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(61, 90, 241, 0.65); color: #0a1530; }
+  .btn-secondary {
+    background: var(--bg-2); color: var(--text-0); border-color: var(--border-2);
+  }
+  .btn-secondary:hover { background: var(--bg-3); color: var(--text-0); transform: translateY(-2px); }
+  .btn-ghost { color: var(--text-1); }
+  .btn-ghost:hover { color: var(--acc-2); }
+
+  /* === Stats === */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+    max-width: 1100px; margin: 30px auto 0;
+  }
+  .stat {
+    background: var(--bg-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius);
+    padding: 24px 16px;
+    text-align: center;
+    transition: all .3s ease;
+    position: relative; overflow: hidden;
+  }
+  .stat::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(61,90,241,.08), transparent 60%);
+    pointer-events: none;
+  }
+  .stat:hover { transform: translateY(-4px); border-color: var(--border-2); box-shadow: var(--shadow); }
+  .stat-value {
+    font-family: var(--display);
+    font-size: 2.2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--acc-2), var(--acc-3));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px; letter-spacing: -0.02em;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+  /* === Sections === */
+  section { padding: 70px 32px; position: relative; z-index: 1; }
+  .container { max-width: 1280px; margin: 0 auto; }
+
+  h2.section-title {
+    font-family: var(--display);
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  h2.section-title .accent {
+    background: linear-gradient(90deg, var(--acc-2), var(--acc-3));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .section-sub {
+    text-align: center; color: var(--text-2);
+    max-width: 760px; margin: 0 auto 48px;
+    font-size: 1.02rem;
+  }
+  h3.subsec-title {
+    font-family: var(--display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 36px; margin-bottom: 12px;
+    color: var(--text-0);
+  }
+
+  /* === Cards (features) === */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 22px;
+  }
+  .card {
+    background: linear-gradient(145deg, var(--bg-2), var(--bg-1));
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: all .35s ease;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--acc-1), var(--acc-2));
+    opacity: 0;
+    transition: opacity .35s ease;
+  }
+  .card:hover { transform: translateY(-6px); border-color: var(--border-2); box-shadow: var(--shadow); }
+  .card:hover::before { opacity: 1; }
+  .card-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--acc-1), var(--acc-2));
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 5px 22px rgba(61, 90, 241, 0.42);
+  }
+  .card h3 { font-family: var(--display); font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+  .card p { color: var(--text-2); font-size: 0.94rem; line-height: 1.65; }
+
+  /* === Diagram block === */
+  .diagram-wrap {
+    background: var(--bg-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius);
+    padding: 28px;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+    margin-top: 26px;
+  }
+  .diagram-wrap .mermaid { min-width: 600px; }
+
+  /* === Code blocks === */
+  pre.code {
+    background: #060a18;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.86rem;
+    line-height: 1.7;
+    color: var(--text-0);
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  pre.code::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3));
+  }
+  .token-c { color: var(--text-3); }
+  .token-k { color: var(--acc-3); font-weight: 600; }
+  .token-s { color: var(--acc-5); }
+  .token-fn { color: var(--acc-2); }
+  .token-n { color: var(--acc-4); }
+
+  /* === Tables === */
+  .tbl-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius);
+    margin: 18px 0;
+  }
+  table {
+    width: 100%; border-collapse: collapse;
+    background: var(--bg-2);
+    font-size: 0.93rem;
+  }
+  th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-1); }
+  th {
+    background: var(--bg-3);
+    font-family: var(--display);
+    font-weight: 600;
+    color: var(--text-0);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+  }
+  tr:last-child td { border-bottom: 0; }
+  tr:hover td { background: var(--bg-3); }
+  code.inline { background: var(--bg-3); border: 1px solid var(--border-1); padding: 2px 8px; border-radius: 4px; font-size: 0.86em; color: var(--acc-4); }
+
+  /* === Pill tags === */
+  .pill {
+    display: inline-block;
+    padding: 4px 11px; border-radius: 999px;
+    background: var(--bg-3); border: 1px solid var(--border-2);
+    color: var(--text-1); font-size: 0.78rem; font-weight: 600;
+    margin: 2px;
+    transition: all .2s ease;
+  }
+  .pill:hover { background: var(--bg-4); transform: translateY(-1px); }
+  .pill-accent {
+    background: linear-gradient(135deg, var(--acc-1), var(--acc-2));
+    color: #0a1530; border-color: transparent;
+  }
+  .pill-danger {
+    background: linear-gradient(135deg, var(--acc-err), #ff7a7a);
+    color: white; border-color: transparent;
+  }
+  .pill-warn {
+    background: linear-gradient(135deg, var(--acc-warn), var(--acc-4));
+    color: #0a1530; border-color: transparent;
+  }
+  .pill-ok {
+    background: linear-gradient(135deg, var(--acc-5), #4ade80);
+    color: #0a1530; border-color: transparent;
+  }
+
+  /* === Services grid === */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .service-tile {
+    background: var(--bg-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    transition: all .25s ease;
+  }
+  .service-tile:hover { transform: translateY(-3px); border-color: var(--acc-1); background: var(--bg-3); }
+  .service-tile .name { font-family: var(--mono); font-weight: 600; color: var(--acc-2); font-size: 0.92rem; }
+  .service-tile .desc { color: var(--text-2); font-size: 0.84rem; margin-top: 4px; }
+
+  /* === Tier color rail === */
+  .tier-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+  }
+  .tier { background: var(--bg-2); border-radius: var(--radius); padding: 22px; border: 1px solid var(--border-1); border-top: 4px solid transparent; }
+  .tier h4 { font-family: var(--display); font-weight: 700; margin-bottom: 8px; font-size: 1.1rem; }
+  .tier p { color: var(--text-2); font-size: 0.88rem; line-height: 1.6; }
+  .tier code.inline { display: inline-block; margin: 2px 4px 2px 0; }
+  .tier-0 { border-top-color: var(--acc-5); }
+  .tier-1 { border-top-color: var(--acc-2); }
+  .tier-2 { border-top-color: var(--acc-warn); }
+  .tier-3 { border-top-color: var(--acc-err); }
+
+  /* === Quote / callout === */
+  .callout {
+    background: linear-gradient(135deg, rgba(61, 90, 241, 0.12), rgba(184, 138, 255, 0.08));
+    border-left: 4px solid var(--acc-1);
+    border-radius: var(--radius-sm);
+    padding: 22px 28px;
+    margin: 22px 0;
+    font-style: italic;
+    color: var(--text-1);
+    position: relative;
+  }
+  .callout::before {
+    content: "“"; font-family: var(--display); font-size: 5rem;
+    position: absolute; left: 10px; top: -16px;
+    color: var(--acc-1); opacity: .25; line-height: 1;
+  }
+  .callout strong { font-style: normal; color: var(--acc-2); }
+
+  /* === Tabs (Why one gateway etc) === */
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .toc-item {
+    padding: 16px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    transition: all .2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .toc-item:hover {
+    border-color: var(--acc-1);
+    transform: translateY(-2px);
+  }
+  .toc-item a {
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--text-0);
+    margin-bottom: 6px;
+    font-size: 1rem;
+  }
+  .toc-item .toc-desc { color: var(--text-2); font-size: 0.82rem; }
+
+  /* === Hero / divider marquees (alternating colors) === */
+  .marquee.alt {
+    background: linear-gradient(90deg, #b88aff 0%, #ffd166 50%, #06d6a0 100%);
+    color: #0a1530;
+  }
+  .marquee.dark {
+    background: var(--bg-2);
+    color: var(--text-1);
+    border-top: 1px solid var(--border-1);
+    border-bottom: 1px solid var(--border-1);
+  }
+  .marquee.dark .marquee-track span::after { color: var(--acc-2); opacity: 1; }
+
+  /* === Footer === */
+  footer {
+    background: var(--bg-1);
+    border-top: 1px solid var(--border-1);
+    padding: 60px 32px 40px;
+    margin-top: 30px;
+    position: relative; z-index: 1;
+  }
+  .footer-inner {
+    max-width: 1280px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 36px;
+  }
+  @media (max-width: 800px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 500px) { .footer-inner { grid-template-columns: 1fr; } }
+  .footer-col h4 {
+    font-family: var(--display);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--text-0);
+    margin-bottom: 14px;
+    letter-spacing: 0.06em;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 8px; }
+  .footer-col a { color: var(--text-2); font-size: 0.92rem; }
+  .footer-col a:hover { color: var(--acc-2); }
+  .footer-brand p { color: var(--text-2); margin-top: 8px; font-size: 0.92rem; }
+  .footer-meta {
+    max-width: 1280px; margin: 36px auto 0;
+    padding-top: 22px;
+    border-top: 1px solid var(--border-1);
+    text-align: center;
+    color: var(--text-3);
+    font-size: 0.85rem;
+  }
+  .author-card {
+    display: flex; gap: 18px; align-items: center;
+    background: var(--bg-2); border: 1px solid var(--border-1);
+    border-radius: var(--radius); padding: 16px; margin-top: 14px;
+    max-width: 380px;
+  }
+  .author-card img { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--acc-1); }
+  .author-name { font-family: var(--display); font-weight: 700; color: var(--text-0); }
+  .author-role { color: var(--text-3); font-size: 0.84rem; }
+
+  /* === Section divider === */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-2), transparent);
+    margin: 0 auto;
+    max-width: 1280px;
+  }
+
+  /* === Responsive nav (mobile collapse) === */
+  @media (max-width: 760px) {
+    .nav-links { gap: 0; justify-content: flex-end; }
+    .nav-links a { padding: 8px 10px; font-size: 0.84rem; }
+    .nav-links a.cta { font-size: 0.84rem; padding: 8px 14px; }
+    header.hero { padding: 60px 20px 50px; }
+    section { padding: 50px 20px; }
+  }
+
+  /* === Floating scroll-top button === */
+  .scroll-top {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--acc-1), var(--acc-2));
+    color: #0a1530;
+    border: none; border-radius: 50%;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    font-size: 22px;
+    opacity: 0; visibility: hidden;
+    transition: all .3s ease;
+    z-index: 60;
+  }
+  .scroll-top.visible { opacity: 1; visibility: visible; }
+  .scroll-top:hover { transform: translateY(-3px) scale(1.05); }
+
+  /* Selection */
+  ::selection { background: var(--acc-1); color: white; }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<!-- ==================== TOP MARQUEE ==================== -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span>🛡️ FRAMES NEVER GO ON THE BUS (ADR-0008)</span>
+    <span>⚡ GLASS-TO-EVENT p95 ≈ 2.7 ms (LOCAL) vs 300 ms TARGET</span>
+    <span>🧠 BOUNDED-AUTONOMY AGENTS — REFUSAL IN CODE, NOT PROMPTS</span>
+    <span>🎯 WILSON LOWER-BOUND + MIN-SAMPLE FLOOR CANARY (ADR-0023)</span>
+    <span>👁️ SAME-URN SHADOW INFERENCE (ADR-0024)</span>
+    <span>📊 MULTI-WINDOW BURN-RATE SLOs (ADR-0025)</span>
+    <span>📦 AIR-GAPPED BUNDLE AS DAY-ONE CI ARTIFACT (ADR-0027)</span>
+    <span>🚀 35 SERVICES · 38 HELM CHARTS · 30 ADRs · 14 LIBRARIES</span>
+    <span>🔒 mTLS STRICT · OPA AuthZ · SPIRE · VAULT TRANSIT · COSIGN KEYLESS · SLSA v1</span>
+  </div>
+</div>
+
+<!-- ==================== NAV ==================== -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="logo"></div>
+      AegisVision
+    </div>
+    <div class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#services">Services</a>
+      <a href="#agents">Agents</a>
+      <a href="#adaptive">Adaptive</a>
+      <a href="#security">Security</a>
+      <a href="#deploy">Deploy</a>
+      <a href="#adrs">ADRs</a>
+      <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System" class="cta">⭐ GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-shield">🛡️</div>
+    <h1 class="hero-title">
+      Distributed, autonomous,<br/>
+      <span class="accent">GPU-native visual intelligence.</span>
+    </h1>
+    <p class="hero-tag">
+      AegisVision is a 35-service Go monorepo for realtime multimodal perception,
+      reasoning, and orchestration. Bounded-autonomy agents, Wilson canary, same-URN
+      shadow, multi-window SLOs, signed air-gapped install — built from scar tissue.
+    </p>
+    <p class="hero-subtag">
+      Built by Son Nguyen · solo project · Apache 2.0 · v0.5.0 · Phases 0–7 complete (incl. production Next.js console)
+    </p>
+
+    <div class="hero-buttons">
+      <a class="btn btn-primary" href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System">
+        ⭐ Star on GitHub
+      </a>
+      <a class="btn btn-secondary" href="#overview">📖 Read the wiki</a>
+      <a class="btn btn-ghost" href="https://sonnguyenhoang.com">🌐 sonnguyenhoang.com</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value">35</div><div class="stat-label">Go Services</div></div>
+      <div class="stat"><div class="stat-value">39</div><div class="stat-label">Helm Charts</div></div>
+      <div class="stat"><div class="stat-value">33</div><div class="stat-label">Console Routes</div></div>
+      <div class="stat"><div class="stat-value">30</div><div class="stat-label">ADRs</div></div>
+      <div class="stat"><div class="stat-value">14</div><div class="stat-label">Shared Libs</div></div>
+      <div class="stat"><div class="stat-value">49/49</div><div class="stat-label">Modules Green</div></div>
+      <div class="stat"><div class="stat-value">10k</div><div class="stat-label">Streams Target</div></div>
+      <div class="stat"><div class="stat-value">2.7ms</div><div class="stat-label">p95 Glass→Event</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== INTRO MARQUEE ==================== -->
+<div class="marquee alt">
+  <div class="marquee-track">
+    <span>📡 Go 1.26 · gRPC · Buf · Protobuf</span>
+    <span>☸️ Kubernetes · Helm · Istio Ambient · ArgoCD · Kyverno · ESO · SPIRE · Vault</span>
+    <span>🗄️ PostgreSQL · Patroni · ClickHouse · Redis · NATS JetStream · Kafka</span>
+    <span>🎮 NVIDIA Triton · TensorRT-LLM · DeepStream · MIG</span>
+    <span>📈 OpenTelemetry · Prometheus · Loki · Tempo · Grafana</span>
+    <span>🔏 Cosign · Sigstore · Rekor · SLSA v1 · Syft SBOM</span>
+    <span>🧪 chaos-mesh · k6 · WAL-G · clickhouse-backup</span>
+    <span>📦 Cosign-signed air-gap bundle · OCI-layout · zstd</span>
+  </div>
+</div>
+
+<!-- ==================== OVERVIEW ==================== -->
+<section id="overview">
+  <div class="container">
+    <h2 class="section-title">What is <span class="accent">AegisVision?</span></h2>
+    <p class="section-sub">
+      A platform-shaped answer to every hard lesson learned from operating large
+      computer-vision platforms — built once, on purpose, with the scar tissue
+      baked in.
+    </p>
+
+    <div class="callout">
+      AegisVision is what you get when you take the hardest lessons learned from
+      operating production CV deployments
+      — and rebuild from first principles around the constraints that
+      <strong>actually</strong> dominate at scale.
+    </div>
+
+    <h3 class="subsec-title">The five non-negotiables</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🚫</div>
+        <h3>Frames never go on the bus</h3>
+        <p>The bus carries claim-check URNs; bytes live in object storage. <code class="inline">ADR-0008</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⛔</div>
+        <h3>Per-frame work never touches the control plane</h3>
+        <p>The data plane is stateless beyond the operator buffer. Temporal never sees a frame. <code class="inline">ADR-0001</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎮</div>
+        <h3>GPUs are MIG-partitioned by default</h3>
+        <p>Hardware isolation bounds blast radius. No soft-share fallback. <code class="inline">ADR-0003</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛑</div>
+        <h3>Agents do not auto-execute consequential actions</h3>
+        <p>Tier-3 tools refuse in code without a resolved gate. <code class="inline">ADR-0014</code>·<code class="inline">0017</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📚</div>
+        <h3>Platform-fact answers must cite</h3>
+        <p>Knowledge-service returns cited snippets. No hallucinated stream-IDs. <code class="inline">ADR-0020</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Air-gap is day-one</h3>
+        <p>Signed bundle is a first-class CI artifact. Never a retrofit. <code class="inline">ADR-0027</code>.</p>
+      </div>
+    </div>
+
+    <h3 class="subsec-title">Status today</h3>
+    <p>Phases 0–6 complete. The code is end-to-end green; operational validation (real SOC 2 audit, real 10k-stream soak, real production cluster) is what remains.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Phase</th><th>Theme</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>Foundations: proto contracts, <code class="inline">pkg/platform</code>, walking-skeleton spine</td><td><span class="pill pill-ok">complete</span></td></tr>
+          <tr><td>1</td><td>Glass-to-event walking skeleton (5 services + NATS)</td><td><span class="pill pill-ok">complete</span> · p95 ≈ 2.7 ms local</td></tr>
+          <tr><td>2</td><td>GPU hot path: Triton + MIG + inference-router + canary plumbing</td><td><span class="pill pill-ok">complete</span></td></tr>
+          <tr><td>3</td><td>Multi-tenant + edge + storage tier (Patroni / ClickHouse / Vault)</td><td><span class="pill pill-ok">complete</span></td></tr>
+          <tr><td>4</td><td>Intelligence tier: LLM gateway + agent + RAG + bounded autonomy</td><td><span class="pill pill-ok">complete</span></td></tr>
+          <tr><td>5</td><td>Adaptive autonomy: canary + shadow + drift + SLO + prefetch</td><td><span class="pill pill-ok">complete</span></td></tr>
+          <tr><td>6</td><td>GA hardening: compliance evidence + air-gap + chaos + DR drills + release</td><td><span class="pill pill-ok">complete</span></td></tr>
+          <tr><td>7</td><td>Production console: Next.js 14 + Tailwind UI exposing every public endpoint (33 routes)</td><td><span class="pill pill-ok">complete</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== ARCHITECTURE ==================== -->
+<section id="architecture">
+  <div class="container">
+    <h2 class="section-title">High-level <span class="accent">architecture</span></h2>
+    <p class="section-sub">
+      Two planes — separated along the <em>frequency</em> axis, not the domain
+      axis. Per-frame work runs in the data plane; per-event work runs in the
+      control plane.
+    </p>
+
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    subgraph Edge["Edge / on-prem"]
+        CAM[Cameras / RTSP / Files]
+    end
+    subgraph Stream["Stream tier"]
+        SM[stream-manager]
+        DR[dataplane-runner]
+    end
+    subgraph GPU["GPU tier"]
+        IR[inference-router]
+        TRT[Triton + TRT-LLM]
+        GS[gpu-scheduler]
+    end
+    subgraph Control["Control plane"]
+        AG[api-gateway]
+        PS[pipeline-service]
+        MR[model-registry]
+        TS[tenant-service]
+    end
+    subgraph Events["Event tier"]
+        ES[event-service]
+        RH[realtime-hub]
+        NS[notification-service]
+    end
+    subgraph Store["Storage"]
+        CH[(ClickHouse)]
+        PG[(Postgres)]
+        OBJ[(Object store)]
+    end
+    subgraph Brain["Intelligence tier"]
+        LG[llm-gateway]
+        AS[agent-service]
+        PG2[policy-gate-service]
+        KS[knowledge-service]
+    end
+
+    CAM --> SM
+    SM --> DR
+    DR --> IR
+    IR --> TRT
+    DR -- detections --> ES
+    ES --> CH
+    ES --> RH
+    RH --> NS
+    AG --> PS
+    AG --> ES
+    AG --> AS
+    AS --> LG
+    AS --> KS
+    AS --> PG2
+    IR --> GS
+    PS --> MR
+      </div>
+    </div>
+
+    <h3 class="subsec-title">Glass-to-event flow</h3>
+    <p>The hot path. Every pixel that becomes a tenant-visible event takes this route.</p>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant CAM as Camera
+    participant DR as dataplane-runner
+    participant CC as claim-check
+    participant IR as inference-router
+    participant TRT as Triton + MIG
+    participant NATS as NATS
+    participant ES as event-service
+    participant CH as ClickHouse
+    participant AG as api-gateway
+    actor U as User
+
+    CAM->>DR: RTSP frame
+    DR->>CC: PUT frame_urn
+    DR->>DR: sampler
+    DR->>IR: Infer(frame_urn, model)
+    IR->>TRT: detect
+    TRT-->>IR: detections
+    IR->>NATS: inference.completed.v1
+    IR-->>DR: detections
+    DR->>DR: tracker, rule
+    alt rule trips
+        DR->>NATS: events.v1
+        NATS->>ES: deliver
+        ES->>CH: insert
+        ES->>AG: SSE push
+        AG->>U: SSE event
+    end
+      </div>
+    </div>
+
+    <h3 class="subsec-title">Inference fan-out</h3>
+    <p>Every <code class="inline">Infer</code> call emits up to three bus events. The 5-test integration smoke asserts every subject has both a producer and a consumer in CI.</p>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    IR[inference-router] -->|inference.completed.v1| NATS
+    NATS --> MET[metering-service]
+    NATS --> DD[drift-detection-service]
+    NATS --> CA[cost-accounting]
+    NATS --> AL[active-learning-service]
+    IR -->|inference.baseline.v1| NATS
+    NATS --> SI[shadow-inference-service]
+    IR -->|inference.outcome.v1| NATS
+    NATS --> CC[canary-controller]
+      </div>
+    </div>
+
+    <h3 class="subsec-title">Storage architecture</h3>
+    <p>Three tiers, each chosen for the shape of the data — not "one DB for everything."</p>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    subgraph hot["hot path"]
+        EVT[events.v1] -->|consume| ES[event-service]
+        ES --> CH[(ClickHouse<br/>3×2 replicated)]
+        ES --> RING[in-mem ring]
+    end
+
+    subgraph cold["cold path"]
+        PG[(Postgres<br/>Patroni HA)]
+        REDIS[(Redis<br/>Sentinel HA)]
+    end
+
+    PS[pipeline-service] --> PG
+    MR[model-registry] --> PG
+    TS[tenant-service] --> PG
+    AU[audit-service] --> PG
+    NLQ[nlq-service] -.->|read| CH
+
+    OBJ[(Object store<br/>S3 / MinIO / Ceph)]
+    CC[claim-check] --> OBJ
+    MS[media-service] --> OBJ
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== INNER MARQUEE ==================== -->
+<div class="marquee dark">
+  <div class="marquee-track">
+    <span>🧰 35 services in one go.work — each its own Go module, each its own bounded context</span>
+    <span>📐 Protobuf-everywhere, Buf-managed, breaking-change-checked (ADR-0007)</span>
+    <span>🪝 Every chart conformance-tested for mTLS STRICT + OPA AuthZ + default-deny NetworkPolicy</span>
+    <span>🧪 5-test cross-service integration smoke catches bus subject drift before deploy</span>
+    <span>🚦 Refusal-in-code: 4 tools tried to bypass tier-3; all four were caught by pkg/agent</span>
+  </div>
+</div>
+
+<!-- ==================== SERVICES ==================== -->
+<section id="services">
+  <div class="container">
+    <h2 class="section-title">The <span class="accent">35 services</span></h2>
+    <p class="section-sub">
+      Each in its own Go module, each a single bounded context, each communicating
+      over typed protobuf contracts. No service shares state in memory with another.
+    </p>
+
+    <h3 class="subsec-title">Control plane <span class="pill pill-accent">Temporal-friendly</span></h3>
+    <div class="services-grid">
+      <div class="service-tile"><div class="name">api-gateway</div><div class="desc">Public REST. JWT verify, OPA AuthZ, RFC 9457, idempotency, cursor pagination, SSE proxy, console.</div></div>
+      <div class="service-tile"><div class="name">pipeline-service</div><div class="desc">Pipeline DAGs + revisions. The canonical CRUD-with-revisions reference.</div></div>
+      <div class="service-tile"><div class="name">stream-manager</div><div class="desc">Stream lifecycle. Dispatches operator.control to dataplane-runner shards.</div></div>
+      <div class="service-tile"><div class="name">model-registry</div><div class="desc">Versioned model artifacts + reference distribution + gated promotion.</div></div>
+      <div class="service-tile"><div class="name">dataset-service</div><div class="desc">Datasets + dataset versions + lineage.</div></div>
+      <div class="service-tile"><div class="name">annotation-service</div><div class="desc">Labels + label-policy revisions (immutable).</div></div>
+      <div class="service-tile"><div class="name">training-orchestrator</div><div class="desc">Wraps Kubeflow / Ray / Argo Workflows training jobs.</div></div>
+      <div class="service-tile"><div class="name">media-service</div><div class="desc">Recordings + clips + retention. Crypto-shredded per tenant key.</div></div>
+      <div class="service-tile"><div class="name">tenant-service</div><div class="desc">Tenants + projects + members + RBAC.</div></div>
+      <div class="service-tile"><div class="name">auth-proxy</div><div class="desc">JWT verify against JWKS, tenant injection. No HMAC.</div></div>
+      <div class="service-tile"><div class="name">audit-service</div><div class="desc">Append-only, hash-chained audit log. Fail-closed.</div></div>
+    </div>
+
+    <h3 class="subsec-title">Data plane <span class="pill pill-warn">per-frame, stateless</span></h3>
+    <div class="services-grid">
+      <div class="service-tile"><div class="name">dataplane-runner</div><div class="desc">Operator DAG: ingest → sampler → detect → tracker → rule → emit.</div></div>
+      <div class="service-tile"><div class="name">inference-router</div><div class="desc">Routes to Triton; publishes inference.completed/baseline/outcome.</div></div>
+      <div class="service-tile"><div class="name">gpu-scheduler</div><div class="desc">MIG-default reservation ledger. No soft-share.</div></div>
+      <div class="service-tile"><div class="name">rule-engine</div><div class="desc">dwell, count, line-cross, zone-enter — composable.</div></div>
+      <div class="service-tile"><div class="name">event-service</div><div class="desc">Consumes events.v1; ClickHouse + SSE.</div></div>
+      <div class="service-tile"><div class="name">realtime-hub</div><div class="desc">WebSocket fan-out for console + integrations.</div></div>
+      <div class="service-tile"><div class="name">notification-service</div><div class="desc">Webhooks, email, Slack — replay-safe idempotent.</div></div>
+      <div class="service-tile"><div class="name">edge-gateway</div><div class="desc">k3s-friendly outbox sync to core.</div></div>
+    </div>
+
+    <h3 class="subsec-title">Intelligence tier <span class="pill pill-accent">Phase 4</span></h3>
+    <div class="services-grid">
+      <div class="service-tile"><div class="name">llm-gateway</div><div class="desc">One OpenAI-compatible endpoint. Sanitizer + PII redactor + refusal threshold.</div></div>
+      <div class="service-tile"><div class="name">agent-service</div><div class="desc">Bounded-autonomy runtime. Tier-3 routes via policy-gate. Auto-resume on gate.resolved.</div></div>
+      <div class="service-tile"><div class="name">policy-gate-service</div><div class="desc">Human-in-the-loop approval. Audit on every decision.</div></div>
+      <div class="service-tile"><div class="name">knowledge-service</div><div class="desc">RAG corpus over docs + ADRs + runbooks. Citation-mandatory.</div></div>
+      <div class="service-tile"><div class="name">active-learning-service</div><div class="desc">Uncertainty + diversity sampling. Never random.</div></div>
+      <div class="service-tile"><div class="name">nlq-service</div><div class="desc">Natural-language → structured query.</div></div>
+    </div>
+
+    <h3 class="subsec-title">Adaptive autonomy <span class="pill pill-accent">Phase 5</span></h3>
+    <div class="services-grid">
+      <div class="service-tile"><div class="name">canary-controller</div><div class="desc">Wilson lower-bound + min-sample floor proportion test.</div></div>
+      <div class="service-tile"><div class="name">shadow-inference-service</div><div class="desc">Same-URN candidate-vs-baseline. Tenant never sees candidate.</div></div>
+      <div class="service-tile"><div class="name">drift-detection-service</div><div class="desc">JS / KL / TVD divergence vs reference.</div></div>
+      <div class="service-tile"><div class="name">slo-watchdog</div><div class="desc">Multi-window burn-rate. SRE workbook.</div></div>
+      <div class="service-tile"><div class="name">prefetch-service</div><div class="desc">7×24 EMA grid; warm-ups ahead of demand.</div></div>
+      <div class="service-tile"><div class="name">autonomy-orchestrator</div><div class="desc">Cron + signal-driven agent sessions. No second runtime.</div></div>
+    </div>
+
+    <h3 class="subsec-title">GA hardening <span class="pill pill-accent">Phase 6</span></h3>
+    <div class="services-grid">
+      <div class="service-tile"><div class="name">compliance-evidence-service</div><div class="desc">Composes per-control evidence; owns no data.</div></div>
+      <div class="service-tile"><div class="name">semantic-search</div><div class="desc">Cross-tenant semantic search over events + clips.</div></div>
+      <div class="service-tile"><div class="name">cost-accounting</div><div class="desc">Per-tenant GPU-second + token + storage cost.</div></div>
+      <div class="service-tile"><div class="name">metering-service</div><div class="desc">Billable-event aggregation from inference.completed.v1.</div></div>
+    </div>
+
+    <h3 class="subsec-title">Production console <span class="pill pill-accent">Phase 7</span></h3>
+    <div class="services-grid">
+      <div class="service-tile"><div class="name">console</div><div class="desc">Next.js 14 + Tailwind. 33 routes covering every public REST endpoint: dashboard with live SSE, streams + pipelines + models, agents with citations + tier-3 gate banner, gate inbox, canary decision board, drift heatmap, SLO burn-rate, prefetch grid, knowledge RAG, audit log + chain-verify, tenants, cost, compliance bundles, and more. Conformance-clean Helm chart.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== AGENTS ==================== -->
+<section id="agents">
+  <div class="container">
+    <h2 class="section-title">Bounded-autonomy <span class="accent">agents</span></h2>
+    <p class="section-sub">
+      The agent has a fixed toolbox. Each tool carries a <em>risk tier</em>. Tier-3
+      tools refuse to run in code without a resolved gate. You cannot prompt
+      your way past it.
+    </p>
+
+    <div class="tier-rail">
+      <div class="tier tier-0">
+        <h4>Tier 0 · auto, read-only <span class="pill pill-ok">✓</span></h4>
+        <p>Auto-execute. Read-only. Examples:</p>
+        <p>
+          <code class="inline">query_knowledge</code>
+          <code class="inline">read_event_stream</code>
+          <code class="inline">describe_pipeline</code>
+          <code class="inline">list_models</code>
+        </p>
+      </div>
+      <div class="tier tier-1">
+        <h4>Tier 1 · advisory <span class="pill pill-ok">✓</span></h4>
+        <p>Auto-execute. Returns recommendation only. Examples:</p>
+        <p>
+          <code class="inline">summarise</code>
+          <code class="inline">compare_distributions</code>
+          <code class="inline">predict_dwell</code>
+        </p>
+      </div>
+      <div class="tier tier-2">
+        <h4>Tier 2 · propose <span class="pill pill-warn">⚠</span></h4>
+        <p>Auto-execute. Returns a <strong>proposal</strong>, no side effect. Examples:</p>
+        <p>
+          <code class="inline">propose_retrain</code>
+          <code class="inline">propose_canary_plan</code>
+          <code class="inline">propose_retention_change</code>
+        </p>
+      </div>
+      <div class="tier tier-3">
+        <h4>Tier 3 · gated <span class="pill pill-danger">🛑</span></h4>
+        <p>Refused in code without resolved gate. Routes via <code class="inline">policy-gate-service</code>. Examples:</p>
+        <p>
+          <code class="inline">promote_model</code>
+          <code class="inline">override_retention</code>
+          <code class="inline">force_failover</code>
+          <code class="inline">delete_dataset</code>
+        </p>
+      </div>
+    </div>
+
+    <h3 class="subsec-title">Tier-3 gate round-trip</h3>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant AS as agent-service
+    participant LG as llm-gateway
+    participant PG as policy-gate-service
+    actor A as Approver
+    participant NATS as NATS
+
+    U->>AS: "promote my-model-v2"
+    AS->>LG: choose tool
+    LG-->>AS: tool=promote_model (tier 3)
+    AS->>PG: RequestGate(promote_model, args)
+    PG-->>AS: gate_id=g_xyz
+    AS-->>U: pending approval (gate_id)
+    PG->>A: notify
+    A->>PG: approve(g_xyz)
+    PG->>NATS: gate.resolved.g_xyz
+    NATS->>AS: auto-deliver
+    AS->>AS: a.Resume(ctx, g_xyz, toolResult)
+    AS-->>U: "Promoted my-model-v2."
+      </div>
+    </div>
+
+    <div class="callout">
+      The refusal is in <strong>pkg/agent/agent.go</strong>:
+      <code class="inline">if tool.Tier == Tier3 && req.GateID == "" { return ErrTier3NeedsGate }</code>.
+      It cannot be prompted away. Even <code class="inline">autonomy-orchestrator</code>
+      goes through the same <code class="inline">agent-service</code> runtime
+      (<code class="inline">ADR-0022</code>) — every constraint binds.
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ADAPTIVE ==================== -->
+<section id="adaptive">
+  <div class="container">
+    <h2 class="section-title">Adaptive <span class="accent">autonomy</span></h2>
+    <p class="section-sub">
+      Five self-improving loops. Each is statistically rigorous; promotion still
+      routes through a human gate by design.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h3>Canary</h3>
+        <p>Wilson lower-bound proportion test + minimum sample floor. Automatic rollback; gated promotion. <code class="inline">ADR-0023</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👻</div>
+        <h3>Shadow inference</h3>
+        <p>Same-URN candidate-vs-baseline. Candidate never reaches the tenant; only the comparison metric. <code class="inline">ADR-0024</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Drift</h3>
+        <p>Sliding-window JS / KL / TVD divergence vs reference distribution. <code class="inline">ADR-0025</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚨</div>
+        <h3>SLO burn-rate</h3>
+        <p>Multi-window (1h fast, 6h slow). Page only if both windows breach. <code class="inline">ADR-0025</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔥</div>
+        <h3>Predictive prefetch</h3>
+        <p>7×24 hour-of-week EMA grid; warm-ups dispatched at horizon ahead of demand. <code class="inline">ADR-0026</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>Continuous autonomy</h3>
+        <p>Cron + signal-driven agent sessions. <strong>No second runtime</strong> — opens regular agent-service sessions. <code class="inline">ADR-0022</code>.</p>
+      </div>
+    </div>
+
+    <h3 class="subsec-title">The canary loop</h3>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant IR as inference-router
+    participant CC as canary-controller
+    participant MR as model-registry
+    participant PG as policy-gate-service
+
+    loop per outcome
+        IR->>CC: inference.outcome.v1
+        CC->>CC: update Wilson lower bound
+    end
+    alt rollback condition
+        CC->>MR: automatic rollback
+    else promote recommendation
+        CC->>PG: RequestGate(promote_model)
+        PG-->>CC: approved
+        CC->>MR: promote candidate
+    else hold
+        CC->>CC: keep accumulating
+    end
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== SECURITY ==================== -->
+<section id="security">
+  <div class="container">
+    <h2 class="section-title">Security &amp; <span class="accent">supply chain</span></h2>
+    <p class="section-sub">
+      Defense in depth, refuse unsafe defaults, fail closed. Every control here
+      has a corresponding SOC 2 evidence record + pen-test scope entry.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>mTLS STRICT everywhere</h3>
+        <p>Istio Ambient. Every pod-to-pod call is mTLS. No plaintext. Per-service AuthorizationPolicy ALLOW list with SPIFFE IDs.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📜</div>
+        <h3>OPA AuthZ</h3>
+        <p>Per-service Rego. Default-deny. Per-tenant model allow-lists; per-project member roles; per-resource ownership.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🆔</div>
+        <h3>SPIRE workload identity</h3>
+        <p>Every pod gets a SPIFFE ID. Mesh authorization keyed on these IDs.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗝️</div>
+        <h3>Per-tenant Vault transit</h3>
+        <p>Destroying a tenant's transit key renders all encrypted bytes (including backups) unreadable. Crypto-shredding. <code class="inline">ADR-0014</code>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Cosign keyless + SLSA v1 + SBOM</h3>
+        <p>Every image keylessly signed via OIDC. Kyverno admission verifies signatures against the build workflow. Syft SPDX SBOM attached.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧱</div>
+        <h3>NetworkPolicy default-deny</h3>
+        <p>Even if the mesh is compromised, the pod network refuses connections.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <h3>Append-only, hash-chained audit</h3>
+        <p>No UPDATE, no DELETE. Fail-closed: if audit can't append, the upstream operation fails.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧬</div>
+        <h3>Prompt-injection defense in depth</h3>
+        <p>Sanitiser + PII redactor + refusal threshold + per-tenant rate limit + tier-3 gate. <code class="inline">ADR-0021</code>.</p>
+      </div>
+    </div>
+
+    <h3 class="subsec-title">Defense-in-depth example: "promote a model"</h3>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TB
+    USER["Agent suggestion: promote_model"] --> CITE["Citation required<br/>knowledge-service"]
+    CITE --> TIER["Tier 3 → refused in code without gate"]
+    TIER --> AUTHZ["OPA AuthZ check"]
+    AUTHZ --> AUDIT1["Audit: gate requested"]
+    AUDIT1 --> GATE["policy-gate-service<br/>human approval"]
+    GATE --> AUDIT2["Audit: gate resolved"]
+    AUDIT2 --> WILSON["Wilson lower bound met"]
+    WILSON --> MR["model-registry: promote"]
+    MR --> AUDIT3["Audit: model promoted"]
+    MR --> COSIGN["Cosign verify on artifact pull"]
+      </div>
+    </div>
+    <p>Eight checkpoints. Any one of them can refuse.</p>
+  </div>
+</section>
+
+<!-- ==================== DEPLOY ==================== -->
+<section id="deploy">
+  <div class="container">
+    <h2 class="section-title">Deploy <span class="accent">paths</span></h2>
+    <p class="section-sub">
+      Local laptop → online Kubernetes → air-gapped DMZ → k3s edge. Same charts,
+      same contracts, one bundle.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">💻</div>
+        <h3>A · Walking skeleton</h3>
+        <p>5 services + embedded NATS, no external deps. <strong>~5 min</strong> from clone to first real event.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">☁️</div>
+        <h3>B · Local dev (full stack)</h3>
+        <p>Postgres + ClickHouse + NATS + MinIO via <code class="inline">docker-compose</code>; all 35 services local.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">☸️</div>
+        <h3>C · Online cluster</h3>
+        <p>ArgoCD ApplicationSet reconciles 38 charts. ~5–10 min first sync.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>D · Air-gapped</h3>
+        <p>Signed bundle (~6–8 GiB tar.zst). Cosign verify on target. ~30 min install on a 6-node cluster.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛰️</div>
+        <h3>E · Edge (k3s)</h3>
+        <p>Reduced operator set + outbox sync to core. Jetson AGX Orin friendly.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h3>Capacity targets</h3>
+        <p>10,000 streams / cluster · 1,000,000 detections/s · 1,000 concurrent agents · p95 glass→event &lt; 300 ms.</p>
+      </div>
+    </div>
+
+    <h3 class="subsec-title">Walking-skeleton in 5 commands</h3>
+<pre class="code"><span class="token-c"># Terminal 1 — event-service embeds NATS in dev mode.</span>
+<span class="token-fn">AEGIS_EMBED_NATS</span>=<span class="token-s">true</span> task <span class="token-fn">run</span>:event-service
+<span class="token-c"># Note the URL it logs. Export it for the rest:</span>
+<span class="token-k">export</span> AEGIS_NATS_URL=<span class="token-s">nats://127.0.0.1:NNNNN</span>
+
+<span class="token-c"># Terminals 2–5</span>
+task <span class="token-fn">run</span>:pipeline-service
+<span class="token-fn">AEGIS_NATS_URL</span>=$AEGIS_NATS_URL task <span class="token-fn">run</span>:stream-manager
+<span class="token-fn">AEGIS_NATS_URL</span>=$AEGIS_NATS_URL task <span class="token-fn">run</span>:dataplane-runner
+<span class="token-fn">AEGIS_STREAM_MANAGER_ADDR</span>=<span class="token-s">localhost:9092</span> \
+<span class="token-fn">AEGIS_EVENT_SERVICE_URL</span>=<span class="token-s">http://localhost:8090</span> \
+<span class="token-fn">AEGIS_CONSOLE_DIR</span>=$(<span class="token-k">pwd</span>)/services/api-gateway/console \
+  task <span class="token-fn">run</span>:api-gateway
+
+<span class="token-c"># Subscribe to the SSE feed, then create a stream:</span>
+curl -N -H <span class="token-s">'X-Tenant-Id: t-demo'</span> \
+  <span class="token-s">'http://localhost:8080/v1/events:stream?stream_id=stream-dock-1'</span>
+
+curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span class="token-s">'Idempotency-Key: 1'</span> \
+  -H <span class="token-s">'Content-Type: application/json'</span> \
+  -d <span class="token-s">'{"name":"dock-1","project_id":"p1","protocol":"file",</span>
+<span class="token-s">       "url":"file:///x","pipeline_id":"p-walking"}'</span> \
+  <span class="token-s">http://localhost:8080/v1/streams</span></pre>
+    <p style="margin-top:14px;">Within ~5 s, an event with <code class="inline">kind: KIND_DWELL</code> arrives on the SSE feed. End-to-end. Real services.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ==================== ADRs ==================== -->
+<section id="adrs">
+  <div class="container">
+    <h2 class="section-title">30 <span class="accent">Architecture Decision Records</span></h2>
+    <p class="section-sub">
+      The load-bearing decisions. Violating any of these is an ADR-tracked
+      change, not a feature PR.
+    </p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ADR</th><th>Decision</th></tr></thead>
+        <tbody>
+          <tr><td><strong>0001</strong></td><td>Control plane / data plane are <strong>hard-separated</strong>. Temporal never sees a frame.</td></tr>
+          <tr><td><strong>0002</strong></td><td>ClickHouse holds the detection firehose. PostgreSQL holds metadata.</td></tr>
+          <tr><td><strong>0003</strong></td><td>MIG is the <strong>default</strong> GPU sharing mode for production inference.</td></tr>
+          <tr><td><strong>0007</strong></td><td>Protobuf-everywhere, Buf-managed. <code class="inline">/proto</code> has strictest CODEOWNERS.</td></tr>
+          <tr><td><strong>0008</strong></td><td>Frames and media <strong>never</strong> travel on Kafka or NATS. Claim-check only.</td></tr>
+          <tr><td><strong>0014</strong></td><td>Bounded autonomy. Agents auto-execute read/advisory + reversible ops; consequential = gate.</td></tr>
+          <tr><td><strong>0016</strong></td><td>Walking skeleton first — thin but complete on the real architecture.</td></tr>
+          <tr><td><strong>0017</strong></td><td>4-tier risk model encoded in tool schemas; refusal-in-code for tier-3.</td></tr>
+          <tr><td><strong>0018</strong></td><td>One LLM/VLM gateway. OpenAI-compatible. Backend-swappable.</td></tr>
+          <tr><td><strong>0019</strong></td><td>Active learning samples by uncertainty + diversity, never random.</td></tr>
+          <tr><td><strong>0020</strong></td><td>Platform-fact answers are retrieval-augmented; no hallucinated identifiers.</td></tr>
+          <tr><td><strong>0021</strong></td><td>Prompt-injection defense in depth — sanitizer + PII + threshold + rate limit + gate.</td></tr>
+          <tr><td><strong>0022</strong></td><td>Continuous autonomy uses regular agent-service sessions. No second runtime.</td></tr>
+          <tr><td><strong>0023</strong></td><td>Canary uses Wilson lower-bound + min-sample floor. Promotion gated; rollback automatic.</td></tr>
+          <tr><td><strong>0024</strong></td><td>Shadow inference compares candidate vs baseline on same frame URN.</td></tr>
+          <tr><td><strong>0025</strong></td><td>Drift = JS/KL/TVD vs reference. SLO = multi-window burn-rate.</td></tr>
+          <tr><td><strong>0026</strong></td><td>Predictive prefetch via 7×24 EMA grid.</td></tr>
+          <tr><td><strong>0027</strong></td><td>Air-gapped bundle as day-one CI artifact.</td></tr>
+          <tr><td><strong>0028</strong></td><td>Chaos engineering as production-readiness gate.</td></tr>
+          <tr><td><strong>0029</strong></td><td>compliance-evidence-service owns no data; composes evidence on demand.</td></tr>
+          <tr><td><strong>0030</strong></td><td>release-please + signed air-gap bundle promotion; single platform version.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subsec-title">Browse the docs</h3>
+    <div class="toc-grid">
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/README.md">📘 README</a>
+        <span class="toc-desc">What AegisVision is, status, layout, quickstart.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/ARCHITECTURE.md">🏛 ARCHITECTURE</a>
+        <span class="toc-desc">Canonical architecture deep dive. 700+ lines.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/SETUP_GUIDE.md">⚙️ SETUP_GUIDE</a>
+        <span class="toc-desc">Local → cluster → air-gapped → edge. Step-by-step.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/tree/main/docs/adr">📐 30 ADRs</a>
+        <span class="toc-desc">Every load-bearing architectural decision.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/tree/main/docs/compliance">📋 Compliance</a>
+        <span class="toc-desc">SOC 2, EU AI Act, GDPR DPIA, pen-test scope.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/tree/main/docs/runbooks">📒 Runbooks</a>
+        <span class="toc-desc">Oncall, incident, DR, chaos game day, drift spike.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/concepts.md">💡 Concepts</a>
+        <span class="toc-desc">Pipelines, streams, models, datasets, rules.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/security.md">🔒 Security</a>
+        <span class="toc-desc">Threat model, defenses, prompt-injection.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/agents.md">🧠 Agents</a>
+        <span class="toc-desc">Bounded autonomy, tier model, citation.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/canary-shadow.md">🎯 Canary &amp; Shadow</a>
+        <span class="toc-desc">Wilson math + same-URN evaluation.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/drift-slo.md">📊 Drift &amp; SLO</a>
+        <span class="toc-desc">JS/KL/TVD + multi-window burn-rate.</span>
+      </div>
+      <div class="toc-item">
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/api-reference.md">🌐 API Reference</a>
+        <span class="toc-desc">Every public REST endpoint.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TECH STACK ==================== -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span>🛠️ Go 1.26 · gRPC · Buf · Protobuf</span>
+    <span>☸️ Kubernetes · Helm · Istio Ambient · ArgoCD · Kyverno · ESO · SPIRE · Vault</span>
+    <span>🗄️ PostgreSQL · Patroni · ClickHouse · Redis · NATS JetStream · Kafka · pgvector</span>
+    <span>🎮 NVIDIA Triton · TensorRT-LLM · DeepStream · MIG · ByteTrack · DeepSORT</span>
+    <span>📈 OpenTelemetry · Prometheus · Loki · Tempo · Grafana</span>
+    <span>🔏 Cosign · Sigstore · Rekor · SLSA v1 · Syft SBOM</span>
+    <span>🧪 chaos-mesh · k6 · WAL-G · clickhouse-backup · GitHub Actions</span>
+    <span>📦 Cosign-signed air-gap bundle · OCI-layout · zstd · crane · release-please</span>
+  </div>
+</div>
+
+<!-- ==================== AUTHOR ==================== -->
+<section id="author">
+  <div class="container" style="max-width:780px;">
+    <h2 class="section-title">Built by <span class="accent">one person.</span></h2>
+    <p class="section-sub">
+      AegisVision is a solo project. The author would love to hear from you.
+    </p>
+
+    <div class="card" style="text-align:center; padding:38px 28px;">
+      <img src="https://github.com/hoangsonww.png" alt="Son Nguyen" style="width:120px;height:120px;border-radius:50%;border:3px solid var(--acc-1);box-shadow:0 0 32px rgba(61,90,241,.5);margin-bottom:18px;" onerror="this.style.display='none'"/>
+      <h3 style="font-family: var(--display); font-size:1.6rem; margin-bottom:4px;">Son Nguyen</h3>
+      <p style="color: var(--text-2); margin-bottom:18px;">Author · Sole maintainer · BDFL</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+        <a class="btn btn-secondary" href="https://github.com/hoangsonww">⭐ GitHub</a>
+        <a class="btn btn-secondary" href="https://linkedin.com/in/hoangsonw">💼 LinkedIn</a>
+        <a class="btn btn-secondary" href="https://sonnguyenhoang.com">🌐 sonnguyenhoang.com</a>
+        <a class="btn btn-primary" href="mailto:hoangson091104@gmail.com">✉️ Email</a>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:32px;">
+      "AegisVision is what you get when you take the hardest lessons learned from
+      operating large CV platforms — and rebuild from first principles around the
+      constraints that <strong>actually</strong> dominate at scale."
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-col footer-brand">
+      <div class="nav-brand">
+        <div class="logo"></div>
+        AegisVision
+      </div>
+      <p>A distributed, autonomous, GPU-native visual-intelligence operating system.</p>
+      <p style="font-family: var(--mono); font-size:.84rem; color: var(--text-3); margin-top:14px;">
+        v0.5.0 · Apache 2.0
+      </p>
+      <div class="author-card">
+        <img src="https://github.com/hoangsonww.png" alt="Son Nguyen" onerror="this.style.display='none'"/>
+        <div>
+          <div class="author-name">Son Nguyen</div>
+          <div class="author-role">Author · Solo project</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System">GitHub</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/README.md">README</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/ARCHITECTURE.md">Architecture</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/SETUP_GUIDE.md">Setup guide</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/ROADMAP.md">Roadmap</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/CHANGELOG.md">Changelog</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Docs</h4>
+      <ul>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/tree/main/docs/adr">ADRs</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/tree/main/docs/compliance">Compliance</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/tree/main/docs/runbooks">Runbooks</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/security.md">Security</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/agents.md">Agents</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/docs/api-reference.md">API ref</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Author</h4>
+      <ul>
+        <li><a href="https://github.com/hoangsonww">github.com/hoangsonww</a></li>
+        <li><a href="https://linkedin.com/in/hoangsonw">linkedin.com/in/hoangsonw</a></li>
+        <li><a href="https://sonnguyenhoang.com">sonnguyenhoang.com</a></li>
+        <li><a href="mailto:hoangson091104@gmail.com">hoangson091104@gmail.com</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/SECURITY.md">Security policy</a></li>
+        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/CITATION.cff">Cite this work</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-meta">
+    © 2026 Son Nguyen · Apache License 2.0 · Built solo · Honest about it
+  </div>
+</footer>
+
+<!-- ==================== SCROLL-TOP BUTTON ==================== -->
+<button class="scroll-top" id="scrollTopBtn" aria-label="Scroll to top">↑</button>
+
+<script>
+  // Scroll-to-top behaviour
+  const btn = document.getElementById('scrollTopBtn');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 600) btn.classList.add('visible');
+    else btn.classList.remove('visible');
+  });
+  btn.addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
+
+  // Smooth anchor scroll with nav offset
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (target) {
+        e.preventDefault();
+        const navH = document.querySelector('nav').offsetHeight + 12;
+        const top = target.getBoundingClientRect().top + window.scrollY - navH;
+        window.scrollTo({top, behavior:'smooth'});
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

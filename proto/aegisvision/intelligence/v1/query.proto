@@ -1,0 +1,56 @@
+// Natural-language query gateway. Read-only by design: produces either a
+// structured search against the event firehose or a *draft* DAG. Pipelines
+// are never mutated here — promotion is an explicit, gated path through
+// pipeline-service.
+syntax = "proto3";
+
+package aegisvision.intelligence.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/intelligence/v1;intelligencev1";
+
+enum QueryKind {
+  QUERY_KIND_UNSPECIFIED = 0;
+  QUERY_KIND_EVENT_SEARCH = 1;  // resolved via event-service / ClickHouse
+  QUERY_KIND_DAG_DRAFT = 2;     // resolved by suggesting a draft DAG
+  QUERY_KIND_KNOWLEDGE = 3;     // resolved via knowledge-service RAG
+}
+
+message NLQRequest {
+  aegisvision.common.v1.TenantRef tenant = 1;
+  string prompt = 2;
+  // Optional ISO range for event searches.
+  string time_from = 3;
+  string time_to = 4;
+}
+
+message EventSearch {
+  // ClickHouse-safe SQL (parameterized; the gateway never inlines values).
+  string clickhouse_sql = 1;
+  repeated string parameters = 2;
+  string explanation = 3;
+}
+
+message DAGDraft {
+  // Canonical DAG JSON (same form pipeline-service ingests).
+  string dag_json = 1;
+  string explanation = 2;
+  // Validation result from pipeline-service compiler.
+  bool validates = 3;
+  string validation_error = 4;
+}
+
+message KnowledgeAnswer {
+  string text = 1;
+  repeated string citations = 2; // URNs into knowledge-service docs
+}
+
+message NLQResponse {
+  QueryKind kind = 1;
+  EventSearch event_search = 2;
+  DAGDraft dag_draft = 3;
+  KnowledgeAnswer knowledge = 4;
+  google.protobuf.Struct safety_signals = 5;
+}

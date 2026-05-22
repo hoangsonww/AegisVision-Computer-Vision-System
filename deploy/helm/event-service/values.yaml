@@ -1,0 +1,19 @@
+image: { repository: aegisvision/event-service, tag: "0.1.0", pullPolicy: IfNotPresent }
+replicaCount: 3
+env: prod
+logLevel: info
+ringCapacity: 50000
+nats:
+  url: nats://nats.aegis-data.svc.cluster.local:4222
+otel:
+  endpoint: otel-collector.aegis-observability.svc.cluster.local:4317
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits:   { cpu: "2",  memory: 1Gi }
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+priorityClassName: aegis-data-plane
+serviceMonitor: { enabled: true, interval: 30s }

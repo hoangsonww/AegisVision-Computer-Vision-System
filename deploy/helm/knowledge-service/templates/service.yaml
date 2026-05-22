@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: knowledge-service, namespace: aegis-system, labels: { app.kubernetes.io/name: knowledge-service } }
+spec:
+  selector: { app.kubernetes.io/name: knowledge-service }
+  ports:
+    - { name: http, port: 8430, targetPort: 8430, appProtocol: http }
+    - { name: metrics, port: 8431, targetPort: 8431 }

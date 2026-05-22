@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: realtime-hub, namespace: aegis-system, labels: { app.kubernetes.io/name: realtime-hub } }
+spec:
+  selector: { app.kubernetes.io/name: realtime-hub }
+  ports:
+    - { name: http, port: 8220, targetPort: 8220, appProtocol: http }
+    - { name: metrics, port: 8221, targetPort: 8221 }

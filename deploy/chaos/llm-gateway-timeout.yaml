@@ -1,0 +1,55 @@
+# Injects a 30-second response delay on every llm-gateway request. Asserts
+# the agent loop bounds itself (ADR-0017 max-steps + per-step timeout) and
+# does NOT burn tokens indefinitely against a slow backend.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: llm-gateway-timeout
+  namespace: aegis-chaos
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces: [aegis-system]
+    labelSelectors:
+      app.kubernetes.io/name: llm-gateway
+  delay:
+    latency: "30s"
+    correlation: "100"
+    jitter: "0ms"
+  direction: to
+  duration: "5m"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-llm-gateway-timeout
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Start an agent session and verify it ends in `failed` (max
+              # steps exceeded due to per-step timeout) or `completed` —
+              # never `running` past the experiment window.
+              sess=$(curl -s -X POST http://agent-service.aegis-system:8420/v1/agents/sessions \
+                -H 'X-Aegis-Tenant: chaos' -H 'Content-Type: application/json' \
+                -d '{"role":"operator","goal":"chaos timeout drill","max_steps":3}' | \
+                grep -oE '"session_id":"[^"]+"' | cut -d'"' -f4)
+              sleep 180
+              status=$(curl -s http://agent-service.aegis-system:8420/v1/agents/sessions/$sess \
+                -H 'X-Aegis-Tenant: chaos' | grep -oE '"status":"[^"]+"' | head -1 | cut -d'"' -f4)
+              echo "session $sess final status: $status"
+              case "$status" in
+                completed|failed|awaiting_gate) echo "PASS: session terminated"; exit 0 ;;
+                *) echo "FAIL: session still $status after 3 min — token burn risk"; exit 1 ;;
+              esac

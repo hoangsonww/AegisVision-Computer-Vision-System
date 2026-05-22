@@ -1,0 +1,40 @@
+image:
+  repository: aegisvision/pipeline-service
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 3
+env: prod
+logLevel: info
+
+otel:
+  endpoint: otel-collector.aegis-observability.svc.cluster.local:4317
+  insecure: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 12
+  targetCPUUtilizationPercentage: 70
+
+podSecurity:
+  runAsNonRoot: true
+  runAsUser: 65532
+  fsGroup: 65532
+  readOnlyRootFilesystem: true
+  seccompProfile: RuntimeDefault
+  drop: [ALL]
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+priorityClassName: aegis-control-plane

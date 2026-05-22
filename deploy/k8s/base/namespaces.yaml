@@ -1,0 +1,73 @@
+# Canonical namespace layout per the architecture doc §11.
+# Workloads ship into these namespaces only; tenant isolation is enforced via
+# OPA / NetworkPolicy / mesh policy, not by per-tenant namespaces in the
+# common case.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-system
+  labels:
+    aegisvision.io/plane: control
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-streaming
+  labels:
+    aegisvision.io/plane: data
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-inference
+  labels:
+    aegisvision.io/plane: data
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-agents
+  labels:
+    aegisvision.io/plane: intelligence
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-llm
+  labels:
+    aegisvision.io/plane: intelligence
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-data
+  labels:
+    aegisvision.io/plane: foundation
+    istio.io/dataplane-mode: ambient
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-observability
+  labels:
+    aegisvision.io/plane: foundation
+    pod-security.kubernetes.io/enforce: baseline
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aegis-security
+  labels:
+    aegisvision.io/plane: foundation
+    pod-security.kubernetes.io/enforce: restricted

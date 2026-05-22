@@ -1,0 +1,83 @@
+# ClickHouse cluster managed by the ClickHouse Operator. 3 shards × 2 replicas
+# (~6 pods). Per ADR-0002 + the architecture doc §17 this holds the detection
+# firehose, events.v1, audit.v1, metering, and cost lines.
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: aegis-clickhouse
+  namespace: aegis-data
+spec:
+  defaults:
+    templates:
+      podTemplate: clickhouse-pod
+      dataVolumeClaimTemplate: clickhouse-data
+      logVolumeClaimTemplate: clickhouse-logs
+  configuration:
+    settings:
+      max_concurrent_queries: 200
+      max_memory_usage: 17179869184    # 16 GiB
+      max_bytes_before_external_group_by: 8589934592  # 8 GiB
+      timezone: UTC
+    users:
+      default/password: "${CLICKHOUSE_PASSWORD}"
+      default/networks/ip:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+        - fd00::/8
+      reader/password: "${CLICKHOUSE_READER_PASSWORD}"
+      reader/profile: readonly
+      reader/networks/ip: ["::/0"]
+    clusters:
+      - name: aegis
+        layout:
+          shardsCount: 3
+          replicasCount: 2
+  templates:
+    podTemplates:
+      - name: clickhouse-pod
+        spec:
+          priorityClassName: aegis-system-critical
+          securityContext: { runAsNonRoot: true, runAsUser: 101, fsGroup: 101, seccompProfile: { type: RuntimeDefault } }
+          containers:
+            - name: clickhouse
+              image: clickhouse/clickhouse-server:24.10
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: false  # CH writes to /var/lib/clickhouse
+                capabilities: { drop: [ALL] }
+              resources:
+                requests: { cpu: "4", memory: 16Gi }
+                limits: { cpu: "16", memory: 64Gi }
+              ports:
+                - { containerPort: 8123, name: http }
+                - { containerPort: 9000, name: client }
+                - { containerPort: 9009, name: interserver }
+                - { containerPort: 9363, name: metrics }
+              readinessProbe:
+                httpGet: { path: /ping, port: 8123 }
+                initialDelaySeconds: 30
+                periodSeconds: 10
+              livenessProbe:
+                httpGet: { path: /ping, port: 8123 }
+                initialDelaySeconds: 60
+                periodSeconds: 30
+    volumeClaimTemplates:
+      - name: clickhouse-data
+        spec:
+          accessModes: [ReadWriteOnce]
+          storageClassName: standard
+          resources: { requests: { storage: 2Ti } }
+      - name: clickhouse-logs
+        spec:
+          accessModes: [ReadWriteOnce]
+          storageClassName: standard
+          resources: { requests: { storage: 200Gi } }
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: { name: clickhouse, namespace: aegis-data, labels: { release: prometheus } }
+spec:
+  selector: { matchLabels: { clickhouse.altinity.com/chi: aegis-clickhouse } }
+  endpoints:
+    - port: metrics
+      interval: 30s

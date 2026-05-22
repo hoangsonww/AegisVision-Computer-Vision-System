@@ -1,0 +1,318 @@
+# https://taskfile.dev
+# Local-dev orchestrator. Per the architecture doc §38: `task bootstrap` brings a
+# laptop from cold to running services; `task deploy` ships them; `task seed`
+# loads a demo tenant + pipeline + recorded test stream.
+version: "3"
+
+vars:
+  GO_MODULES:
+    sh: find . -name go.mod -not -path "./.git/*" -exec dirname {} \;
+  SERVICES_WITH_DOCKERFILE:
+    sh: find services -name Dockerfile -exec dirname {} \;
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  bootstrap:
+    desc: One-shot local setup (deps, tools, hooks)
+    cmds:
+      - task: tools
+      - task: build
+
+  tools:
+    desc: Install/refresh dev tooling
+    cmds:
+      - go install github.com/bufbuild/buf/cmd/buf@latest
+      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - go install honnef.co/go/tools/cmd/staticcheck@latest
+
+  proto:
+    desc: Regenerate protobuf bindings from /proto via Buf
+    dir: proto
+    cmds:
+      - buf lint
+      - buf generate
+
+  proto-breaking:
+    desc: Check protobuf changes for backwards-incompatible breaks
+    dir: proto
+    cmds:
+      - buf breaking --against '.git#branch=main,subdir=proto'
+
+  build:
+    desc: Build every Go module in the workspace
+    cmds:
+      - for: { var: GO_MODULES }
+        cmd: (cd {{.ITEM}} && go build ./...)
+
+  test:
+    desc: Run unit tests across the workspace
+    cmds:
+      - for: { var: GO_MODULES }
+        cmd: (cd {{.ITEM}} && go test -race -count=1 ./...)
+
+  test-cover:
+    desc: Run tests with coverage
+    cmds:
+      - for: { var: GO_MODULES }
+        cmd: (cd {{.ITEM}} && go test -race -coverprofile=coverage.out ./...)
+
+  vet:
+    desc: go vet across the workspace
+    cmds:
+      - for: { var: GO_MODULES }
+        cmd: (cd {{.ITEM}} && go vet ./...)
+
+  lint:
+    desc: staticcheck across the workspace
+    cmds:
+      - for: { var: GO_MODULES }
+        cmd: (cd {{.ITEM}} && staticcheck ./...)
+
+  tidy:
+    desc: go mod tidy across the workspace
+    cmds:
+      - for: { var: GO_MODULES }
+        cmd: (cd {{.ITEM}} && go mod tidy)
+
+  conformance:
+    desc: Run the Helm-chart conformance test (mTLS, AuthZ, NetworkPolicy, ...)
+    dir: tools/conformance
+    cmds:
+      - go test -count=1 ./...
+
+  # --- run: targets ---
+  # The set is intentionally curated: the services here are the ones a
+  # developer commonly runs locally. The rest are exercised via `task test`
+  # or by their respective Helm charts in a kind cluster.
+
+  run:api-gateway:
+    desc: Run api-gateway locally
+    dir: services/api-gateway
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8080"
+      AEGIS_PIPELINE_SERVICE_ADDR: "localhost:9090"
+    cmds:
+      - go run ./cmd/api-gateway
+
+  run:pipeline-service:
+    desc: Run pipeline-service locally
+    dir: services/pipeline-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_GRPC_ADDR: ":9090"
+    cmds:
+      - go run ./cmd/pipeline-service
+
+  run:stream-manager:
+    desc: Run stream-manager locally (requires AEGIS_NATS_URL)
+    dir: services/stream-manager
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_GRPC_ADDR: ":9092"
+      AEGIS_HEALTH_ADDR: ":9093"
+    cmds:
+      - go run ./cmd/stream-manager
+
+  run:event-service:
+    desc: Run event-service locally (embeds NATS unless AEGIS_NATS_URL is set)
+    dir: services/event-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8090"
+      AEGIS_HEALTH_ADDR: ":8091"
+    cmds:
+      - go run ./cmd/event-service
+
+  run:dataplane-runner:
+    desc: Run dataplane-runner locally (requires AEGIS_NATS_URL)
+    dir: services/dataplane-runner
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HEALTH_ADDR: ":9095"
+    cmds:
+      - go run ./cmd/dataplane-runner
+
+  # Phase 4 — agentic/LLM stack.
+  run:llm-gateway:
+    desc: Run llm-gateway locally in dev mode (fake backend)
+    dir: services/llm-gateway
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8400"
+      AEGIS_HEALTH_ADDR: ":8401"
+    cmds:
+      - go run ./cmd/llm-gateway
+
+  run:agent-service:
+    desc: Run agent-service locally (requires AEGIS_LLM_GATEWAY_URL + AEGIS_POLICY_GATE_URL)
+    dir: services/agent-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8420"
+      AEGIS_HEALTH_ADDR: ":8421"
+    cmds:
+      - go run ./cmd/agent-service
+
+  run:policy-gate-service:
+    desc: Run policy-gate-service locally
+    dir: services/policy-gate-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8410"
+      AEGIS_HEALTH_ADDR: ":8411"
+    cmds:
+      - go run ./cmd/policy-gate-service
+
+  run:knowledge-service:
+    desc: Run knowledge-service locally
+    dir: services/knowledge-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8430"
+      AEGIS_HEALTH_ADDR: ":8431"
+      AEGIS_DOCS_ROOT: "../../docs"
+    cmds:
+      - go run ./cmd/knowledge-service
+
+  run:nlq-service:
+    desc: Run nlq-service locally
+    dir: services/nlq-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8450"
+      AEGIS_HEALTH_ADDR: ":8451"
+    cmds:
+      - go run ./cmd/nlq-service
+
+  # Phase 5 — continuous autonomy.
+  run:canary-controller:
+    desc: Run canary-controller locally
+    dir: services/canary-controller
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8460"
+      AEGIS_HEALTH_ADDR: ":8461"
+    cmds:
+      - go run ./cmd/canary-controller
+
+  run:drift-detection-service:
+    desc: Run drift-detection-service locally
+    dir: services/drift-detection-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8480"
+      AEGIS_HEALTH_ADDR: ":8481"
+    cmds:
+      - go run ./cmd/drift-detection-service
+
+  run:slo-watchdog:
+    desc: Run slo-watchdog locally (no Prometheus = synthetic mode)
+    dir: services/slo-watchdog
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8490"
+      AEGIS_HEALTH_ADDR: ":8491"
+    cmds:
+      - go run ./cmd/slo-watchdog
+
+  run:autonomy-orchestrator:
+    desc: Run autonomy-orchestrator locally
+    dir: services/autonomy-orchestrator
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8510"
+      AEGIS_HEALTH_ADDR: ":8511"
+    cmds:
+      - go run ./cmd/autonomy-orchestrator
+
+  # Phase 6 — GA hardening.
+  run:compliance-evidence-service:
+    desc: Run compliance-evidence-service locally
+    dir: services/compliance-evidence-service
+    env:
+      AEGIS_ENV: dev
+      AEGIS_LOG_LEVEL: debug
+      AEGIS_HTTP_ADDR: ":8520"
+      AEGIS_HEALTH_ADDR: ":8521"
+    cmds:
+      - go run ./cmd/compliance-evidence-service
+
+  airgap:bundle:
+    desc: Build the air-gapped release bundle (per ADR-0027)
+    cmds:
+      - ./tools/airgap/build.sh --version "{{.CLI_ARGS}}" --registry ghcr.io/hoangsonww
+
+  dr-drill:
+    desc: Run the quarterly DR drill (use against staging only)
+    cmds:
+      - ./tools/dr-drills/run-quarterly.sh --cluster {{.CLI_ARGS}}
+
+  loadtest:streams-10k:
+    desc: Phase-6 GA-scale load test (10k synthetic streams)
+    cmds:
+      - k6 run tools/loadtest/streams-10k.js
+
+  loadtest:agents-1k:
+    desc: Phase-6 GA-scale load test (1k concurrent agent sessions)
+    cmds:
+      - k6 run tools/loadtest/agents-1k.js
+
+  loadtest:slo-gate:
+    desc: Phase-6 SLO assertion gate (run before release)
+    cmds:
+      - k6 run tools/loadtest/slo-gate.js
+
+  # --- container build ---
+
+  docker:build:
+    desc: Build container images for every service that has a Dockerfile.
+    cmds:
+      - for: { var: SERVICES_WITH_DOCKERFILE }
+        cmd: |
+          name=$(basename "{{.ITEM}}")
+          docker build -t aegisvision/${name}:dev -f "{{.ITEM}}/Dockerfile" .
+
+  docker:build:one:
+    desc: Build one service image. Usage `task docker:build:one -- <service-name>`
+    cmds:
+      - |
+        name="{{.CLI_ARGS}}"
+        if [ -z "$name" ]; then
+          echo "usage: task docker:build:one -- <service>" >&2
+          exit 2
+        fi
+        docker build -t aegisvision/${name}:dev -f services/${name}/Dockerfile .
+
+  deploy:
+    desc: Apply the GitOps base + sync ArgoCD applications
+    cmds:
+      - kubectl apply -f deploy/k8s/base
+      - kubectl apply -f deploy/argocd
+      - 'echo "ArgoCD will reconcile; check: argocd app list"'
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - find . -name "coverage.out" -delete
+      - find . -name "*.test" -delete
+      - rm -rf bin/ dist/

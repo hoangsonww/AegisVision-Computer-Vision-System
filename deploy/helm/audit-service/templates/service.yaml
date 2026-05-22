@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata: { name: audit-service, namespace: aegis-system, labels: { app.kubernetes.io/name: audit-service } }
+spec:
+  selector: { app.kubernetes.io/name: audit-service }
+  ports:
+    - { name: http, port: 8092, targetPort: 8092, appProtocol: http }
+    - { name: metrics, port: 8093, targetPort: 8093 }

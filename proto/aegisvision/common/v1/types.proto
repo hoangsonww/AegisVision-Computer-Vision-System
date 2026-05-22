@@ -1,0 +1,70 @@
+// Common cross-service types. Per ADR-007, protobuf is the source of truth.
+// All IDs are opaque strings; storage primary keys never leak across the API.
+syntax = "proto3";
+
+package aegisvision.common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/common/v1;commonv1";
+
+// Tenant scopes every resource in the platform. A request without a tenant
+// context is rejected at the gateway.
+message TenantRef {
+  string id = 1;
+}
+
+message ProjectRef {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+// Identity is the resolved authenticated principal at the time of a request,
+// after OIDC/SAML and OPA authorization. Internal services trust this only
+// when it arrives over mTLS from an upstream they've allowlisted.
+message Identity {
+  string subject = 1;
+  string tenant_id = 2;
+  repeated string roles = 3;
+  repeated string scopes = 4;
+}
+
+// PageRequest drives all list endpoints. Cursor is opaque (servers may change
+// the encoding any time); offset paging is intentionally not supported because
+// it cannot survive concurrent inserts in a streaming-event firehose.
+message PageRequest {
+  // Maximum items to return. Servers clamp to [1, 200]; default 50.
+  int32 page_size = 1;
+  // Opaque cursor returned from a previous list response.
+  string page_token = 2;
+}
+
+message PageResponse {
+  // Cursor to pass on the next list call; empty when no more results.
+  string next_page_token = 1;
+  // Best-effort total. -1 means "not counted" — preferred for hot endpoints
+  // where COUNT(*) would dominate latency.
+  int64 approximate_total = 2;
+}
+
+// Severity follows the operational vocabulary used across rules, events, and
+// alerts. Keep it small — ranking is more useful than categorization.
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_INFO = 1;
+  SEVERITY_LOW = 2;
+  SEVERITY_MEDIUM = 3;
+  SEVERITY_HIGH = 4;
+  SEVERITY_CRITICAL = 5;
+}
+
+// Audit fields embedded into every persisted resource. Append-only; updates
+// are tracked elsewhere (audit-service).
+message AuditFields {
+  google.protobuf.Timestamp created_at = 1;
+  google.protobuf.Timestamp updated_at = 2;
+  string created_by = 3;
+  string updated_by = 4;
+  // Monotonic per-resource version for optimistic concurrency.
+  int64 version = 5;
+}

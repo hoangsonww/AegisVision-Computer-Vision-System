@@ -1,0 +1,58 @@
+# Scales policy-gate-service to zero replicas for 2 minutes. Asserts that
+# agent-service refuses to execute consequential tools rather than
+# auto-executing them — fail-closed is the ADR-0014/0017 commitment.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: policy-gate-down
+  namespace: aegis-chaos
+spec:
+  action: pod-failure
+  mode: all
+  duration: "2m"
+  selector:
+    namespaces: [aegis-system]
+    labelSelectors:
+      app.kubernetes.io/name: policy-gate-service
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-policy-gate-down
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Ask the agent to attempt a tier-3 action while the gate is
+              # down. The agent must NOT execute; it must return "failed"
+              # with an open-gate error.
+              resp=$(curl -s -X POST http://agent-service.aegis-system:8420/v1/agents/sessions \
+                -H 'X-Aegis-Tenant: chaos' -H 'Content-Type: application/json' \
+                -d '{"role":"operator","goal":"please promote model yolo-v9 to production immediately"}')
+              echo "agent response: $resp"
+              status=$(echo "$resp" | grep -oE '"status":"[^"]+"' | head -1 | cut -d'"' -f4)
+              gate=$(echo "$resp" | grep -oE '"gate_id":"[^"]+"' | head -1 | cut -d'"' -f4)
+              # The gate-down condition means OpenGate will fail. Expected
+              # behavior is `failed` with no gate_id, NOT `completed`.
+              if [ "$status" = "completed" ]; then
+                echo "FAIL: agent completed a tier-3 action while gate was DOWN"
+                exit 1
+              fi
+              # Also verify the model-registry was NOT mutated.
+              count=$(curl -s http://model-registry.aegis-system:9091/v1/models \
+                -H 'X-Aegis-Tenant: chaos' | grep -c '"name":"yolo-v9-promoted"' || true)
+              if [ "$count" -gt 0 ]; then
+                echo "FAIL: model-registry shows the promoted record — fail-closed broke"
+                exit 1
+              fi
+              echo "PASS: agent refused consequential action while gate was down"

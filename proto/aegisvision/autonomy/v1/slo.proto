@@ -1,0 +1,49 @@
+// SLO targets + burn-rate signals (ADR-0025 extended). Multi-window burn
+// rate follows the Google SRE workbook: a fast window catches catastrophic
+// burn, a slow window catches the long-tail. The autonomy-orchestrator
+// listens for SLO signals and proposes mitigations.
+syntax = "proto3";
+
+package aegisvision.autonomy.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/autonomy/v1;autonomyv1";
+
+message SLOTarget {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  // Free-form name; e.g. "glass_to_event_latency", "api_error_rate".
+  string name = 3;
+  // Prometheus query producing a 0..1 success ratio (1 = healthy).
+  string promql = 4;
+  // SLO target as a fraction; e.g. 0.999 for "99.9% glass-to-event success".
+  double target = 5;
+  // Rolling window in seconds for the SLO (default 28d == 2_419_200).
+  int32 rolling_window_seconds = 6;
+  bool paused = 7;
+  aegisvision.common.v1.AuditFields audit = 8;
+}
+
+message BurnSample {
+  // 0..1 — observed success ratio in the sample window.
+  double success_ratio = 1;
+  // Sample window in seconds.
+  int32 window_seconds = 2;
+  google.protobuf.Timestamp at = 3;
+}
+
+message SLOSignal {
+  string id = 1;
+  string tenant_id = 2;
+  string target_id = 3;
+  // The multiplier of error budget burn. >14 in 1h fires CRITICAL (per
+  // Google SRE workbook).
+  double burn_rate_1h = 4;
+  double burn_rate_6h = 5;
+  double burn_rate_24h = 6;
+  // Severity inferred from the multi-window rule (see ADR-0025).
+  string severity = 7; // "info" | "warn" | "critical"
+  google.protobuf.Timestamp emitted_at = 8;
+}

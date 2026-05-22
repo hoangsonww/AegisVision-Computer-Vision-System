@@ -1,0 +1,68 @@
+// Active learning loop. The platform samples uncertain / under-represented
+// detections, claim-checks a small frame snapshot, queues a human annotation
+// task, and feeds the labeled result to training-orchestrator. The point is
+// to make the operator's correction the most valuable training signal in the
+// loop, not to reuse the firehose blindly.
+syntax = "proto3";
+
+package aegisvision.intelligence.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/intelligence/v1;intelligencev1";
+
+enum UncertaintyStrategy {
+  UNCERTAINTY_UNSPECIFIED = 0;
+  UNCERTAINTY_LEAST_CONFIDENCE = 1; // 1 - max p
+  UNCERTAINTY_MARGIN = 2;            // p1 - p2
+  UNCERTAINTY_ENTROPY = 3;           // -sum p log p
+  UNCERTAINTY_DISAGREEMENT = 4;      // committee disagreement
+}
+
+message LearningPolicy {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  string model_id = 3;
+  UncertaintyStrategy strategy = 4;
+  // Sampling rate; 0..1.
+  double sample_rate = 5;
+  // Confidence band that is "interesting" — events outside this band are
+  // either trivially confident or trivially wrong; we want the middle.
+  double min_uncertainty = 6;
+  double max_uncertainty = 7;
+  // Diversity bucketing on this label set (avoid collapsing on one class).
+  repeated string diversity_classes = 8;
+  // Annotation tasks per day per tenant (hard cap to bound human burden).
+  int32 daily_budget = 9;
+  // Hard cap on snapshot retention before annotation, in days.
+  int32 snapshot_ttl_days = 10;
+}
+
+enum SampleStatus {
+  SAMPLE_STATUS_UNSPECIFIED = 0;
+  SAMPLE_STATUS_QUEUED = 1;
+  SAMPLE_STATUS_ASSIGNED = 2;
+  SAMPLE_STATUS_LABELED = 3;
+  SAMPLE_STATUS_EXPIRED = 4;
+  SAMPLE_STATUS_REJECTED = 5; // operator marks as low quality
+}
+
+message Sample {
+  string id = 1;
+  string tenant_id = 2;
+  string model_id = 3;
+  string policy_id = 4;
+  // claim-check URN of the frame snapshot.
+  string snapshot_urn = 5;
+  // Predicted class + confidence at sample time (frozen).
+  string predicted_class = 6;
+  double predicted_confidence = 7;
+  double uncertainty = 8;
+  SampleStatus status = 9;
+  string annotation_task_id = 10;
+  // Final label (after annotation).
+  string final_class = 11;
+  google.protobuf.Timestamp sampled_at = 12;
+  google.protobuf.Timestamp labeled_at = 13;
+}

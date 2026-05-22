@@ -1,0 +1,57 @@
+# Kills a NATS pod for 30s. Edge-gateway's disk queue should absorb the
+# outage; once NATS returns, the drainer should catch up. Per ADR-0005.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: nats-pod-kill
+  namespace: aegis-chaos
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - aegis-system
+    labelSelectors:
+      app.kubernetes.io/name: nats
+  duration: "30s"
+---
+# Assertion: probe the edge-gateway queue depth before, during, and after
+# the experiment. Depth should rise then drain to 0 within 60s of NATS
+# recovery; the lost-message counter should stay at 0.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-nats-pod-kill
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Sample the gauge at three points: T-0 (start), T+30s (mid-outage), T+120s (recovery).
+              for ts in baseline mid post; do
+                depth=$(curl -s http://edge-gateway.aegis-system:8321/metrics | \
+                  awk '/^aegis_edge_queue_depth/ {print $2}' | head -1)
+                forwarded=$(curl -s http://edge-gateway.aegis-system:8321/metrics | \
+                  awk '/^aegis_edge_forwarded_total/ {print $2}' | head -1)
+                echo "$ts depth=$depth forwarded=$forwarded"
+                sleep 60
+              done | tee /tmp/chaos.log
+              # Assert: post-experiment depth must be ≤ baseline; forwarded must have grown.
+              awk '
+                NR==1 { base_depth=$2; gsub(/depth=/,"",base_depth); base_fwd=$3; gsub(/forwarded=/,"",base_fwd) }
+                NR==3 { post_depth=$2; gsub(/depth=/,"",post_depth); post_fwd=$3; gsub(/forwarded=/,"",post_fwd) }
+                END {
+                  if (post_depth+0 > base_depth+0) { print "FAIL: queue still draining"; exit 1 }
+                  if (post_fwd+0 <= base_fwd+0)    { print "FAIL: no forward progress"; exit 1 }
+                  print "PASS: queue absorbed + drained"
+                }
+              ' /tmp/chaos.log

@@ -1,0 +1,51 @@
+# Pre-load gpu-scheduler with an impossible VRAM request and verify it
+# returns 503 (no capacity) without crashing. Per ADR-0003, the scheduler
+# refuses placements rather than over-committing.
+#
+# This is a "behavioural chaos" experiment — no chaos-mesh resource, just
+# a check job that probes the service.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-gpu-oom-reject
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Ask for a slice that no single GPU in the fleet can satisfy
+              # (1 PiB of VRAM = no card exists). Expect 503.
+              resp=$(curl -sS -w "\n%{http_code}" -X POST \
+                http://gpu-scheduler.aegis-system:8200/v1/place \
+                -H 'Content-Type: application/json' \
+                -d '{"model":"bogus","model_version":"1","tenant_id":"chaos","profile":{"vram_bytes":1125899906842624}}')
+              code=$(echo "$resp" | tail -1)
+              body=$(echo "$resp" | head -n -1)
+              echo "code=$code body=$body"
+              if [ "$code" != "503" ]; then
+                echo "FAIL: expected 503 (no capacity), got $code"
+                exit 1
+              fi
+              # Also verify the scheduler is still alive after a flurry of
+              # impossible requests (no crash loop).
+              for i in $(seq 1 20); do
+                curl -sS -X POST http://gpu-scheduler.aegis-system:8200/v1/place \
+                  -H 'Content-Type: application/json' \
+                  -d '{"model":"bogus","model_version":"1","tenant_id":"chaos","profile":{"vram_bytes":1125899906842624}}' \
+                  > /dev/null || true
+              done
+              ready=$(curl -sS http://gpu-scheduler.aegis-system:8201/readyz | grep -c ok || true)
+              if [ "$ready" -lt 1 ]; then
+                echo "FAIL: gpu-scheduler unhealthy after impossible-request flurry"
+                exit 1
+              fi
+              echo "PASS: gpu-scheduler refused gracefully + stayed healthy"

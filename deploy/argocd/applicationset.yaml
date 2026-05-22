@@ -1,0 +1,70 @@
+# Single ApplicationSet that fans out one Argo Application per chart in
+# deploy/helm. New services get on the GitOps train by adding a chart
+# directory; no Argo config change needed.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: aegisvision-services
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+        revision: main
+        directories:
+          - path: deploy/helm/*
+  template:
+    metadata:
+      name: '{{path.basename}}'
+      labels:
+        aegisvision.io/managed-by: argocd
+    spec:
+      project: aegisvision
+      source:
+        repoURL: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+        targetRevision: main
+        path: '{{path}}'
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: aegis-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - CreateNamespace=false
+          - PruneLast=true
+          - RespectIgnoreDifferences=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 2m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: aegisvision
+  namespace: argocd
+spec:
+  description: AegisVision platform services
+  sourceRepos:
+    - https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+  destinations:
+    - namespace: 'aegis-*'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: scheduling.k8s.io
+      kind: PriorityClass
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true

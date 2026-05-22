@@ -1,0 +1,8 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: { name: inference-router, namespace: aegis-inference, labels: { release: prometheus } }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: inference-router } }
+  endpoints: [{ port: metrics, interval: {{ .Values.serviceMonitor.interval }}, path: /metrics }]
+{{- end }}

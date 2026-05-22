@@ -1,0 +1,57 @@
+# Inject 5xx responses on the tenant's webhook receiver. Asserts the
+# notification-service's retry policy kicks in and dead-letters after the
+# configured attempt budget — events neither lost nor retried forever.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: HTTPChaos
+metadata:
+  name: webhook-receiver-5xx
+  namespace: aegis-chaos
+spec:
+  mode: all
+  selector:
+    namespaces: [aegis-test-tenants]
+    labelSelectors:
+      app.kubernetes.io/name: webhook-receiver
+  target: Response
+  port: 8080
+  replace:
+    code: 503
+  duration: "5m"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chaos-check-webhook-receiver-5xx
+  namespace: aegis-chaos
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: chaos-runner
+      containers:
+        - name: check
+          image: ghcr.io/hoangsonww/aegisvision-chaos-runner:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              # Trigger 10 events for the tenant whose webhook is now 5xx-ing.
+              # Within 5 minutes those events should land in the DLQ table.
+              base_dlq=$(curl -sS http://notification-service.aegis-system:8231/metrics | \
+                awk '/^aegis_webhook_delivered_total\{outcome="error"\}/ {print $2; exit}')
+              base_dlq=${base_dlq:-0}
+              for i in $(seq 1 10); do
+                curl -sS -X POST http://api-gateway.aegis-system:8080/v1/test-events \
+                  -H 'X-Tenant-Id: chaos' -H 'Content-Type: application/json' \
+                  -d "{\"kind\":\"chaos-drill\",\"summary\":\"test event $i\"}" > /dev/null
+              done
+              sleep 360
+              post_dlq=$(curl -sS http://notification-service.aegis-system:8231/metrics | \
+                awk '/^aegis_webhook_delivered_total\{outcome="error"\}/ {print $2; exit}')
+              echo "DLQ delta: $((post_dlq - base_dlq))"
+              if [ "$((post_dlq - base_dlq))" -lt 10 ]; then
+                echo "FAIL: events neither delivered nor DLQ'd"
+                exit 1
+              fi
+              echo "PASS: notification-service dead-lettered the failing endpoint"

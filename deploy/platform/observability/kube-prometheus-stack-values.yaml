@@ -1,0 +1,50 @@
+# Values overlay for prometheus-community/kube-prometheus-stack — the
+# canonical Prometheus + Grafana + Alertmanager + Node Exporter install.
+# AegisVision adds its ServiceMonitors via per-chart resources.
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    enableRemoteWriteReceiver: true
+    retention: 30d
+    retentionSize: 200GiB
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          resources: { requests: { storage: 250Gi } }
+    resources:
+      requests: { cpu: "1", memory: 4Gi }
+      limits:   { cpu: "4", memory: 16Gi }
+    additionalScrapeConfigs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs: [ { role: pod } ]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+grafana:
+  adminPassword: "" # set via External Secret in production
+  persistence:
+    enabled: true
+    size: 10Gi
+  defaultDashboardsEnabled: true
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: aegisvision
+          orgId: 1
+          folder: AegisVision
+          type: file
+          options: { path: /var/lib/grafana/dashboards/aegis }
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          resources: { requests: { storage: 10Gi } }
+prometheusOperator:
+  resources: { requests: { cpu: 100m, memory: 128Mi } }

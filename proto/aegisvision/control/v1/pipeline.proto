@@ -1,0 +1,108 @@
+// Pipeline lifecycle API. Per ADR-001 / ADR-011, a pipeline is a user-authored
+// declaration that compiles into BOTH a Temporal workflow (lifecycle) and a
+// data-plane operator DAG (per-frame). This service owns only the declaration
+// and the lifecycle state.
+syntax = "proto3";
+
+package aegisvision.control.v1;
+
+import "aegisvision/common/v1/types.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/control/v1;controlv1";
+
+// PipelineStatus reflects the Temporal workflow state at the control plane.
+// Data-plane operator health is reported separately via gpu.telemetry.v1.
+enum PipelineStatus {
+  PIPELINE_STATUS_UNSPECIFIED = 0;
+  PIPELINE_STATUS_DRAFT = 1;
+  PIPELINE_STATUS_VALIDATED = 2;
+  PIPELINE_STATUS_DEPLOYING = 3;
+  PIPELINE_STATUS_RUNNING = 4;
+  PIPELINE_STATUS_DEGRADED = 5;
+  PIPELINE_STATUS_PAUSED = 6;
+  PIPELINE_STATUS_FAILED = 7;
+  PIPELINE_STATUS_DELETED = 8;
+}
+
+// Pipeline is the user-visible declarative DAG; the YAML form in the docs is a
+// serialization of this protobuf. Storage layer is Postgres (metadata, ADR-002).
+message Pipeline {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  aegisvision.common.v1.ProjectRef project = 3;
+
+  string name = 4;
+  string description = 5;
+  repeated string labels = 6;
+
+  PipelineStatus status = 7;
+
+  // Current revision number; revisions are immutable, only deployments swap.
+  int64 current_revision = 8;
+
+  // Source-of-truth DAG. Stored as the canonical JSON form of the DAG
+  // protobuf; held opaque here to keep this service decoupled from the
+  // compiler.
+  string dag_json = 9;
+
+  aegisvision.common.v1.AuditFields audit = 10;
+}
+
+message GetPipelineRequest {
+  string id = 1;
+}
+
+message GetPipelineResponse {
+  Pipeline pipeline = 1;
+}
+
+message ListPipelinesRequest {
+  string tenant_id = 1;
+  string project_id = 2;
+  // Optional substring filter on name.
+  string name_contains = 3;
+  // Optional status filter; empty = all.
+  repeated PipelineStatus status_in = 4;
+  aegisvision.common.v1.PageRequest page = 100;
+}
+
+message ListPipelinesResponse {
+  repeated Pipeline pipelines = 1;
+  aegisvision.common.v1.PageResponse page = 100;
+}
+
+message CreatePipelineRequest {
+  // Caller-supplied unique key; replays with the same key return the previous
+  // response. The gateway enforces; services treat as advisory.
+  string idempotency_key = 1;
+
+  aegisvision.common.v1.TenantRef tenant = 2;
+  aegisvision.common.v1.ProjectRef project = 3;
+
+  string name = 4;
+  string description = 5;
+  repeated string labels = 6;
+  string dag_json = 7;
+}
+
+message CreatePipelineResponse {
+  Pipeline pipeline = 1;
+}
+
+message DeployPipelineRequest {
+  string id = 1;
+  string idempotency_key = 2;
+}
+
+message DeployPipelineResponse {
+  // Temporal workflow ID — the durable handle to the deploy lifecycle.
+  string workflow_id = 1;
+  PipelineStatus status = 2;
+}
+
+service PipelineService {
+  rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse);
+  rpc ListPipelines(ListPipelinesRequest) returns (ListPipelinesResponse);
+  rpc CreatePipeline(CreatePipelineRequest) returns (CreatePipelineResponse);
+  rpc DeployPipeline(DeployPipelineRequest) returns (DeployPipelineResponse);
+}

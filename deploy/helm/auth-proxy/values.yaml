@@ -1,0 +1,14 @@
+image: { repository: aegisvision/auth-proxy, tag: "0.1.0", pullPolicy: IfNotPresent }
+replicaCount: 2
+env: prod
+logLevel: info
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits:   { cpu: "1",  memory: 512Mi }
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+priorityClassName: aegis-control-plane
+serviceMonitor: { enabled: true, interval: 30s }

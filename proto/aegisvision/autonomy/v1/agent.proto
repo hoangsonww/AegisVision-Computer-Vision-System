@@ -1,0 +1,79 @@
+// Scheduled autonomy agents (Phase 5). These run continuously in
+// production — *unlike* the Phase 4 agent-service which is invoked per-
+// user-request. ADR-0022 governs the contract: each autonomy agent is a
+// scheduled run that opens a regular agent-service session; consequential
+// actions still gate through policy-gate-service (ADR-0014/0017).
+syntax = "proto3";
+
+package aegisvision.autonomy.v1;
+
+import "aegisvision/common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/autonomy/v1;autonomyv1";
+
+enum AgentRole {
+  AGENT_ROLE_UNSPECIFIED = 0;
+  // Optimizer: looks at cost + GPU usage; proposes reductions.
+  AGENT_ROLE_OPTIMIZER = 1;
+  // Monitor: watches SLOs, drift, and incidents; proposes mitigations.
+  AGENT_ROLE_MONITOR = 2;
+  // Trainer: schedules re-training on labeled samples + drift signals.
+  AGENT_ROLE_TRAINER = 3;
+  // Reliability: closes the loop on canary regressions + rollbacks.
+  AGENT_ROLE_RELIABILITY = 4;
+}
+
+enum TriggerKind {
+  TRIGGER_KIND_UNSPECIFIED = 0;
+  TRIGGER_KIND_CRON = 1;       // schedule-based (e.g. "0 */15 * * * *")
+  TRIGGER_KIND_SIGNAL = 2;     // event-based (drift / slo / canary regression)
+  TRIGGER_KIND_MANUAL = 3;     // operator-invoked
+}
+
+message Schedule {
+  string id = 1;
+  aegisvision.common.v1.TenantRef tenant = 2;
+  AgentRole role = 3;
+  TriggerKind trigger = 4;
+  // For CRON triggers: 6-field crontab (sec min hr dom mon dow).
+  string cron_expression = 5;
+  // For SIGNAL triggers: subject prefix to listen on
+  // (e.g. "autonomy.signal.drift").
+  string signal_subject = 6;
+  // Max steps for the agent run.
+  int32 max_steps = 7;
+  // Maximum autonomy tier the agent may execute without a gate
+  // (default = tier 2 / reversible).
+  int32 max_autonomy_tier = 8;
+  // True = paused; the scheduler skips this entry.
+  bool paused = 9;
+  aegisvision.common.v1.AuditFields audit = 10;
+}
+
+enum RunStatus {
+  RUN_STATUS_UNSPECIFIED = 0;
+  RUN_STATUS_QUEUED = 1;
+  RUN_STATUS_RUNNING = 2;
+  RUN_STATUS_AWAITING_GATE = 3;
+  RUN_STATUS_COMPLETED = 4;
+  RUN_STATUS_FAILED = 5;
+  RUN_STATUS_SKIPPED = 6; // overlap-skipped: prior run hadn't finished
+}
+
+message Run {
+  string id = 1;
+  string schedule_id = 2;
+  aegisvision.common.v1.TenantRef tenant = 3;
+  AgentRole role = 4;
+  TriggerKind trigger = 5;
+  RunStatus status = 6;
+  // Agent-service session created for this run.
+  string session_id = 7;
+  // Reason describing the trigger (e.g. cron tick, signal payload digest).
+  string trigger_reason = 8;
+  google.protobuf.Timestamp started_at = 9;
+  google.protobuf.Timestamp finished_at = 10;
+  // If status == AWAITING_GATE, the gate this run is blocked on.
+  string gate_id = 11;
+}

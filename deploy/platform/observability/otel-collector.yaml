@@ -1,0 +1,55 @@
+# OpenTelemetry Collector — central trace + metric router for the cluster.
+# Receives OTLP from every service, exports to Tempo (traces) + Prometheus
+# (metrics via remote-write) + Loki (logs via otlphttp).
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata: { name: otel-collector, namespace: aegis-observability }
+spec:
+  mode: deployment
+  replicas: 3
+  image: otel/opentelemetry-collector-contrib:0.110.0
+  resources:
+    requests: { cpu: 200m, memory: 512Mi }
+    limits:   { cpu: "2",  memory: 2Gi }
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: { endpoint: 0.0.0.0:4317 }
+          http: { endpoint: 0.0.0.0:4318 }
+    processors:
+      batch: { timeout: 2s, send_batch_size: 8192 }
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 25
+      attributes/tenant:
+        actions:
+          - key: tenant
+            action: insert
+            from_attribute: tenant_id
+      tail_sampling:
+        decision_wait: 10s
+        policies:
+          - name: errors
+            type: status_code
+            status_code: { status_codes: [ERROR] }
+          - name: slow
+            type: latency
+            latency: { threshold_ms: 200 }
+          - name: random
+            type: probabilistic
+            probabilistic: { sampling_percentage: 5 }
+    exporters:
+      otlp/tempo:
+        endpoint: tempo.aegis-observability.svc.cluster.local:4317
+        tls: { insecure: true }
+      prometheusremotewrite:
+        endpoint: http://kube-prometheus-stack-prometheus.aegis-observability.svc:9090/api/v1/write
+      otlphttp/loki:
+        endpoint: http://loki.aegis-observability.svc:3100/otlp
+    service:
+      pipelines:
+        traces:  { receivers: [otlp], processors: [memory_limiter, attributes/tenant, tail_sampling, batch], exporters: [otlp/tempo] }
+        metrics: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheusremotewrite] }
+        logs:    { receivers: [otlp], processors: [memory_limiter, batch], exporters: [otlphttp/loki] }

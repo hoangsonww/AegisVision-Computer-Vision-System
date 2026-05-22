@@ -1,0 +1,9 @@
+apiVersion: v2
+name: rule-engine
+description: AegisVision data-plane T1 service.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/hoangsonww/AegisVision-Computer-Vision-System
+sources:
+  - https://github.com/hoangsonww/AegisVision-Computer-Vision-System
