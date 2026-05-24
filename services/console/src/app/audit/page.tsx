@@ -35,7 +35,7 @@ export default function AuditPage() {
 
       <Card className="mb-4 border-acc-1/30">
         <p className="text-sm text-text-1">
-          Each record's hash includes the previous record's hash. Tampering is detectable by re-walking the chain.
+          Each record&apos;s hash includes the previous record&apos;s hash. Tampering is detectable by re-walking the chain.
           If audit-service is unreachable, upstream mutations fail-closed.
         </p>
       </Card>
