@@ -6,7 +6,6 @@ syntax = "proto3";
 package aegisvision.intelligence.v1;
 
 import "aegisvision/common/v1/types.proto";
-import "aegisvision/intelligence/v1/llm.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
