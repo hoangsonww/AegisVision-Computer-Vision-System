@@ -7,9 +7,6 @@ for realtime multimodal perception, reasoning, and orchestration at planetary
 scale.</b></p>
 
 <p>
-  <img alt="Services" src="https://img.shields.io/badge/Services-35-blueviolet.svg?style=for-the-badge">
-  <img alt="ADRs" src="https://img.shields.io/badge/ADRs-30-informational.svg?style=for-the-badge">
-  <img alt="Helm Charts" src="https://img.shields.io/badge/Helm_Charts-38-0F1689.svg?style=for-the-badge&logo=helm&logoColor=white">
   <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00ADD8.svg?style=flat-square&logo=go&logoColor=white">
   <img alt="gRPC" src="https://img.shields.io/badge/gRPC-protobuf-244c5a.svg?style=flat-square&logo=grpc&logoColor=white">
   <img alt="Protobuf" src="https://img.shields.io/badge/Protobuf-Buf-1A1A1A.svg?style=flat-square&logo=protobuf&logoColor=white">
