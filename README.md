@@ -14,10 +14,6 @@ scale.</b></p>
   <img alt="Services" src="https://img.shields.io/badge/Services-35-blueviolet.svg?style=for-the-badge">
   <img alt="ADRs" src="https://img.shields.io/badge/ADRs-30-informational.svg?style=for-the-badge">
   <img alt="Helm Charts" src="https://img.shields.io/badge/Helm_Charts-38-0F1689.svg?style=for-the-badge&logo=helm&logoColor=white">
-</p>
-
-<!-- Languages & runtime -->
-<p>
   <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00ADD8.svg?style=flat-square&logo=go&logoColor=white">
   <img alt="gRPC" src="https://img.shields.io/badge/gRPC-protobuf-244c5a.svg?style=flat-square&logo=grpc&logoColor=white">
   <img alt="Protobuf" src="https://img.shields.io/badge/Protobuf-Buf-1A1A1A.svg?style=flat-square&logo=protobuf&logoColor=white">
@@ -25,10 +21,6 @@ scale.</b></p>
   <img alt="HTML5" src="https://img.shields.io/badge/HTML5-Console-E34F26.svg?style=flat-square&logo=html5&logoColor=white">
   <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-Console-F7DF1E.svg?style=flat-square&logo=javascript&logoColor=black">
   <img alt="Mermaid" src="https://img.shields.io/badge/Mermaid-diagrams-FF3670.svg?style=flat-square&logo=mermaid&logoColor=white">
-</p>
-
-<!-- Cloud-native platform -->
-<p>
   <img alt="Kubernetes" src="https://img.shields.io/badge/Kubernetes-1.27%2B-326CE5.svg?style=flat-square&logo=kubernetes&logoColor=white">
   <img alt="Helm" src="https://img.shields.io/badge/Helm-charts-0F1689.svg?style=flat-square&logo=helm&logoColor=white">
   <img alt="Istio" src="https://img.shields.io/badge/Istio-Ambient_mTLS-466BB0.svg?style=flat-square&logo=istio&logoColor=white">
@@ -39,10 +31,6 @@ scale.</b></p>
   <img alt="External Secrets" src="https://img.shields.io/badge/External_Secrets-ESO-3A2D7E.svg?style=flat-square">
   <img alt="Vault" src="https://img.shields.io/badge/Vault-transit_keys-FFEC6E.svg?style=flat-square&logo=vault&logoColor=black">
   <img alt="Terraform" src="https://img.shields.io/badge/Terraform-IaC-7B42BC.svg?style=flat-square&logo=terraform&logoColor=white">
-</p>
-
-<!-- Data tier -->
-<p>
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-Patroni_HA-316192.svg?style=flat-square&logo=postgresql&logoColor=white">
   <img alt="ClickHouse" src="https://img.shields.io/badge/ClickHouse-3%C3%972_replicated-FFCC01.svg?style=flat-square&logo=clickhouse&logoColor=black">
   <img alt="Redis" src="https://img.shields.io/badge/Redis-Sentinel_HA-DC382D.svg?style=flat-square&logo=redis&logoColor=white">
@@ -51,10 +39,6 @@ scale.</b></p>
   <img alt="Object Store" src="https://img.shields.io/badge/Object_Store-S3%2FMinIO%2FCeph-569A31.svg?style=flat-square&logo=amazons3&logoColor=white">
   <img alt="SQLite" src="https://img.shields.io/badge/SQLite-dev_mode-003B57.svg?style=flat-square&logo=sqlite&logoColor=white">
   <img alt="pgvector" src="https://img.shields.io/badge/pgvector-RAG-336791.svg?style=flat-square">
-</p>
-
-<!-- GPU + inference -->
-<p>
   <img alt="NVIDIA Triton" src="https://img.shields.io/badge/NVIDIA-Triton_Inference-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
   <img alt="TensorRT-LLM" src="https://img.shields.io/badge/TensorRT--LLM-LLM_serving-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
   <img alt="DeepStream" src="https://img.shields.io/badge/DeepStream-SDK-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
@@ -65,20 +49,12 @@ scale.</b></p>
   <img alt="OpenAI compat" src="https://img.shields.io/badge/OpenAI-compatible_API-412991.svg?style=flat-square&logo=openai&logoColor=white">
   <img alt="Anthropic" src="https://img.shields.io/badge/Anthropic-supported_backend-D97757.svg?style=flat-square">
   <img alt="Bedrock" src="https://img.shields.io/badge/AWS_Bedrock-supported_backend-FF9900.svg?style=flat-square&logo=amazonaws&logoColor=white">
-</p>
-
-<!-- Observability -->
-<p>
   <img alt="OpenTelemetry" src="https://img.shields.io/badge/OpenTelemetry-OTLP-425CC7.svg?style=flat-square&logo=opentelemetry&logoColor=white">
   <img alt="Prometheus" src="https://img.shields.io/badge/Prometheus-RED_metrics-E6522C.svg?style=flat-square&logo=prometheus&logoColor=white">
   <img alt="Loki" src="https://img.shields.io/badge/Loki-logs-FCB037.svg?style=flat-square&logo=grafana&logoColor=white">
   <img alt="Tempo" src="https://img.shields.io/badge/Tempo-traces-F46800.svg?style=flat-square&logo=grafana&logoColor=white">
   <img alt="Grafana" src="https://img.shields.io/badge/Grafana-dashboards-F46800.svg?style=flat-square&logo=grafana&logoColor=white">
   <img alt="slog" src="https://img.shields.io/badge/slog-structured_logs-00ADD8.svg?style=flat-square&logo=go&logoColor=white">
-</p>
-
-<!-- Supply chain + security -->
-<p>
   <img alt="Cosign" src="https://img.shields.io/badge/Cosign-keyless_signing-3D8B40.svg?style=flat-square&logo=sigstore&logoColor=white">
   <img alt="Sigstore" src="https://img.shields.io/badge/Sigstore-Rekor-3D8B40.svg?style=flat-square&logo=sigstore&logoColor=white">
   <img alt="SLSA" src="https://img.shields.io/badge/SLSA-v1_provenance-1D5CC8.svg?style=flat-square">
@@ -88,41 +64,22 @@ scale.</b></p>
   <img alt="GDPR" src="https://img.shields.io/badge/GDPR-DPIA-005EB8.svg?style=flat-square">
   <img alt="SOC 2" src="https://img.shields.io/badge/SOC_2-controls-005EB8.svg?style=flat-square">
   <img alt="EU AI Act" src="https://img.shields.io/badge/EU_AI_Act-conformity-003399.svg?style=flat-square">
-</p>
-
-<!-- Chaos + load -->
-<p>
   <img alt="chaos-mesh" src="https://img.shields.io/badge/chaos--mesh-resilience_gate-A21B7B.svg?style=flat-square">
   <img alt="k6" src="https://img.shields.io/badge/k6-load_tests-7D64FF.svg?style=flat-square&logo=k6&logoColor=white">
   <img alt="WAL-G" src="https://img.shields.io/badge/WAL--G-PostgreSQL_backup-316192.svg?style=flat-square">
   <img alt="clickhouse-backup" src="https://img.shields.io/badge/clickhouse--backup-snapshots-FFCC01.svg?style=flat-square&logo=clickhouse&logoColor=black">
-</p>
-
-<!-- Tooling -->
-<p>
   <img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-CI-2088FF.svg?style=flat-square&logo=githubactions&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-distroless-2496ED.svg?style=flat-square&logo=docker&logoColor=white">
   <img alt="Buf" src="https://img.shields.io/badge/Buf-proto_lint_%2B_breaking-1A1A1A.svg?style=flat-square">
   <img alt="release-please" src="https://img.shields.io/badge/release--please-versioning-4285F4.svg?style=flat-square&logo=googlecloud&logoColor=white">
   <img alt="Task" src="https://img.shields.io/badge/Task-runner-29BEB0.svg?style=flat-square&logo=task&logoColor=white">
-  <img alt="zstd" src="https://img.shields.io/badge/zstd-bundle_compression-555555.svg?style=flat-square">
-</p>
-
-<!-- Edge -->
-<p>
+  <img alt="zstd" src="https://img.shields.io/badge/zstd-bundle_compression-4343431.svg?style=flat-square">
   <img alt="k3s" src="https://img.shields.io/badge/k3s-edge-FFC61C.svg?style=flat-square&logo=k3s&logoColor=black">
   <img alt="Jetson" src="https://img.shields.io/badge/NVIDIA_Jetson-edge-76B900.svg?style=flat-square&logo=nvidia&logoColor=white">
-  <img alt="RTSP" src="https://img.shields.io/badge/RTSP-stream_ingest-555555.svg?style=flat-square">
+  <img alt="RTSP" src="https://img.shields.io/badge/RTSP-stream_ingest-123123.svg?style=flat-square">
   <img alt="WebRTC" src="https://img.shields.io/badge/WebRTC-stream_ingest-333333.svg?style=flat-square&logo=webrtc&logoColor=white">
-  <img alt="SSE" src="https://img.shields.io/badge/SSE-realtime_push-555555.svg?style=flat-square">
-  <img alt="WebSocket" src="https://img.shields.io/badge/WebSocket-realtime-555555.svg?style=flat-square">
-</p>
-
-<p>
-  <a href="https://github.com/hoangsonww"><img alt="Author" src="https://img.shields.io/badge/Author-Son%20Nguyen-black?style=for-the-badge&logo=github&logoColor=white"></a>
-  <a href="https://linkedin.com/in/hoangsonw"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-hoangsonw-0A66C2.svg?style=for-the-badge&logo=linkedin&logoColor=white"></a>
-  <a href="https://sonnguyenhoang.com"><img alt="Website" src="https://img.shields.io/badge/Website-sonnguyenhoang.com-1F6FEB.svg?style=for-the-badge&logo=safari&logoColor=white"></a>
-  <a href="mailto:hoangson091104@gmail.com"><img alt="Email" src="https://img.shields.io/badge/Email-hoangson091104@gmail.com-D14836.svg?style=for-the-badge&logo=gmail&logoColor=white"></a>
+  <img alt="SSE" src="https://img.shields.io/badge/SSE-realtime_push-123456.svg?style=flat-square">
+  <img alt="WebSocket" src="https://img.shields.io/badge/WebSocket-realtime-999999.svg?style=flat-square">
 </p>
 
 <hr/>
