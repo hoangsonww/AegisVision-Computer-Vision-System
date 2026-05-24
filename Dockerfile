@@ -22,13 +22,13 @@ COPY pkg/ ./pkg/
 COPY services/ ./services/
 COPY tools/ ./tools/
 
-RUN set -euo pipefail; \
+RUN set -eu; \
     mkdir -p /out; \
     for cmd in services/*/cmd/*; do \
       svc="$(basename "$cmd")"; \
       svc_mod="$(dirname "$(dirname "$cmd")")"; \
       echo "==> building $svc"; \
-      (cd "$svc_mod" && go build -ldflags='-s -w' -o "/out/$svc" "./cmd/$svc"); \
+      (cd "$svc_mod" && go build -ldflags='-s -w' -o "/out/$svc" "./cmd/$svc") || exit 1; \
     done; \
     ls -l /out
 
