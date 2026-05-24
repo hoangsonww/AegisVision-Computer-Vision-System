@@ -641,13 +641,110 @@
     max-width: 1280px;
   }
 
-  /* === Responsive nav (mobile collapse) === */
-  @media (max-width: 760px) {
-    .nav-links { gap: 0; justify-content: flex-end; }
-    .nav-links a { padding: 8px 10px; font-size: 0.84rem; }
-    .nav-links a.cta { font-size: 0.84rem; padding: 8px 14px; }
-    header.hero { padding: 60px 20px 50px; }
-    section { padding: 50px 20px; }
+  /* === Responsive — tablet === */
+  @media (max-width: 960px) {
+    .nav-inner { padding: 12px 18px; gap: 10px; }
+    .nav-brand { font-size: 1.05rem; }
+    .nav-brand .logo { width: 28px; height: 28px; }
+    .nav-brand .logo::before { font-size: 14px; }
+    .nav-links { gap: 2px; }
+    .nav-links a { padding: 7px 10px; font-size: 0.86rem; }
+    .nav-links a.cta { padding: 7px 12px; font-size: 0.86rem; }
+    header.hero { padding: 64px 20px 50px; }
+    .hero-shield { width: 88px; height: 88px; font-size: 44px; border-radius: 22px; margin-bottom: 22px; }
+    section { padding: 56px 22px; }
+    .container { padding: 0; }
+    .stats { gap: 12px; }
+    .stat { padding: 18px 12px; }
+    .stat-value { font-size: 1.8rem; }
+    .stat-label { font-size: 0.72rem; letter-spacing: 0.05em; }
+    .card { padding: 22px; }
+    .diagram-wrap { padding: 18px; }
+    pre.code { padding: 14px 16px; font-size: 0.78rem; }
+    footer { padding: 50px 22px 32px; }
+    .marquee-track span { padding: 0 22px; font-size: 0.84rem; }
+  }
+
+  /* Tables: never overflow the viewport — wrap in a scroll container. */
+  .table-wrap, section table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  section table { min-width: 100%; }
+
+  /* === Responsive — phone === */
+  @media (max-width: 640px) {
+    /* Nav: hide section anchor links, keep brand + GitHub CTA only. */
+    .nav-links { flex-wrap: nowrap; }
+    .nav-links a[href^="#"] { display: none; }
+    .nav-links a.cta { padding: 8px 14px; font-size: 0.84rem; }
+    .scroll-progress { height: 2px; }
+
+    header.hero { padding: 48px 16px 40px; }
+    .hero-shield { width: 76px; height: 76px; font-size: 38px; border-radius: 18px; margin-bottom: 18px; }
+    .hero-tag { font-size: 0.96rem; margin-bottom: 14px; }
+    .hero-subtag { font-size: 0.78rem; line-height: 1.5; margin-bottom: 26px; padding: 0 4px; }
+    .hero-buttons { gap: 10px; margin-bottom: 36px; }
+    .btn { padding: 11px 18px; font-size: 0.88rem; gap: 8px; }
+
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stat { padding: 14px 10px; }
+    .stat-value { font-size: 1.5rem; }
+
+    section { padding: 44px 16px; }
+    h2.section-title { margin-bottom: 10px; }
+    .section-sub { font-size: 0.94rem; margin-bottom: 32px; }
+    h3.subsec-title { font-size: 1.15rem; margin-top: 28px; }
+
+    .card-grid, .toc-grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .card { padding: 20px; }
+    .card h3 { font-size: 1.08rem; }
+    .card p { font-size: 0.9rem; }
+    .card-icon { width: 44px; height: 44px; border-radius: 11px; }
+
+    .callout { padding: 44px 20px 18px; font-size: 0.94rem; }
+    .callout::before { font-size: 3.4rem; left: 12px; top: 6px; }
+
+    .diagram-wrap { padding: 14px 10px; border-radius: 10px; }
+    .diagram-wrap .mermaid { min-width: 0; }      /* don't force horizontal scroll */
+
+    pre.code { padding: 12px 14px; font-size: 0.74rem; border-radius: 6px; }
+
+    .author-card { max-width: 100%; padding: 14px; gap: 12px; }
+    .author-card img { width: 48px; height: 48px; }
+
+    footer { padding: 40px 16px 28px; }
+    .footer-inner { gap: 28px; }
+    .footer-col h4 { font-size: 0.82rem; margin-bottom: 10px; }
+    .footer-col a { font-size: 0.88rem; }
+    .footer-meta { font-size: 0.78rem; margin-top: 28px; padding-top: 18px; }
+
+    .scroll-top { width: 42px; height: 42px; right: 16px; bottom: 16px; font-size: 18px; }
+
+    .marquee { padding: 7px 0; }
+    .marquee-track span { padding: 0 16px; font-size: 0.78rem; }
+    .marquee-track span::after { margin-left: 16px; }
+
+    /* Tables, service tiles, tier rail */
+    section table { font-size: 0.82rem; }
+    section th, section td { padding: 10px 12px; }
+    .services-grid { grid-template-columns: 1fr; gap: 10px; }
+    .service-tile { padding: 12px 14px; }
+    .tier-rail { grid-template-columns: 1fr; gap: 14px; }
+    .tier { padding: 18px; }
+
+    /* Inline code wraps on long identifiers instead of overflowing */
+    code.inline { word-break: break-word; }
+  }
+
+  /* Very small phones */
+  @media (max-width: 380px) {
+    .nav-brand { font-size: 0.96rem; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .hero-buttons .btn { flex: 1 1 100%; justify-content: center; }
   }
 
   /* === Floating scroll-top button === */
