@@ -2,7 +2,7 @@
 
 > **How to get help with AegisVision.**
 
-AegisVision is a solo project authored by **Son Nguyen**
+AegisVision is authored and maintained by **Son Nguyen**
 ([@hoangsonww](https://github.com/hoangsonww)). Support is community-style
 and best-effort.
 
@@ -81,7 +81,7 @@ Before opening an issue, please check:
 - Discussions: best-effort.
 - Email: best-effort.
 
-This is a solo project — please be patient. If something is urgent
+Please be patient — support is best-effort. If something is urgent
 and production-impacting, mention it clearly in the subject.
 
 ---

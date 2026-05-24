@@ -28,7 +28,8 @@ jobs:
 
   airgap-bundle:
     name: air-gapped bundle
-    needs: release-please
+    # Wait for promote-image so the VERSION tag exists before we pull it.
+    needs: [release-please, promote-image]
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -90,15 +91,31 @@ jobs:
       - uses: imjasonh/setup-crane@v0.4
       - name: log in to ghcr
         run: echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: tag ci-sha as version + latest
+      - name: wait for build-and-verify to push the image
         env:
           SHA: ${{ github.sha }}
+        # Build & verify runs in parallel — it can take ~10 min to push. Poll
+        # the registry every 20s for up to 20 min for either tag to appear.
         run: |
-          # build-and-verify pushes both ci-<sha> and <sha>; either works as source.
-          src="${REGISTRY}/aegisvision:ci-${SHA}"
-          if ! crane manifest "$src" >/dev/null 2>&1; then
-            src="${REGISTRY}/aegisvision:${SHA}"
+          deadline=$((SECONDS + 1200))
+          found=""
+          while [ $SECONDS -lt $deadline ]; do
+            for candidate in "${REGISTRY}/aegisvision:ci-${SHA}" "${REGISTRY}/aegisvision:${SHA}"; do
+              if crane manifest "$candidate" >/dev/null 2>&1; then
+                found="$candidate"
+                break 2
+              fi
+            done
+            echo "image not yet available; waiting 20s (${SECONDS}s elapsed)…"
+            sleep 20
+          done
+          if [ -z "$found" ]; then
+            echo "::error::aegisvision:ci-${SHA} never appeared in registry — Build & verify may have failed"
+            exit 1
           fi
-          echo "promoting $src → ${VERSION} + latest"
-          crane tag "$src" "${VERSION}"
-          crane tag "$src" "latest"
+          echo "SRC=$found" >> "$GITHUB_ENV"
+      - name: tag ci-sha as version + latest
+        run: |
+          echo "promoting ${SRC} → ${VERSION} + latest"
+          crane tag "${SRC}" "${VERSION}"
+          crane tag "${SRC}" "latest"

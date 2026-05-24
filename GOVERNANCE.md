@@ -2,7 +2,9 @@
 
 > **How AegisVision is governed.**
 
-AegisVision is a **solo project**. The governance model reflects that.
+AegisVision is authored and maintained by a single owner. The
+governance model reflects that — decisions, releases, and security
+fixes all rest with the owner below.
 
 ---
 

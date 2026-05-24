@@ -153,7 +153,7 @@ Influences:
 - Security findings.
 - The author's curiosity.
 
-This is a solo project. Pace varies.
+Pace varies — AegisVision is maintained by Son Nguyen as time allows.
 
 ---
 
