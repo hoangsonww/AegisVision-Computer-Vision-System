@@ -5,7 +5,7 @@ metadata:
   namespace: aegis-system
   labels: { app.kubernetes.io/name: rule-engine }
 spec:
-  replicas: {{"{{ .Values.replicaCount }}"}}
+  replicas: {{ .Values.replicaCount }}
   selector: { matchLabels: { app.kubernetes.io/name: rule-engine } }
   template:
     metadata:
@@ -16,12 +16,12 @@ spec:
         prometheus.io/path: /metrics
     spec:
       serviceAccountName: rule-engine
-      priorityClassName: {{"{{ .Values.priorityClassName | quote }}"}}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
       securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: rule-engine
-          image: "{{"{{ .Values.image.repository }}:{{ .Values.image.tag }}"}}"
-          imagePullPolicy: {{"{{ .Values.image.pullPolicy }}"}}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -30,10 +30,10 @@ spec:
             - { name: http, containerPort: 8210 }
             - { name: metrics, containerPort: 8211 }
           env:
-            - { name: AEGIS_ENV, value: {{"{{ .Values.env | quote }}"}} }
-            - { name: AEGIS_LOG_LEVEL, value: {{"{{ .Values.logLevel | quote }}"}} }
+            - { name: AEGIS_ENV, value: {{ .Values.env | quote }} }
+            - { name: AEGIS_LOG_LEVEL, value: {{ .Values.logLevel | quote }} }
             - { name: AEGIS_HTTP_ADDR, value: ":8210" }
             - { name: AEGIS_HEALTH_ADDR, value: ":8211" }
           readinessProbe: { httpGet: { path: /readyz, port: metrics }, initialDelaySeconds: 2, periodSeconds: 5 }
           livenessProbe:  { httpGet: { path: /healthz, port: metrics }, initialDelaySeconds: 10, periodSeconds: 10 }
-          resources: {{"{{ toYaml .Values.resources | nindent 12 }}"}}
+          resources: {{ toYaml .Values.resources | nindent 12 }}
