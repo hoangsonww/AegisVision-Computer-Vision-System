@@ -100,7 +100,7 @@ This repository is the technical documentation. It is versioned, signed
   canary plan.
 - **Robustness**: chaos drills (10 experiments, quarterly).
 - **Cybersecurity**: SOC 2 control mapping in `docs/compliance/soc2/`.
-  Image signing + SBOM + SLSA v1 provenance + Trivy scan in CI.
+  Image signing + SBOM + SLSA v1 provenance in CI.
 
 ## 10. Conformity assessment
 

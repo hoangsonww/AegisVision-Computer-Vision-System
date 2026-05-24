@@ -1,7 +1,7 @@
-# Release pipeline. release-please cuts the version + CHANGELOG when
-# semantic-commit messages are landed on main. On tag creation the
+# Tag & publish. release-please cuts the version + CHANGELOG when
+# semantic-commit messages land on master. On tag creation the
 # air-gap bundle workflow takes over.
-name: release
+name: Tag & publish
 on:
   push:
     branches: [main, master]

@@ -20,7 +20,8 @@ export default function CompliancePage() {
     return api.bundleEvidence({ framework, controls }, { tenant });
   }, { success: 'Evidence bundle ready' });
 
-  const grouped = (data?.items ?? []).reduce<Record<string, typeof data.items>>((acc, c) => {
+  type ControlItem = NonNullable<typeof data>['items'][number];
+  const grouped = (data?.items ?? []).reduce<Record<string, ControlItem[]>>((acc, c) => {
     (acc[c.framework] ||= []).push(c);
     return acc;
   }, {});
