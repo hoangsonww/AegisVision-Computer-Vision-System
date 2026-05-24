@@ -1,8 +1,8 @@
-{{"{{- if .Values.serviceMonitor.enabled }}"}}
+{{- if .Values.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata: { name: realtime-hub, namespace: aegis-system, labels: { release: prometheus } }
 spec:
   selector: { matchLabels: { app.kubernetes.io/name: realtime-hub } }
-  endpoints: [{ port: metrics, interval: {{"{{ .Values.serviceMonitor.interval }}"}}, path: /metrics }]
-{{"{{- end }}"}}
+  endpoints: [{ port: metrics, interval: {{ .Values.serviceMonitor.interval }}, path: /metrics }]
+{{- end }}
