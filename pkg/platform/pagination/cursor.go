@@ -92,11 +92,14 @@ func (e *Encoder) Decode(kind, token string) (Cursor, error) {
 	if len(parts) != 2 {
 		return Cursor{}, ErrInvalidCursor
 	}
-	body, err := base64.RawURLEncoding.DecodeString(parts[0])
+	// Strict mode rejects base64 strings whose final-byte unused bits are
+	// non-zero. Without this, a tampered last byte can decode to the same
+	// signature bytes and slip past the HMAC check.
+	body, err := base64.RawURLEncoding.Strict().DecodeString(parts[0])
 	if err != nil {
 		return Cursor{}, ErrInvalidCursor
 	}
-	sig, err := base64.RawURLEncoding.DecodeString(parts[1])
+	sig, err := base64.RawURLEncoding.Strict().DecodeString(parts[1])
 	if err != nil {
 		return Cursor{}, ErrInvalidCursor
 	}
