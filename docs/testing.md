@@ -106,7 +106,7 @@ npm run lint
 npm run build
 ```
 
-The CI job `console` in `.github/workflows/ci.yml` runs these on every
+The CI job `console` in `.github/workflows/build-and-verify.yml` runs these on every
 PR that touches `services/console/`. A broken typecheck, lint, or build
 fails the PR before merge — the production UI doesn't ship broken.
 

@@ -75,8 +75,8 @@ reports. We attest to the inheritance via vendor reviews.
 
 ### CC7.1 — Detection of configuration vulnerabilities
 
-- Trivy scan on every image in CI (`HIGH,CRITICAL` fails the build).
-- Dependabot for Go modules + GitHub Actions.
+- Dependabot for Go modules + GitHub Actions (CVE alerts).
+- govulncheck against the Go binaries.
 - Kyverno admission policies enforce non-root, drop-ALL caps,
   readOnlyRootFilesystem, seccompProfile.
 
@@ -118,7 +118,7 @@ reports. We attest to the inheritance via vendor reviews.
 - **Source control**: every change lands via PR. CODEOWNERS gates the
   `/proto` directory most strictly (ADR-0007).
 - **Build**: CI runs go vet + go test -race + go build for every module;
-  Trivy + cosign + SLSA per image; helm-lint + conformance for every
+  cosign + SLSA per image; helm-lint + conformance for every
   chart.
 - **Approval**: branch protections require PR review.
 - **Deploy**: ArgoCD GitOps reconciliation. Manual `helm install` is

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AegisVision">
+  <defs>
+    <linearGradient id="av-shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d5af1"/>
+      <stop offset="55%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#b88aff"/>
+    </linearGradient>
+    <radialGradient id="av-lens" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#e8f4ff"/>
+      <stop offset="55%" stop-color="#3dc5ff"/>
+      <stop offset="100%" stop-color="#0a1530"/>
+    </radialGradient>
+  </defs>
+  <path d="M32 3 L57 11 V31 C57 46 45.5 56.5 32 61 C18.5 56.5 7 46 7 31 V11 Z" fill="url(#av-shield)"/>
+  <path d="M32 8 L52 14.5 V31 C52 43 42.5 51.5 32 55.5 C21.5 51.5 12 43 12 31 V14.5 Z"
+        fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.8"/>
+  <circle cx="32" cy="30" r="13" fill="url(#av-lens)"/>
+  <circle cx="32" cy="30" r="5.5" fill="#050a1c"/>
+  <circle cx="35" cy="27" r="2.2" fill="#e8f4ff" opacity="0.85"/>
+  <line x1="14" y1="42" x2="50" y2="42" stroke="#00d4ff" stroke-width="1" opacity="0.45"/>
+</svg>
