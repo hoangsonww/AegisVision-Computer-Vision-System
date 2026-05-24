@@ -133,7 +133,10 @@ EOF
 
 # ---- 8. Final tarball ---------------------------------------------------
 mkdir -p "$OUT_DIR"
-TARBALL="${OUT_DIR}/${BUNDLE_NAME}.tar"
+# The subshell cd's into $WORK_DIR, so $TARBALL must be an absolute path —
+# otherwise tar tries to write into <work-dir>/dist/, which doesn't exist.
+OUT_DIR_ABS="$(cd "$OUT_DIR" && pwd)"
+TARBALL="${OUT_DIR_ABS}/${BUNDLE_NAME}.tar"
 ( cd "$WORK_DIR" && tar -cf "${TARBALL}" "${BUNDLE_NAME}" )
 
 if command -v zstd >/dev/null 2>&1; then
