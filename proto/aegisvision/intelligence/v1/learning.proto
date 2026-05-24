@@ -13,11 +13,11 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/intelligence/v1;intelligencev1";
 
 enum UncertaintyStrategy {
-  UNCERTAINTY_UNSPECIFIED = 0;
-  UNCERTAINTY_LEAST_CONFIDENCE = 1; // 1 - max p
-  UNCERTAINTY_MARGIN = 2;            // p1 - p2
-  UNCERTAINTY_ENTROPY = 3;           // -sum p log p
-  UNCERTAINTY_DISAGREEMENT = 4;      // committee disagreement
+  UNCERTAINTY_STRATEGY_UNSPECIFIED = 0;
+  UNCERTAINTY_STRATEGY_LEAST_CONFIDENCE = 1; // 1 - max p
+  UNCERTAINTY_STRATEGY_MARGIN = 2;            // p1 - p2
+  UNCERTAINTY_STRATEGY_ENTROPY = 3;           // -sum p log p
+  UNCERTAINTY_STRATEGY_DISAGREEMENT = 4;      // committee disagreement
 }
 
 message LearningPolicy {

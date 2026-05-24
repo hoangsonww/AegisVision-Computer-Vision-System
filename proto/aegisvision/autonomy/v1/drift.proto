@@ -12,10 +12,10 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/aegisvision/proto/gen/go/aegisvision/autonomy/v1;autonomyv1";
 
 enum DivergenceMethod {
-  DIVERGENCE_UNSPECIFIED = 0;
-  DIVERGENCE_KL = 1;       // Kullback-Leibler
-  DIVERGENCE_JS = 2;       // Jensen-Shannon (symmetric, bounded 0..1)
-  DIVERGENCE_TVD = 3;      // Total variation distance
+  DIVERGENCE_METHOD_UNSPECIFIED = 0;
+  DIVERGENCE_METHOD_KL = 1;       // Kullback-Leibler
+  DIVERGENCE_METHOD_JS = 2;       // Jensen-Shannon (symmetric, bounded 0..1)
+  DIVERGENCE_METHOD_TVD = 3;      // Total variation distance
 }
 
 message Distribution {
