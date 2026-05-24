@@ -7,10 +7,6 @@ for realtime multimodal perception, reasoning, and orchestration at planetary
 scale.</b></p>
 
 <p>
-  <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-AegisVision-181717?style=for-the-badge&logo=github&logoColor=white"></a>
-  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge"></a>
-  <a href="./CITATION.cff"><img alt="Cite" src="https://img.shields.io/badge/Cite-CITATION.cff-success.svg?style=for-the-badge"></a>
-  <img alt="Status" src="https://img.shields.io/badge/Status-Phase_0%E2%80%936_Complete-brightgreen.svg?style=for-the-badge">
   <img alt="Services" src="https://img.shields.io/badge/Services-35-blueviolet.svg?style=for-the-badge">
   <img alt="ADRs" src="https://img.shields.io/badge/ADRs-30-informational.svg?style=for-the-badge">
   <img alt="Helm Charts" src="https://img.shields.io/badge/Helm_Charts-38-0F1689.svg?style=for-the-badge&logo=helm&logoColor=white">
