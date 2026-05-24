@@ -361,8 +361,14 @@
     overflow-x: auto;
     box-shadow: var(--shadow);
     margin-top: 26px;
+    text-align: center;
   }
-  .diagram-wrap .mermaid { min-width: 600px; }
+  .diagram-wrap .mermaid {
+    min-width: 600px;
+    display: inline-block;
+    text-align: left;
+  }
+  .diagram-wrap .mermaid svg { display: block; margin: 0 auto; }
 
   /* === Code blocks === */
   pre.code {

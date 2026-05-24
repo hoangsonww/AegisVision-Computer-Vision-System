@@ -69,7 +69,7 @@ busiest) lives in the control plane.
 
 ```mermaid
 flowchart LR
-    subgraph DATA PLANE — per-frame, stateless
+    subgraph DATA PLANE per-frame stateless
         ING[Ingest]
         SMP[Sampler]
         DET[Detect]
@@ -79,7 +79,7 @@ flowchart LR
         ING --> SMP --> DET --> TRK --> RUL --> EMT
     end
 
-    subgraph CONTROL PLANE — per-event, durable
+    subgraph CONTROL PLANE per-event durable
         SM[stream-manager]
         PS[pipeline-service]
         MR[model-registry]
