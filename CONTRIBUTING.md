@@ -4,7 +4,7 @@
 > the short version; the long version lives in
 > [`docs/contributing.md`](./docs/contributing.md).
 
-AegisVision is a solo project authored by **Son Nguyen**
+AegisVision is authored and maintained by **Son Nguyen**
 ([@hoangsonww](https://github.com/hoangsonww)). Issues, discussions, and
 PRs from anyone are welcome.
 

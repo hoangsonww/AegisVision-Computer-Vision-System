@@ -188,6 +188,35 @@
     color: var(--text-1); padding: 8px 14px; border-radius: 6px;
     font-size: 0.92rem; font-weight: 500; transition: all .2s ease;
   }
+  .nav-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border-1);
+    border-radius: 8px;
+    width: 40px; height: 40px;
+    padding: 0;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .nav-toggle:hover { background: var(--bg-3); border-color: var(--border-2); }
+  .nav-toggle .bars {
+    position: relative;
+    width: 18px; height: 14px;
+    display: inline-block;
+  }
+  .nav-toggle .bars span {
+    position: absolute; left: 0; right: 0;
+    height: 2px; border-radius: 2px;
+    background: var(--text-0);
+    transition: transform .25s ease, top .25s ease, opacity .2s ease;
+  }
+  .nav-toggle .bars span:nth-child(1) { top: 0; }
+  .nav-toggle .bars span:nth-child(2) { top: 6px; }
+  .nav-toggle .bars span:nth-child(3) { top: 12px; }
+  nav.open .nav-toggle .bars span:nth-child(1) { top: 6px; transform: rotate(45deg); }
+  nav.open .nav-toggle .bars span:nth-child(2) { opacity: 0; }
+  nav.open .nav-toggle .bars span:nth-child(3) { top: 6px; transform: rotate(-45deg); }
   .nav-links a:hover { background: var(--bg-3); color: var(--acc-2); }
   .nav-links a.active {
     background: rgba(0, 212, 255, 0.10);
@@ -641,16 +670,63 @@
     max-width: 1280px;
   }
 
-  /* === Responsive — tablet === */
-  @media (max-width: 960px) {
-    .nav-inner { padding: 12px 18px; gap: 10px; }
-    .nav-brand { font-size: 1.05rem; }
-    .nav-brand .logo { width: 28px; height: 28px; }
+  /* Tables: never overflow the viewport — wrap in a scroll container. */
+  .table-wrap, section table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  section table { min-width: 100%; }
+
+  /* === Responsive — tablet + below: hamburger pattern === */
+  @media (max-width: 900px) {
+    .nav-inner {
+      padding: 12px 18px;
+      gap: 12px;
+      flex-wrap: nowrap;
+    }
+    .nav-brand { font-size: 1.05rem; flex: 0 1 auto; min-width: 0; }
+    .nav-brand .logo { width: 28px; height: 28px; flex-shrink: 0; }
     .nav-brand .logo::before { font-size: 14px; }
-    .nav-links { gap: 2px; }
-    .nav-links a { padding: 7px 10px; font-size: 0.86rem; }
-    .nav-links a.cta { padding: 7px 12px; font-size: 0.86rem; }
-    header.hero { padding: 64px 20px 50px; }
+    .nav-toggle { display: inline-flex; flex-shrink: 0; margin-left: auto; }
+
+    .nav-links {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+      padding: 12px 16px 18px;
+      background: rgba(5, 10, 28, 0.98);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border-1);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      max-height: calc(100vh - 64px);
+      overflow-y: auto;
+      transform: translateY(-8px);
+      opacity: 0;
+      visibility: hidden;
+      transition: transform .22s ease, opacity .22s ease, visibility .22s;
+    }
+    nav.open .nav-links {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+    .nav-links a {
+      padding: 12px 14px;
+      font-size: 0.98rem;
+      border-radius: 8px;
+      text-align: left;
+    }
+    .nav-links a.cta {
+      margin-top: 6px;
+      padding: 12px 16px;
+      font-size: 0.98rem;
+      text-align: center;
+      justify-content: center;
+    }
+    .nav-links a.active {
+      box-shadow: inset 3px 0 0 var(--acc-2);
+    }
+
+    header.hero { padding: 56px 20px 44px; }
     .hero-shield { width: 88px; height: 88px; font-size: 44px; border-radius: 22px; margin-bottom: 22px; }
     section { padding: 56px 22px; }
     .container { padding: 0; }
@@ -665,16 +741,8 @@
     .marquee-track span { padding: 0 22px; font-size: 0.84rem; }
   }
 
-  /* Tables: never overflow the viewport — wrap in a scroll container. */
-  .table-wrap, section table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  section table { min-width: 100%; }
-
   /* === Responsive — phone === */
   @media (max-width: 640px) {
-    /* Nav: hide section anchor links, keep brand + GitHub CTA only. */
-    .nav-links { flex-wrap: nowrap; }
-    .nav-links a[href^="#"] { display: none; }
-    .nav-links a.cta { padding: 8px 14px; font-size: 0.84rem; }
     .scroll-progress { height: 2px; }
 
     header.hero { padding: 48px 16px 40px; }
@@ -794,7 +862,10 @@
       <div class="logo"></div>
       AegisVision
     </div>
-    <div class="nav-links">
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks" type="button">
+      <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
       <a href="#overview">Overview</a>
       <a href="#architecture">Architecture</a>
       <a href="#services">Services</a>
@@ -825,7 +896,7 @@
       shadow, multi-window SLOs, signed air-gapped install — built from scar tissue.
     </p>
     <p class="hero-subtag">
-      Built by Son Nguyen · solo project · Apache 2.0 · v0.5.4 · Phases 0–7 complete (incl. production Next.js console)
+      Built by Son Nguyen · Apache 2.0 · v0.5.4 · Phases 0–7 complete (incl. production Next.js console)
     </p>
 
     <div class="hero-buttons">
@@ -1585,13 +1656,13 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
   <div class="container" style="max-width:780px;">
     <h2 class="section-title">Built by <span class="accent">one person.</span></h2>
     <p class="section-sub">
-      AegisVision is a solo project. The author would love to hear from you.
+      AegisVision is authored and maintained by Son Nguyen. The author would love to hear from you.
     </p>
 
     <div class="card" style="text-align:center; padding:38px 28px;">
       <img src="https://github.com/hoangsonww.png" alt="Son Nguyen" style="width:120px;height:120px;border-radius:50%;border:3px solid var(--acc-1);box-shadow:0 0 32px rgba(61,90,241,.5);margin-bottom:18px;" onerror="this.style.display='none'"/>
       <h3 style="font-family: var(--display); font-size:1.6rem; margin-bottom:4px;">Son Nguyen</h3>
-      <p style="color: var(--text-2); margin-bottom:18px;">Author · Sole maintainer · BDFL</p>
+      <p style="color: var(--text-2); margin-bottom:18px;">Author · Maintainer · BDFL</p>
       <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
         <a class="btn btn-secondary" href="https://github.com/hoangsonww">⭐ GitHub</a>
         <a class="btn btn-secondary" href="https://linkedin.com/in/hoangsonw">💼 LinkedIn</a>
@@ -1624,7 +1695,7 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
         <img src="https://github.com/hoangsonww.png" alt="Son Nguyen" onerror="this.style.display='none'"/>
         <div>
           <div class="author-name">Son Nguyen</div>
-          <div class="author-role">Author · Solo project</div>
+          <div class="author-role">Author · Maintainer</div>
         </div>
       </div>
     </div>
@@ -1692,6 +1763,34 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
       }
     });
   });
+
+  // ===== Mobile nav (hamburger) =====
+  (function () {
+    const navEl = document.querySelector('nav');
+    const toggle = document.getElementById('navToggle');
+    if (!navEl || !toggle) return;
+    const setOpen = (open) => {
+      navEl.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+    toggle.addEventListener('click', () => setOpen(!navEl.classList.contains('open')));
+    // close on link tap
+    navEl.querySelectorAll('.nav-links a').forEach(a => {
+      a.addEventListener('click', () => setOpen(false));
+    });
+    // close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+    // close on outside click
+    document.addEventListener('click', (e) => {
+      if (!navEl.contains(e.target)) setOpen(false);
+    });
+    // close when widening past the breakpoint
+    const mq = window.matchMedia('(min-width: 901px)');
+    mq.addEventListener('change', (e) => { if (e.matches) setOpen(false); });
+  })();
 
   // ===== Smooth scroll progress bar (lerped per-frame, no jitter) =====
   (function () {

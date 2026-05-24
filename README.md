@@ -613,7 +613,7 @@ transport without a protobuf contract. Don't grow a second agent runtime.
   <br/>
   <b>Son Nguyen</b>
   <br/>
-  <sub>Author · Sole maintainer · BDFL</sub>
+  <sub>Author · Maintainer · BDFL</sub>
   <br/>
   <br/>
   <a href="https://github.com/hoangsonww"><img src="https://img.shields.io/badge/GitHub-hoangsonww-181717?style=flat-square&logo=github&logoColor=white"></a>

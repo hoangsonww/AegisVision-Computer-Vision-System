@@ -19,8 +19,8 @@ You're paged. Where to start, in priority order.
 | Streaming on-call | rotating PagerDuty | Son Nguyen — hoangson091104@gmail.com |
 | Security on-call | rotating PagerDuty | Son Nguyen — hoangson091104@gmail.com |
 
-> This is a solo project. The author is the escalation contact for every
-> role. See [`GOVERNANCE.md`](../../GOVERNANCE.md).
+> The author is the escalation contact for every role.
+> See [`GOVERNANCE.md`](../../GOVERNANCE.md).
 
 ## 3. Latency p95 > 300ms
 
