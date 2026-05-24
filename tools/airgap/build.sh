@@ -50,30 +50,25 @@ echo "  Stage dir:  $STAGE_DIR"
 echo "  Registry:   $REGISTRY"
 echo "  Platforms:  $PLATFORMS"
 
-# ---- 1. Images -----------------------------------------------------------
-echo "▶ Pulling images into OCI layout"
-for svc_dir in services/*/; do
-  svc="$(basename "$svc_dir")"
-  [[ ! -f "$svc_dir/Dockerfile" ]] && continue
-  image="${REGISTRY}/${svc}:${VERSION}"
-  out="${STAGE_DIR}/images/${svc}"
-  mkdir -p "$out"
-  if command -v crane >/dev/null 2>&1; then
-    crane pull --format=oci --platform="${PLATFORMS%%,*}" "$image" "$out" 2>/dev/null || {
-      echo "  ! skipping $svc (image not available; build first)" >&2
-      continue
-    }
-  else
-    # crane unavailable — fall back to docker save (loses multi-arch).
-    if docker image inspect "$image" >/dev/null 2>&1; then
-      docker save "$image" -o "${out}/image.tar"
-    else
-      echo "  ! skipping $svc (docker pull would require network)" >&2
-      continue
-    fi
-  fi
-  echo "  ✓ $svc"
-done
+# ---- 1. Image ------------------------------------------------------------
+# Single umbrella image: ghcr.io/<owner>/aegisvision contains every service
+# binary baked in. Pick which service at runtime via `command:`.
+echo "▶ Pulling aegisvision image into OCI layout"
+image="${REGISTRY}/aegisvision:${VERSION}"
+out="${STAGE_DIR}/images/aegisvision"
+mkdir -p "$out"
+if command -v crane >/dev/null 2>&1; then
+  crane pull --format=oci --platform="${PLATFORMS%%,*}" "$image" "$out" || {
+    echo "  ! aegisvision image not available at $image; build + push first" >&2
+    exit 1
+  }
+elif docker image inspect "$image" >/dev/null 2>&1; then
+  docker save "$image" -o "${out}/image.tar"
+else
+  echo "  ! crane unavailable and docker has no local copy of $image" >&2
+  exit 1
+fi
+echo "  ✓ aegisvision"
 
 # ---- 2. Helm charts ------------------------------------------------------
 echo "▶ Packaging Helm charts"
@@ -96,29 +91,21 @@ cp -r deploy/k8s/policies   "${STAGE_DIR}/policies"
 cp -r deploy/argocd         "${STAGE_DIR}/manifests/argocd"
 cp -r deploy/platform       "${STAGE_DIR}/manifests/platform" 2>/dev/null || true
 
-# ---- 4. SBOMs (best-effort — needs syft) --------------------------------
+# ---- 4. SBOM (best-effort — needs syft) ---------------------------------
 if command -v syft >/dev/null 2>&1; then
-  echo "▶ Generating SBOMs"
-  for svc_dir in services/*/; do
-    svc="$(basename "$svc_dir")"
-    [[ ! -f "$svc_dir/Dockerfile" ]] && continue
-    image="${REGISTRY}/${svc}:${VERSION}"
-    syft "$image" -o spdx-json="${STAGE_DIR}/sboms/${svc}.spdx.json" 2>/dev/null || true
-  done
-  echo "  ✓ $(ls "${STAGE_DIR}/sboms/" 2>/dev/null | wc -l | tr -d ' ') SBOMs"
+  echo "▶ Generating SBOM"
+  image="${REGISTRY}/aegisvision:${VERSION}"
+  syft "$image" -o spdx-json="${STAGE_DIR}/sboms/aegisvision.spdx.json" 2>/dev/null || true
+  echo "  ✓ aegisvision SBOM"
 else
-  echo "▶ syft not installed — skipping SBOMs"
+  echo "▶ syft not installed — skipping SBOM"
 fi
 
-# ---- 5. Cosign signatures bundle ----------------------------------------
+# ---- 5. Cosign signature ------------------------------------------------
 if [[ "$SKIP_SIGN" == "false" ]] && command -v cosign >/dev/null 2>&1; then
-  echo "▶ Bundling cosign signatures"
-  for svc_dir in services/*/; do
-    svc="$(basename "$svc_dir")"
-    [[ ! -f "$svc_dir/Dockerfile" ]] && continue
-    image="${REGISTRY}/${svc}:${VERSION}"
-    cosign download signature "$image" > "${STAGE_DIR}/signatures/${svc}.sig" 2>/dev/null || true
-  done
+  echo "▶ Downloading cosign signature"
+  image="${REGISTRY}/aegisvision:${VERSION}"
+  cosign download signature "$image" > "${STAGE_DIR}/signatures/aegisvision.sig" 2>/dev/null || true
 fi
 
 # ---- 6. README + install + verify scripts -------------------------------
