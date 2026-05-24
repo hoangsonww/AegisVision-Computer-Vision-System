@@ -132,23 +132,33 @@ cat > "${STAGE_DIR}/manifest.json" <<EOF
 EOF
 
 # ---- 8. Final tarball ---------------------------------------------------
+# Resolve OUT_DIR to an absolute path BEFORE the subshell cd's into
+# $WORK_DIR — otherwise tar would look for "$OUT_DIR/…" relative to the
+# work dir and fail. mkdir first so realpath doesn't ENOENT.
 mkdir -p "$OUT_DIR"
-# The subshell cd's into $WORK_DIR, so $TARBALL must be an absolute path —
-# otherwise tar tries to write into <work-dir>/dist/, which doesn't exist.
 OUT_DIR_ABS="$(cd "$OUT_DIR" && pwd)"
+[[ -d "$OUT_DIR_ABS" ]] || { echo "could not resolve OUT_DIR=$OUT_DIR" >&2; exit 1; }
 TARBALL="${OUT_DIR_ABS}/${BUNDLE_NAME}.tar"
+
 ( cd "$WORK_DIR" && tar -cf "${TARBALL}" "${BUNDLE_NAME}" )
+[[ -s "$TARBALL" ]] || { echo "tar produced empty/missing file: $TARBALL" >&2; exit 1; }
 
 if command -v zstd >/dev/null 2>&1; then
-  zstd -19 --rm "$TARBALL"
+  zstd -19 --rm -f "$TARBALL"
   FINAL="${TARBALL}.zst"
 else
-  gzip -9 "$TARBALL"
+  gzip -9 -f "$TARBALL"
   FINAL="${TARBALL}.gz"
 fi
+[[ -s "$FINAL" ]] || { echo "compression failed: $FINAL is missing" >&2; exit 1; }
 
-# Outer-level checksum.
-shasum -a 256 "$FINAL" > "${FINAL}.sha256"
+# Outer-level checksum (prefer sha256sum on Linux, fall back to shasum on macOS).
+if command -v sha256sum >/dev/null 2>&1; then
+  ( cd "$OUT_DIR_ABS" && sha256sum "$(basename "$FINAL")" > "${FINAL}.sha256" )
+else
+  ( cd "$OUT_DIR_ABS" && shasum -a 256 "$(basename "$FINAL")" > "${FINAL}.sha256" )
+fi
+[[ -s "${FINAL}.sha256" ]] || { echo "checksum file empty: ${FINAL}.sha256" >&2; exit 1; }
 
 echo "✓ Bundle written: $FINAL"
 echo "  Size: $(du -h "$FINAL" | cut -f1)"
