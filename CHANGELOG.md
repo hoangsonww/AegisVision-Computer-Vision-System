@@ -7,6 +7,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.4](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.3...v0.5.4) (2026-05-24)
+
+
+### CI
+
+* **proto-lint:** pass GITHUB_TOKEN to buf-setup-action ([9b0d14f](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/9b0d14fd35e74e3d8a2d7f09d564bdf66b4f3ba5))
+
+
+### Chore
+
+* **release:** bump landing-page version marker to v0.5.4 ([61f649e](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/61f649e592b9f8a35417a7abbe00d44a286b0cf5))
+
 ## [0.5.3](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.2...v0.5.3) (2026-05-24)
 
 
