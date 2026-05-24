@@ -254,12 +254,15 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision:ci-${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision:latest
+          # On PR: build only (no load, no push, no provenance) — verifies the
+          # Dockerfile compiles. Loading into local docker is incompatible with
+          # buildx provenance (manifest lists). On push: push + provenance.
           push: ${{ github.event_name == 'push' }}
-          load:  ${{ github.event_name != 'push' }}
+          load: false
           cache-from: type=gha
           cache-to:   type=gha,mode=max
           platforms: linux/amd64
-          provenance: true
+          provenance: ${{ github.event_name == 'push' }}
       - name: syft SBOM
         if: github.event_name == 'push'
         uses: anchore/sbom-action@v0
