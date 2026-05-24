@@ -144,7 +144,7 @@ spec:
           attestors:
             - entries:
                 - keyless:
-                    subject: "https://github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/ci.yml@refs/heads/main"
+                    subject: "https://github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/build-and-verify.yml@refs/heads/master"
                     issuer: "https://token.actions.githubusercontent.com"
                     rekor:
                       url: https://rekor.sigstore.dev

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="AegisVision — distributed GPU-native visual-intelligence OS">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050a1c"/>
+      <stop offset="100%" stop-color="#0f1d3d"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3d5af1"/>
+      <stop offset="50%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#b88aff"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d5af1"/>
+      <stop offset="55%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#b88aff"/>
+    </linearGradient>
+    <radialGradient id="lens2" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#e8f4ff"/>
+      <stop offset="55%" stop-color="#3dc5ff"/>
+      <stop offset="100%" stop-color="#0a1530"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3d5af1" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3d5af1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="230" cy="315" r="380" fill="url(#glow)"/>
+
+  <g fill="#e0e7ff" opacity="0.45">
+    <circle cx="900"  cy="80"  r="1.5"/>
+    <circle cx="1080" cy="120" r="1"/>
+    <circle cx="770"  cy="55"  r="1.2"/>
+    <circle cx="1130" cy="220" r="0.9"/>
+    <circle cx="990"  cy="200" r="0.9"/>
+    <circle cx="650"  cy="95"  r="0.8"/>
+    <circle cx="1170" cy="490" r="1.2"/>
+    <circle cx="1090" cy="540" r="0.9"/>
+    <circle cx="640"  cy="555" r="1"/>
+    <circle cx="540"  cy="40"  r="0.7"/>
+  </g>
+
+  <g transform="translate(80,135) scale(5.6)">
+    <path d="M32 3 L57 11 V31 C57 46 45.5 56.5 32 61 C18.5 56.5 7 46 7 31 V11 Z" fill="url(#shield)"/>
+    <path d="M32 8 L52 14.5 V31 C52 43 42.5 51.5 32 55.5 C21.5 51.5 12 43 12 31 V14.5 Z"
+          fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.8"/>
+    <circle cx="32" cy="30" r="13" fill="url(#lens2)"/>
+    <circle cx="32" cy="30" r="5.5" fill="#050a1c"/>
+    <circle cx="35" cy="27" r="2.2" fill="#e8f4ff" opacity="0.85"/>
+    <line x1="14" y1="42" x2="50" y2="42" stroke="#00d4ff" stroke-width="1" opacity="0.45"/>
+  </g>
+
+  <text x="500" y="230" font-family="Space Grotesk, Inter, sans-serif" font-weight="800" font-size="96" fill="#f0f4ff" letter-spacing="-2">AegisVision</text>
+  <text x="500" y="292" font-family="Inter, sans-serif" font-weight="600" font-size="30" fill="url(#brand)">A distributed, GPU-native visual-intelligence OS</text>
+  <text x="500" y="350" font-family="Inter, sans-serif" font-weight="400" font-size="22" fill="#c5cee0">Bounded-autonomy agents · Wilson canary promotion · Same-URN shadow</text>
+  <text x="500" y="382" font-family="Inter, sans-serif" font-weight="400" font-size="22" fill="#c5cee0">Multi-window SLOs · Signed air-gapped install</text>
+  <text x="500" y="478" font-family="JetBrains Mono, monospace" font-weight="500" font-size="20" fill="#94a3b8">35 services · 39 charts · 49/49 modules green</text>
+  <text x="500" y="514" font-family="Inter, sans-serif" font-weight="500" font-size="18" fill="#7d92ff">by Son Nguyen · github.com/hoangsonww</text>
+
+  <rect x="0" y="615" width="1200" height="15" fill="url(#brand)"/>
+</svg>

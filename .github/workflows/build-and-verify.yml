@@ -1,4 +1,4 @@
-name: ci
+name: Build & verify
 on:
   push:
     branches: [main, master]
@@ -304,7 +304,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           provenance: true
       - name: trivy scan (HIGH/CRITICAL fails CI)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:ci-${{ github.sha }}
           format: table

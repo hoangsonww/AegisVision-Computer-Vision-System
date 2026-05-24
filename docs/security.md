@@ -146,7 +146,7 @@ at scale: no per-row scan, no backup mutation, one key destruction.
 - **Syft SBOM** (SPDX) attached to every image.
 - **Kyverno** admission verifies cosign signatures against the
   expected workflow:
-  `github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/ci.yml@refs/heads/main`.
+  `github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/build-and-verify.yml@refs/heads/master`.
 - **Air-gapped bundle** carries every signature + SBOM + Rekor entry.
   Re-verification on the target is mandatory.
 

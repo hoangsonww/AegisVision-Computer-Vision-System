@@ -28,7 +28,7 @@ production would silently undermine those invariants.
 - **Release-please opens a release PR.** When merged, it creates a
   GitHub release at the tag.
 - **Air-gap bundle + image promotion follow the release.** The
-  `release.yml` workflow's `airgap-bundle` and `promote-images` jobs
+  `tag-and-publish.yml` workflow's `airgap-bundle` and `promote-images` jobs
   run only when `release-please` reports `release_created == true`.
 - **Pre-GA semver semantics.** Until `1.0.0`, minor bumps may include
   breaking changes per semver §4. The first GA release is `1.0.0`;
@@ -43,7 +43,7 @@ production would silently undermine those invariants.
   `0.5.0` and know everything is `0.5.0`. Drift across components is
   not even representable in this scheme.
 - **Multi-arch image promotion is automatic.** The `ci-${SHA}` tag
-  set by CI is the source of truth; `release.yml` re-tags it to
+  set by CI is the source of truth; `tag-and-publish.yml` re-tags it to
   `0.5.0` and `latest` via `crane tag` — no rebuild, so the digest
   (and therefore signature) is preserved.
 - **CHANGELOG.md is generated, not hand-edited.** Operators trust
