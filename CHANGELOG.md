@@ -7,6 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.6](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.5...v0.5.6) (2026-05-24)
+
+
+### Bug Fixes
+
+* **airgap:** use absolute path for tarball output ([cf61138](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/cf6113877fce81259af7b5c0a5aee192bc15f8bc))
+* harden airgap publish + strip version markers from landing page ([dc7cc7d](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/dc7cc7d2ec30a2b55929be06ba13ef374592f013))
+
 ## [0.5.5](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.4...v0.5.5) (2026-05-24)
 
 
