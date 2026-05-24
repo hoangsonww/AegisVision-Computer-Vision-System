@@ -7,6 +7,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.2](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.1...v0.5.2) (2026-05-24)
+
+
+### Features
+
+* mobile-responsive landing + README trim + cut v0.5.2 ([7ea2ded](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/7ea2ded455ea7e07800d729025135deb16c56b4e))
+* **ui:** mobile-responsive landing page + trim README badges ([8d5a801](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/8d5a801ca3464d2bac2cbfd51f76c903b387c38d))
+
+
+### Bug Fixes
+
+* **pagination:** use strict base64 decoding to reject tampered cursors ([50fe3df](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/50fe3df2f4ad91b949085e8b8ffc23d6b9a5557f))
+* **pagination:** use strict base64 decoding to reject tampered cursors ([b73cbd0](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/b73cbd0a4d05f25b697ab0da750887b616e6e70c))
+
+
+### Chore
+
+* **release:** bump landing-page version marker to v0.5.2 ([9c5e246](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/9c5e2461a7ead59bfec565295744f06cab8f2b9c))
+
 ## [0.5.1](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.0...v0.5.1) (2026-05-24)
 
 
