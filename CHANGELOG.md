@@ -7,6 +7,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.3](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.2...v0.5.3) (2026-05-24)
+
+
+### Bug Fixes
+
+* **release:** retag single aegisvision image instead of per-service matrix ([a47ac39](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/a47ac3933e125d6b66bbffcb04cd4a9453d49530))
+
 ## [0.5.2](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.1...v0.5.2) (2026-05-24)
 
 
