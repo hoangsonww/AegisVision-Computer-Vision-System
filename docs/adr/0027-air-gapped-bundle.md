@@ -21,7 +21,7 @@ self-contained tarball.
 
 The air-gapped bundle is a versioned, signed tarball produced by
 `tools/airgap/build.sh` and attached to every GitHub release by
-`.github/workflows/release.yml`. Its contents are exhaustive:
+`.github/workflows/tag-and-publish.yml`. Its contents are exhaustive:
 
 - Every service container image (OCI layout via `crane`, multi-arch).
 - Every Helm chart, packaged.

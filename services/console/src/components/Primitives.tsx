@@ -34,12 +34,25 @@ export function Card({ children, className, hover }: { children: ReactNode; clas
   return <div className={cn('card p-5', hover && 'card-hover', className)}>{children}</div>;
 }
 
-export function CardHeader({ title, sub, action }: { title: ReactNode; sub?: ReactNode; action?: ReactNode }) {
+export function CardHeader({
+  title,
+  sub,
+  action,
+  icon: Icon,
+}: {
+  title: ReactNode;
+  sub?: ReactNode;
+  action?: ReactNode;
+  icon?: LucideIcon;
+}) {
   return (
     <div className="flex items-start justify-between mb-4">
-      <div>
-        <h3 className="font-display font-semibold text-text-0">{title}</h3>
-        {sub ? <p className="text-xs text-text-2 mt-0.5">{sub}</p> : null}
+      <div className="flex items-start gap-2">
+        {Icon ? <Icon size={18} className="text-acc-2 mt-0.5 shrink-0" /> : null}
+        <div>
+          <h3 className="font-display font-semibold text-text-0">{title}</h3>
+          {sub ? <p className="text-xs text-text-2 mt-0.5">{sub}</p> : null}
+        </div>
       </div>
       {action}
     </div>

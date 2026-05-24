@@ -549,7 +549,7 @@ See [`docs/observability.md`](./docs/observability.md).
 - **Vault transit** for per-tenant crypto-shredding keys.
 - **External Secrets Operator** for all credentials; nothing in git.
 - **Cosign keyless** signing of every image; **Kyverno** admission
-  verifies signatures against `github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/ci.yml@refs/heads/main`.
+  verifies signatures against `github.com/hoangsonww/AegisVision-Computer-Vision-System/.github/workflows/build-and-verify.yml@refs/heads/master`.
 - **SLSA v1** build provenance + **Syft SBOM** attached to every release.
 
 See [`docs/security.md`](./docs/security.md) and
