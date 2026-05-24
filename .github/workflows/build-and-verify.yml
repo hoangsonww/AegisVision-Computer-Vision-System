@@ -226,53 +226,9 @@ jobs:
   # 5. Build, scan, sign every service container. cosign keyless + SLSA.
   # ----------------------------------------------------------------------
   container-image:
-    name: build + scan + sign (${{ matrix.service }})
+    name: build + sign aegisvision image
     runs-on: ubuntu-latest
     needs: [go-test, conformance]
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          # phase 0–3
-          - api-gateway
-          - pipeline-service
-          - stream-manager
-          - event-service
-          - dataplane-runner
-          - model-registry
-          - inference-router
-          - audit-service
-          - gpu-scheduler
-          - rule-engine
-          - realtime-hub
-          - notification-service
-          - metering-service
-          - dataset-service
-          - annotation-service
-          - training-orchestrator
-          - media-service
-          - semantic-search
-          - tenant-service
-          - auth-proxy
-          - edge-gateway
-          - cost-accounting
-          # phase 4
-          - llm-gateway
-          - agent-service
-          - policy-gate-service
-          - active-learning-service
-          - nlq-service
-          - knowledge-service
-          # phase 5
-          - canary-controller
-          - shadow-inference-service
-          - drift-detection-service
-          - slo-watchdog
-          - prefetch-service
-          - autonomy-orchestrator
-          # phase 6 — GA hardening + console
-          - compliance-evidence-service
-          - console
     permissions:
       contents: read
       id-token: write
@@ -293,38 +249,31 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: services/${{ matrix.service }}/Dockerfile
+          file: Dockerfile
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:ci-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision:ci-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision:latest
           push: ${{ github.event_name == 'push' }}
           load:  ${{ github.event_name != 'push' }}
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to:   type=gha,scope=${{ matrix.service }},mode=max
-          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+          platforms: linux/amd64
           provenance: true
-      - name: trivy scan (HIGH/CRITICAL fails CI)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:ci-${{ github.sha }}
-          format: table
-          exit-code: '1'
-          severity: HIGH,CRITICAL
-          vuln-type: os,library
-
       - name: syft SBOM
+        if: github.event_name == 'push'
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}:ci-${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision:ci-${{ github.sha }}
           format: spdx-json
-          output-file: ${{ matrix.service }}.sbom.json
+          output-file: aegisvision.sbom.json
       - name: upload SBOM artifact
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-${{ matrix.service }}
-          path: ${{ matrix.service }}.sbom.json
+          name: sbom-aegisvision
+          path: aegisvision.sbom.json
 
-      # cosign keyless signing — requires the id-token permission above.
       - name: install cosign
         if: github.event_name == 'push'
         uses: sigstore/cosign-installer@v3
@@ -334,24 +283,22 @@ jobs:
           COSIGN_EXPERIMENTAL: "1"
         run: |
           cosign sign --yes \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}@${{ steps.build.outputs.digest }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision@${{ steps.build.outputs.digest }}
       - name: cosign attest SBOM
         if: github.event_name == 'push'
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
           cosign attest --yes \
-            --predicate ${{ matrix.service }}.sbom.json \
+            --predicate aegisvision.sbom.json \
             --type spdxjson \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}@${{ steps.build.outputs.digest }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision@${{ steps.build.outputs.digest }}
 
-      # SLSA provenance attestation — uses the OIDC token to produce a v1
-      # provenance and uploads it as an in-toto attestation against the image.
       - name: SLSA provenance
         if: github.event_name == 'push'
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.service }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/aegisvision
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 

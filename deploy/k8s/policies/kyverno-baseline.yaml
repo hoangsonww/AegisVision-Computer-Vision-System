@@ -140,7 +140,7 @@ spec:
               namespaces: [aegis-system, aegis-inference, aegis-streaming, aegis-agents, aegis-llm]
       verifyImages:
         - imageReferences:
-            - "ghcr.io/hoangsonww/aegisvision-*"
+            - "ghcr.io/hoangsonww/aegisvision*"
           attestors:
             - entries:
                 - keyless:

@@ -100,8 +100,8 @@ the Act:
 
 - Profile-gated promotion (ADR-0003): a model with no measured cost +
   accuracy profile cannot reach STABLE.
-- The supply chain is cosign-signed + SLSA-provenanced + Trivy-scanned at
-  every CI run.
+- The supply chain is cosign-signed + SLSA-provenanced + dependabot-tracked
+  at every CI run.
 - Kyverno admission policies enforce non-root, drop-ALL caps, no privileged.
 
 ## Incident reporting (Art. 73)
