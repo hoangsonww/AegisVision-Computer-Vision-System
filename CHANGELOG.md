@@ -7,6 +7,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.5](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.4...v0.5.5) (2026-05-24)
+
+
+### Bug Fixes
+
+* mobile hamburger nav, drop solo-project copy, wait for image in promote ([92d59cb](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/92d59cb192bab6b523f48937fef083f824d0e420))
+
 ## [0.5.4](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.3...v0.5.4) (2026-05-24)
 
 
