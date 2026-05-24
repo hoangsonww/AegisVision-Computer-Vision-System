@@ -7,6 +7,27 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.1](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.0...v0.5.1) (2026-05-24)
+
+
+### Features
+
+* UI polish + console TS fixes + rename workflows ([7e10126](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/7e101268a3a9a3d2c284159985731172a035859d))
+* UI polish + console TS fixes + rename workflows ([d900e67](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/d900e679d968d74e433ec603f3b23f0bdacbc50d))
+
+
+### Bug Fixes
+
+* **docker:** drop pipefail (not in dash); explicit exit 1 on build failure ([d6db333](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/d6db333d40a53c0f5ef7e4b0bfe26e14cf14640a))
+
+
+### CI
+
+* disable buildx provenance/load on PR (docker exporter rejects manifest lists) ([43de807](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/43de80797386c194c8169e512b5efdc5bd24e8d1))
+* drop trivy, collapse 35-image matrix to single aegisvision image, fix console build ([43c5da2](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/43c5da2802a07f0247b3421ee64a0055d97c3bd1))
+* fix lint failures across helm/proto/workflows ([6c9399f](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/6c9399f8478a5ede95647d5c762886b96c3fd9a3))
+* **helm:** unwrap second escape variant {{"..."}} in 14 more charts ([07d1a48](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/07d1a4828dfe60763d333ad6953bdc3415128f17))
+
 ## [Unreleased]
 
 CI cuts entries here automatically via release-please when commits
