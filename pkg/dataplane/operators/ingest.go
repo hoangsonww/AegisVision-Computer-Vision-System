@@ -1,6 +1,6 @@
 // Synthetic ingest operator for the walking skeleton.
 //
-// Real Phase 2 ingest will run NVIDIA DeepStream and feed NVDEC-decoded GPU
+// Production ingest runs NVIDIA DeepStream and feeds NVDEC-decoded GPU
 // memory into the first CUDA-IPC operator. For the walking skeleton we
 // generate a deterministic moving target whose pixel data is a tiny JSON
 // blob written into the claim-check ring — the descriptor still travels

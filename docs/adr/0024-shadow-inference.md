@@ -15,7 +15,7 @@ tenant to it at all — a "shadow" inference path.
 
 ## Decision
 
-`shadow-inference-service` (Phase 5):
+`shadow-inference-service`:
 
 1. Subscribes to `frame.descriptor.*` (claim-check URN only —
    ADR-0008) and `inference.baseline.v1` (the primary path's emitted

@@ -25,8 +25,8 @@ ML-driven decisioning. It follows Annex IV's structure.
 
 ## 2. Detailed description of elements (Annex IV §2)
 
-- **System architecture**: documented in `docs/adr/` (24 ADRs as of
-  Phase 6) and `README.md`.
+- **System architecture**: documented in `docs/adr/` (30 ADRs) and
+  `README.md`.
 - **Models**: each model is registered in `model-registry` with full
   provenance (training dataset URN, evaluation metrics, fairness
   evaluation, intended-use statement).

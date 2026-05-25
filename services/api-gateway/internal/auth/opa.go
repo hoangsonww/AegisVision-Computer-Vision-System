@@ -49,7 +49,7 @@ func (c *OPAClient) Allow(ctx context.Context, in middleware.AuthZInput) (bool, 
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", middleware.ErrAuthZUnavailable, err)
+		return false, fmt.Errorf("%w: %w", middleware.ErrAuthZUnavailable, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {

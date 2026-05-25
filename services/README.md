@@ -114,7 +114,7 @@ flowchart TB
 - [`notification-service`](./notification-service) — Webhooks, email, Slack with replay-safe idempotency.
 - [`edge-gateway`](./edge-gateway) — k3s edge profile + outbox sync to core.
 
-### Intelligence tier (Phase 4)
+### Intelligence tier
 
 - [`llm-gateway`](./llm-gateway) — One OpenAI-compatible internal endpoint. Sanitizer + PII redactor + refusal threshold + token accounting. ADR-0018.
 - [`agent-service`](./agent-service) — Bounded-autonomy agent runtime. Tier-3 tools route through `policy-gate-service`. Auto-resume on `gate.resolved.>`.
@@ -123,7 +123,7 @@ flowchart TB
 - [`active-learning-service`](./active-learning-service) — Uncertainty + diversity sampling. ADR-0019.
 - [`nlq-service`](./nlq-service) — Natural-language query → structured queries against event-service / ClickHouse.
 
-### Adaptive autonomy (Phase 5)
+### Adaptive autonomy
 
 - [`canary-controller`](./canary-controller) — Wilson lower-bound + min-sample floor proportion test. ADR-0023.
 - [`shadow-inference-service`](./shadow-inference-service) — Same-URN candidate-vs-baseline comparator. ADR-0024.
@@ -132,14 +132,14 @@ flowchart TB
 - [`prefetch-service`](./prefetch-service) — 7×24 EMA grid; warm-ups ahead of demand. ADR-0026.
 - [`autonomy-orchestrator`](./autonomy-orchestrator) — Cron + signal-driven agent sessions. ADR-0022.
 
-### GA hardening (Phase 6)
+### Operations & compliance
 
 - [`compliance-evidence-service`](./compliance-evidence-service) — Composes per-control evidence; owns no data. ADR-0029.
 - [`semantic-search`](./semantic-search) — Cross-tenant semantic search over events + clips.
 - [`cost-accounting`](./cost-accounting) — Per-tenant GPU-second + token + storage accounting.
 - [`metering-service`](./metering-service) — Billable-event aggregation (consumes `inference.completed.v1`).
 
-### Production console (Phase 7)
+### Production console
 
 - [`console`](./console) — Next.js 14 + TanStack Query + Tailwind. Exposes every public REST endpoint as a usable page. 33 routes covering dashboard, all resource CRUD, agent chat with citations, gate inbox, canary decision board, drift heatmap, SLO burn-rate, prefetch grid, knowledge RAG, audit log + chain verify, and more. Shipped as a Helm chart at [`../deploy/helm/console/`](../deploy/helm/console).
 

@@ -20,24 +20,24 @@ edge:
     - inference-router
     - event-service     # ring only; no ClickHouse
   disabledServices:
-    - llm-gateway       # Phase 4 — agents and LLM ops live on the core
-    - agent-service     # Phase 4 — agent runtime is core-only
-    - policy-gate-service  # Phase 4 — gate decisions flow to core
-    - knowledge-service # Phase 4 — RAG corpus is core-only
-    - active-learning-service # Phase 4 — labeling flows to core
-    - nlq-service       # Phase 4 — NL query lives on core
+    - llm-gateway       # intelligence tier — agents and LLM ops live on the core
+    - agent-service     # intelligence tier — agent runtime is core-only
+    - policy-gate-service  # intelligence tier — gate decisions flow to core
+    - knowledge-service # intelligence tier — RAG corpus is core-only
+    - active-learning-service # intelligence tier — labeling flows to core
+    - nlq-service       # intelligence tier — NL query lives on core
     - semantic-search
     - training-orchestrator
     - dataset-service
     - annotation-service
     - cost-accounting
     - audit-service     # forwarded to core, not stored locally
-    - canary-controller       # Phase 5 — promotion/rollback lives on core
-    - shadow-inference-service # Phase 5 — comparison runs on core
-    - drift-detection-service # Phase 5 — drift evaluation lives on core
-    - slo-watchdog            # Phase 5 — SLO eval needs core's Prometheus
-    - prefetch-service        # Phase 5 — predictor needs core history
-    - autonomy-orchestrator   # Phase 5 — continuous autonomy lives on core
+    - canary-controller       # adaptive autonomy — promotion/rollback lives on core
+    - shadow-inference-service # adaptive autonomy — comparison runs on core
+    - drift-detection-service # adaptive autonomy — drift evaluation lives on core
+    - slo-watchdog            # adaptive autonomy — SLO eval needs core's Prometheus
+    - prefetch-service        # adaptive autonomy — predictor needs core history
+    - autonomy-orchestrator   # adaptive autonomy — continuous autonomy lives on core
   # CPU-only inference unless edge node has a GPU.
   inferenceMode: cpu
   resources:

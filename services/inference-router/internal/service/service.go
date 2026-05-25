@@ -47,6 +47,14 @@ type Service struct {
 	// safe for dev/test, refuses to start in prod (main.go gates).
 	TritonBase string
 
+	// TritonTimeoutSeconds caps a single Triton call (incl. retries).
+	// Zero = use the detector default (5s).
+	TritonTimeoutSeconds int
+
+	// TritonMaxRetries on transient (5xx + network) failures.
+	// Zero = use the detector default (2).
+	TritonMaxRetries int
+
 	// Bus is the optional publisher for inference.* events. Nil means
 	// no events published (dev / unit-test path).
 	Bus bus.Publisher
@@ -91,13 +99,28 @@ func (r *InferRequest) Validate() error {
 // Infer runs the model. Records the (model, version) in the known set,
 // publishes inference.completed.v1 (for metering) and
 // inference.baseline.v1 (for shadow-inference canary comparison).
+//
+// When the Triton client surfaces a response-cache hit, the emitted
+// inference.completed.v1 carries cache_hit=true so metering can credit
+// cached calls appropriately.
 func (s *Service) Infer(ctx context.Context, req InferRequest) ([]*dataplanev1.Detection, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
-	var det Detector
+	var (
+		det       Detector
+		tritonCli *detector.TritonClient
+	)
 	if s.TritonBase != "" {
-		det = detector.NewTriton(s.TritonBase, req.Model, req.Version)
+		opts := detector.Options{}
+		if s.TritonTimeoutSeconds > 0 {
+			opts.PerRequestTimeout = time.Duration(s.TritonTimeoutSeconds) * time.Second
+		}
+		if s.TritonMaxRetries > 0 {
+			opts.MaxRetries = s.TritonMaxRetries
+		}
+		tritonCli = detector.NewTritonWithOptions(s.TritonBase, req.Model, req.Version, opts)
+		det = tritonCli
 	} else {
 		det = &syntheticDetector{model: req.Model, version: req.Version}
 	}
@@ -109,14 +132,18 @@ func (s *Service) Infer(ctx context.Context, req InferRequest) ([]*dataplanev1.D
 	if err != nil {
 		return nil, err
 	}
-	s.emit(ctx, req, out, s.Now().Sub(start))
+	var cacheHit bool
+	if tritonCli != nil {
+		cacheHit = tritonCli.LastStats().CacheHit
+	}
+	s.emit(ctx, req, out, s.Now().Sub(start), cacheHit)
 	return out, nil
 }
 
 // emit publishes the two bus events. Errors are swallowed because the
 // inference RPC has already succeeded — we don't want a bus blip to
 // take down the caller's request.
-func (s *Service) emit(ctx context.Context, req InferRequest, dets []*dataplanev1.Detection, latency time.Duration) {
+func (s *Service) emit(ctx context.Context, req InferRequest, dets []*dataplanev1.Detection, latency time.Duration, cacheHit bool) {
 	if s.Bus == nil {
 		return
 	}
@@ -130,6 +157,7 @@ func (s *Service) emit(ctx context.Context, req InferRequest, dets []*dataplanev
 		"frame_seq":    req.FrameSeq,
 		"detections":   len(dets),
 		"latency_ms":   latency.Milliseconds(),
+		"cache_hit":    cacheHit,
 		"completed_at": s.Now().Format(time.RFC3339Nano),
 	})
 	_ = s.Bus.Publish(ctx, bus.Message{

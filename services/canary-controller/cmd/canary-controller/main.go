@@ -1,4 +1,4 @@
-// Command canary-controller is the Phase-5 progressive-delivery service
+// Command canary-controller is the progressive-delivery service
 // (ADR-0023). It owns:
 //
 //   - CanaryPlan CRUD (REST)

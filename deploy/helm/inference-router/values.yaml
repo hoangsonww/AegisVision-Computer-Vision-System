@@ -1,18 +1,69 @@
-image: { repository: aegisvision/inference-router, tag: "0.1.0", pullPolicy: IfNotPresent }
+image:
+  repository: aegisvision/inference-router
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+# Four replicas is the production floor. The HPA scales above this on
+# CPU; queue-duration scaling lives in the Triton chart (the GPU is
+# the real bottleneck, not the router).
 replicaCount: 4
 env: prod
 logLevel: info
+
 triton:
   url: http://triton.aegis-inference.svc.cluster.local:8000
+  # Per-request timeout in seconds, applied at the Triton client
+  # transport. The dataplane Detector context deadline always wins
+  # when shorter.
+  perRequestTimeoutSeconds: 5
+  maxRetries: 2
+  maxIdleConnsPerHost: 64
+
 otel:
   endpoint: otel-collector.aegis-observability.svc.cluster.local:4317
+
+# Resources sized for routing + protobuf marshalling, not inference.
+# The GPU work happens inside Triton; this is a thin proxy.
 resources:
-  requests: { cpu: 250m, memory: 256Mi }
-  limits:   { cpu: "2",  memory: 1Gi }
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "2"
+    memory: 1Gi
+
 autoscaling:
   enabled: true
   minReplicas: 4
   maxReplicas: 50
   targetCPUUtilizationPercentage: 70
+  scaleDown:
+    stabilizationWindowSeconds: 300
+  scaleUp:
+    stabilizationWindowSeconds: 30
+
+# Spread replicas across nodes so a node loss doesn't pull the whole
+# router pool down.
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: inference-router
+
 priorityClassName: aegis-data-plane
-serviceMonitor: { enabled: true, interval: 30s }
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+pdb:
+  minAvailable: 50%
+
+probes:
+  liveness:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readiness:
+    initialDelaySeconds: 2
+    periodSeconds: 5

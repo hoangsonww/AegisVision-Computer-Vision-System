@@ -1,9 +1,10 @@
 // The detector operator runs an inference Detector against the claim-check
 // payload referenced by each frame, attaches detections to the envelope,
-// and forwards. The Detector interface is the seam Phase 2 will swap a
-// Triton client into; the walking skeleton ships SyntheticDetector which
-// reads the JSON payload back from the ring and produces a single
-// detection per frame at the encoded coordinates.
+// and forwards. The Detector interface is the seam where a real Triton
+// client (production), a DeepStream pipeline, or a custom backend plugs
+// in; the walking skeleton ships SyntheticDetector which reads the JSON
+// payload back from the ring and produces a single detection per frame
+// at the encoded coordinates.
 package operators
 
 import (
@@ -18,8 +19,10 @@ import (
 )
 
 // Detector is the abstract interface any model serving layer satisfies.
-// The Phase 2 Triton client will implement this; until then,
-// SyntheticDetector implements it deterministically.
+// The NVIDIA Triton client in services/inference-router/internal/detector
+// implements this against a real Triton Inference Server;
+// SyntheticDetector implements it deterministically for tests and the
+// walking-skeleton demo.
 type Detector interface {
 	// Detect produces zero or more Detections for the supplied frame payload.
 	// The payload bytes are whatever shape the upstream operator agreed with
@@ -94,18 +97,18 @@ func (d *Detect) Run(ctx context.Context, in <-chan *dataplane.FrameEnvelope, ou
 // back into a single Detection at the encoded coordinates. Deterministic;
 // useful for testing the full chain.
 type SyntheticDetector struct {
-	ModelID_, ModelVersionID_ string
+	modelID, modelVersionID string
 }
 
 func NewSyntheticDetector() *SyntheticDetector {
 	return &SyntheticDetector{
-		ModelID_:        "synthetic-detector",
-		ModelVersionID_: "v1",
+		modelID:        "synthetic-detector",
+		modelVersionID: "v1",
 	}
 }
 
-func (s *SyntheticDetector) ModelID() string        { return s.ModelID_ }
-func (s *SyntheticDetector) ModelVersionID() string { return s.ModelVersionID_ }
+func (s *SyntheticDetector) ModelID() string        { return s.modelID }
+func (s *SyntheticDetector) ModelVersionID() string { return s.modelVersionID }
 
 func (s *SyntheticDetector) Detect(_ context.Context, frame *dataplanev1.FrameDescriptor, payload []byte) ([]*dataplanev1.Detection, error) {
 	var t SyntheticTarget
@@ -118,8 +121,8 @@ func (s *SyntheticDetector) Detect(_ context.Context, frame *dataplanev1.FrameDe
 		StreamId:       frame.GetStreamId(),
 		FrameSeq:       frame.GetFrameSeq(),
 		CaptureTime:    frame.GetCaptureTime(),
-		ModelId:        s.ModelID_,
-		ModelVersionId: s.ModelVersionID_,
+		ModelId:        s.modelID,
+		ModelVersionId: s.modelVersionID,
 		ClassLabel:     t.Class,
 		Score:          t.Score,
 		Bbox: &dataplanev1.BoundingBox{

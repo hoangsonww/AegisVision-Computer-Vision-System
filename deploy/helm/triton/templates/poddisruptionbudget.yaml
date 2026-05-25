@@ -1,6 +1,13 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
-metadata: { name: triton, namespace: aegis-inference }
+metadata:
+  name: triton
+  namespace: aegis-inference
+  labels:
+    app.kubernetes.io/name: triton
+    app.kubernetes.io/part-of: aegisvision
 spec:
-  minAvailable: 50%
-  selector: { matchLabels: { app.kubernetes.io/name: triton } }
+  minAvailable: {{ .Values.pdb.minAvailable | quote }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: triton

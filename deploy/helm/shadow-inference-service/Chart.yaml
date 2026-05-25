@@ -1,6 +1,6 @@
 apiVersion: v2
 name: shadow-inference-service
-description: AegisVision Phase 5 shadow comparator
+description: AegisVision shadow comparator
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

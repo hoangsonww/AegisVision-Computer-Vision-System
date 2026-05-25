@@ -4,9 +4,10 @@
 
 ## Context
 
-Phase 4 brings agents, RAG, NL query, and active learning. All of these
-need a language model (and one of them, the redaction-classifier-from-text
-path, needs a vision-language model). We have a choice between:
+The intelligence tier brings agents, RAG, NL query, and active learning.
+All of these need a language model (and one of them, the
+redaction-classifier-from-text path, needs a vision-language model). We
+have a choice between:
 
 1. Each service speaks directly to whichever backend we want for that
    workload — Triton+TRT-LLM for production, vLLM for prototyping, hosted
@@ -52,7 +53,8 @@ This gives us:
 
 ## Rejected alternatives
 
-- **Per-service direct integration.** Rejected — it forces every Phase-4
-  service to reimplement the safety layer and accounting.
+- **Per-service direct integration.** Rejected — it forces every
+  intelligence-tier service to reimplement the safety layer and
+  accounting.
 - **Sidecar per pod.** Rejected — introduces N+1 deployments and makes
   backend swaps a fleet operation.

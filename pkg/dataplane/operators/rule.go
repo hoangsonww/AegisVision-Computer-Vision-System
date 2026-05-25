@@ -2,8 +2,8 @@
 // architecture doc §27.2: emit a HIGH-severity event when a tracked object
 // dwells inside a configured zone for at least N seconds.
 //
-// The rule engine in Phase 2 (rule-engine service, Rust) generalizes this
-// to a composable expression language; the operator here demonstrates the
+// The dedicated rule-engine service generalizes this to a composable
+// expression language; the operator here demonstrates the
 // rule -> event projection that the engine must also satisfy.
 package operators
 

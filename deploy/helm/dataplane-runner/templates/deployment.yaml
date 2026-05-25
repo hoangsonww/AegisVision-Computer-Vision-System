@@ -3,13 +3,25 @@ kind: Deployment
 metadata:
   name: dataplane-runner
   namespace: aegis-streaming
-  labels: { app.kubernetes.io/name: dataplane-runner }
+  labels:
+    app.kubernetes.io/name: dataplane-runner
+    app.kubernetes.io/part-of: aegisvision
+    app.kubernetes.io/component: data-plane
 spec:
   replicas: {{ .Values.replicaCount }}
-  selector: { matchLabels: { app.kubernetes.io/name: dataplane-runner } }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dataplane-runner
   template:
     metadata:
-      labels: { app.kubernetes.io/name: dataplane-runner }
+      labels:
+        app.kubernetes.io/name: dataplane-runner
+        app.kubernetes.io/part-of: aegisvision
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9095"
@@ -17,7 +29,24 @@ spec:
     spec:
       serviceAccountName: dataplane-runner
       priorityClassName: {{ .Values.priorityClassName | quote }}
-      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532, seccompProfile: { type: RuntimeDefault } }
+      # Per-frame operators may be in the middle of a frame when the
+      # rollout starts; give them time to drain to the next operator
+      # before SIGKILL.
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: dataplane-runner
       containers:
         - name: dataplane-runner
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -25,16 +54,44 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities: { drop: [ALL] }
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop: [ALL]
           ports:
-            - { name: metrics, containerPort: 9095 }
+            - name: metrics
+              containerPort: 9095
+              protocol: TCP
           env:
-            - { name: AEGIS_ENV, value: {{ .Values.env | quote }} }
-            - { name: AEGIS_VERSION, value: {{ .Values.image.tag | quote }} }
-            - { name: AEGIS_LOG_LEVEL, value: {{ .Values.logLevel | quote }} }
-            - { name: AEGIS_HEALTH_ADDR, value: ":9095" }
-            - { name: AEGIS_NATS_URL, value: {{ .Values.nats.url | quote }} }
-            - { name: AEGIS_OTLP_ENDPOINT, value: {{ .Values.otel.endpoint | quote }} }
-          readinessProbe: { httpGet: { path: /readyz, port: metrics }, initialDelaySeconds: 2, periodSeconds: 5 }
-          livenessProbe:  { httpGet: { path: /healthz, port: metrics }, initialDelaySeconds: 10, periodSeconds: 10 }
+            - name: AEGIS_ENV
+              value: {{ .Values.env | quote }}
+            - name: AEGIS_VERSION
+              value: {{ .Values.image.tag | quote }}
+            - name: AEGIS_LOG_LEVEL
+              value: {{ .Values.logLevel | quote }}
+            - name: AEGIS_HEALTH_ADDR
+              value: ":9095"
+            - name: AEGIS_NATS_URL
+              value: {{ .Values.nats.url | quote }}
+            - name: AEGIS_OTLP_ENDPOINT
+              value: {{ .Values.otel.endpoint | quote }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          # PreStop sleep lets the NATS subscriptions deregister cleanly
+          # before SIGTERM hits the operator goroutines.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 15"]
           resources: {{ toYaml .Values.resources | nindent 12 }}

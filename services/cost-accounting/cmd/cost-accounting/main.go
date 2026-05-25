@@ -1,6 +1,6 @@
 // cost-accounting: per-tenant cost service. Accepts cost ingest via
 // /v1/costs (called by an OpenCost+DCGM scraper job), exposes per-tenant
-// totals + breakdowns. The Phase 3 FinOps dashboard reads these.
+// totals + breakdowns. The FinOps dashboard reads these.
 //
 // HTTP routes live in internal/server; this binary is just the wiring.
 package main

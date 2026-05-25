@@ -1,0 +1,218 @@
+# Prometheus alerting rules for the NVIDIA Triton Inference Server pool.
+#
+# These rules reference the metric names emitted by Triton on :8002 — the
+# names are stable across recent Triton versions and the ones the
+# AegisVision Triton ServiceMonitor scrapes. The full list of metrics
+# the platform depends on is documented in docs/triton.md (Metrics and
+# SLOs).
+#
+# Apply via the kube-prometheus-stack operator: this file is a
+# PrometheusRule custom resource, picked up by the operator's
+# `release=prometheus` selector.
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: triton
+  namespace: aegis-observability
+  labels:
+    release: prometheus
+    app.kubernetes.io/name: triton
+    app.kubernetes.io/part-of: aegisvision
+spec:
+  groups:
+    - name: triton.slo
+      interval: 30s
+      rules:
+        # ------------- pre-computed series (recording rules) -------------
+        - record: triton:inference_queue_duration_us:p95
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le, triton_model, triton_model_version) (
+                rate(nv_inference_queue_duration_us_bucket{namespace="aegis-inference"}[2m])
+              )
+            )
+        - record: triton:inference_queue_duration_us:p99
+          expr: |
+            histogram_quantile(
+              0.99,
+              sum by (le, triton_model, triton_model_version) (
+                rate(nv_inference_queue_duration_us_bucket{namespace="aegis-inference"}[2m])
+              )
+            )
+        - record: triton:inference_compute_infer_duration_us:p95
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le, triton_model, triton_model_version) (
+                rate(nv_inference_compute_infer_duration_us_bucket{namespace="aegis-inference"}[5m])
+              )
+            )
+        - record: triton:inference_response_cache_hit_ratio
+          expr: |
+            sum by (triton_model, triton_model_version) (
+              rate(nv_inference_response_cache_hit_count{namespace="aegis-inference"}[5m])
+            )
+            /
+            (
+              sum by (triton_model, triton_model_version) (
+                rate(nv_inference_response_cache_hit_count{namespace="aegis-inference"}[5m])
+              )
+              +
+              sum by (triton_model, triton_model_version) (
+                rate(nv_inference_response_cache_miss_count{namespace="aegis-inference"}[5m])
+              )
+            )
+
+        # ------------- alerts -------------
+        - alert: TritonRequestFailures
+          expr: |
+            sum by (namespace, pod, triton_model) (
+              rate(nv_inference_request_failure{namespace="aegis-inference"}[5m])
+            ) > 0
+          for: 5m
+          labels:
+            severity: page
+            team: ml-reliability
+            runbook: docs/runbooks/triton.md#failure-mode-1
+          annotations:
+            summary: "Triton is returning inference failures for {{ $labels.triton_model }}"
+            description: |
+              Triton pod {{ $labels.pod }} is failing inference requests for
+              model {{ $labels.triton_model }} at a rate of {{ $value }}/s.
+              See docs/runbooks/triton.md#failure-mode-1.
+
+        - alert: TritonQueueDurationP99High
+          expr: triton:inference_queue_duration_us:p99 > 10000
+          for: 5m
+          labels:
+            severity: page
+            team: ml-reliability
+            runbook: docs/runbooks/triton.md#failure-mode-2
+          annotations:
+            summary: "Triton queue duration p99 above 10ms ({{ $value }}µs)"
+            description: |
+              Model {{ $labels.triton_model }} is queuing requests for more
+              than 10ms at p99. Glass-to-event SLO is at risk.
+              KEDA HPA should already be scaling out — verify it is.
+              See docs/runbooks/triton.md#failure-mode-2.
+
+        - alert: TritonComputeRegression
+          expr: |
+            triton:inference_compute_infer_duration_us:p95
+            >
+            1.2 * (avg_over_time(triton:inference_compute_infer_duration_us:p95[1h] offset 6h))
+          for: 5m
+          labels:
+            severity: warn
+            team: ml-reliability
+            runbook: docs/runbooks/canary-rollback.md
+          annotations:
+            summary: "Triton compute regression on {{ $labels.triton_model }}"
+            description: |
+              Inference compute p95 for {{ $labels.triton_model }} has
+              regressed >20% vs the 1h-window-6h-ago baseline. If this
+              correlates with a recent canary promotion, the canary
+              controller's Wilson-bound check should trigger a rollback —
+              verify by checking the canary state machine.
+
+        - alert: TritonCacheMissSpike
+          expr: triton:inference_response_cache_hit_ratio < 0.1
+          for: 10m
+          labels:
+            severity: warn
+            team: ml-reliability
+            runbook: docs/runbooks/triton.md#failure-mode-4
+          annotations:
+            summary: "Triton response cache hit ratio below 10% on {{ $labels.triton_model }}"
+            description: |
+              Cache misses dominate hits on {{ $labels.triton_model }} —
+              the cache is contributing overhead with no benefit. Either
+              disable the response cache for that model in its config.pbtxt
+              or increase the cache size.
+
+        - alert: TritonGpuUtilizationSaturated
+          expr: |
+            avg by (pod) (
+              nv_gpu_utilization{namespace="aegis-inference"}
+            ) > 0.90
+          for: 10m
+          labels:
+            severity: warn
+            team: infra-gpu
+          annotations:
+            summary: "Triton pod {{ $labels.pod }} GPU >90% utilized"
+            description: |
+              GPU utilization on {{ $labels.pod }} has been above 90% for
+              10 minutes. Capacity ceiling is close — add MIG slices or
+              scale up the pool. See docs/triton.md#capacity-planning.
+
+        - alert: TritonModelEvicted
+          # Triton reports a sudden drop in nv_inference_request_success
+          # for a model that recently had traffic — combined with a spike
+          # in compute_input_duration_us — as a likely eviction.
+          expr: |
+            (
+              avg by (triton_model) (
+                rate(nv_inference_compute_input_duration_us[2m])
+              )
+              > 5 *
+              avg by (triton_model) (
+                rate(nv_inference_compute_input_duration_us[15m] offset 15m)
+              )
+            )
+            and on (triton_model)
+            (
+              sum by (triton_model) (
+                rate(nv_inference_request_success[5m])
+              ) > 0
+            )
+          for: 2m
+          labels:
+            severity: warn
+            team: ml-reliability
+            runbook: docs/runbooks/triton.md
+          annotations:
+            summary: "Likely Triton model eviction for {{ $labels.triton_model }}"
+            description: |
+              compute_input_duration_us for {{ $labels.triton_model }}
+              has spiked 5× the 15-minute baseline — a cold-start
+              signature consistent with model eviction under cache
+              pressure. prefetch-service should re-warm; the inference
+              router will retry once. If the spike persists, intervene.
+
+        - alert: TritonPodRestartingFrequently
+          expr: |
+            increase(kube_pod_container_status_restarts_total{
+              namespace="aegis-inference",
+              pod=~"triton-.*"
+            }[1h]) > 3
+          for: 5m
+          labels:
+            severity: page
+            team: infra-gpu
+            runbook: docs/runbooks/triton.md#failure-mode-7
+          annotations:
+            summary: "Triton pod {{ $labels.pod }} restarted >3 times in the last hour"
+            description: |
+              {{ $labels.pod }} has restarted {{ $value }} times in the
+              last hour — likely OOMKilled or crash-looping on model
+              load. See docs/runbooks/triton.md#failure-mode-7.
+
+        - alert: TritonNoReadyReplicas
+          expr: |
+            kube_deployment_status_replicas_available{
+              namespace="aegis-inference",
+              deployment="triton"
+            } < 1
+          for: 2m
+          labels:
+            severity: page
+            team: infra-gpu
+          annotations:
+            summary: "No ready Triton replicas — GPU hot path down"
+            description: |
+              The Triton deployment has zero ready replicas. The GPU hot
+              path is unavailable; every inference is failing. Immediate
+              escalation.

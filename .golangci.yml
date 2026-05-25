@@ -1,0 +1,133 @@
+# golangci-lint configuration for AegisVision.
+#
+# The platform's golden-path is deliberately uniform — see pkg/platform.
+# This linter config enforces that uniformity:
+#
+#   - errcheck      catches unchecked errors (the platform's most common
+#                   class of bug).
+#   - govet         the standard set.
+#   - staticcheck   the recommended replacement for golint + the
+#                   security checks SA1xxx.
+#   - revive        style + naming conventions.
+#   - gosec         security-focused static analysis.
+#   - bodyclose     missing resp.Body.Close on HTTP clients.
+#   - rowserrcheck  missing sql.Rows.Err().
+#   - sqlclosecheck missing sql.Rows.Close().
+#   - errorlint     wrap errors with %w.
+#   - misspell      typos.
+#   - unconvert     unnecessary type conversions.
+#   - nilnil        functions that return nil, nil — usually a bug.
+#   - copyloopvar   loop variable captured by reference (Go 1.22+ semantics).
+#
+# Run locally with:  golangci-lint run --config .golangci.yml ./...
+
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  go: "1.26"
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - revive
+    - gosec
+    - bodyclose
+    - rowserrcheck
+    - sqlclosecheck
+    - errorlint
+    - misspell
+    - unconvert
+    - nilnil
+    - copyloopvar
+    - ineffassign
+    - unused
+    - gocritic
+    - gocyclo
+    - dupword
+  settings:
+    errcheck:
+      check-type-assertions: true
+      exclude-functions:
+        - (io.Closer).Close       # close-on-defer is intentional
+        - (net/http.ResponseWriter).Write
+        - encoding/json.NewEncoder.Encode
+        - (*database/sql.Rows).Close   # rows.Close in defer is idiomatic
+    gosec:
+      # G601: loop variable capture — covered by copyloopvar with the
+      # Go 1.22+ semantics fix.
+      # G104: errors unhandled — overlapping with errcheck which is more
+      #       precise; gosec's version is noisier (flags fmt.* etc.).
+      # G115: numeric truncation — flagged on safe int->int32 conversions
+      #       (Limit/Offset, batch sizes); covered by code review.
+      excludes: [G601, G104, G115]
+    gocyclo:
+      min-complexity: 25
+    revive:
+      severity: warning
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        # `exported` and `package-comments` enforce godoc style — every
+        # exported symbol or package needing a comment. The template's
+        # readability bar is the architecture doc + ADRs, not per-symbol
+        # godoc, so we disable these stylistic rules and let the
+        # substantive linters (errcheck, gosec, staticcheck, bodyclose)
+        # do the heavy lifting.
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: var-declaration
+        - name: var-naming
+  exclusions:
+    rules:
+      # Tests are allowed to be terser / use math/rand / skip body close.
+      - path: "_test\\.go$"
+        linters: [gosec, errcheck, gocritic, gocyclo, revive, bodyclose, nilnil, unused]
+      # Generated protobuf code.
+      - path: "proto/gen/"
+        linters: [gosec, errcheck, gocritic, gocyclo, revive, staticcheck]
+      # Test helpers in tools/.
+      - path: "tools/(integration|conformance|loadtest)/"
+        linters: [gosec, gocyclo]
+      # SA1019 prometheus.NewGoCollector / NewProcessCollector deprecation.
+      # The replacements live in `prometheus/client_golang/prometheus/collectors`;
+      # migration is shared across services via the platform bootstrap and is
+      # tracked separately from lint.
+      - text: "SA1019.*prometheus.New(Go|Process)Collector"
+        linters: [staticcheck]
+      # G109 strconv.Atoi-to-int16/32 — flagged on pagination Limit/Offset
+      # conversions; bounds are validated by platform/pagination.
+      - text: "G109:"
+        linters: [gosec]
+      # G404 math/rand for jitter / scheduling — non-security uses where
+      # crypto/rand is overkill.
+      - text: "G404:"
+        linters: [gosec]
+      # staticcheck QF1012 (fmt.Sprintf+Write → Fprintf) — stylistic.
+      - text: "QF1012"
+        linters: [staticcheck]
+      # Service `main.go` files wire many things at startup; the complexity
+      # is intentional and isolated to that one bootstrap function.
+      - path: "cmd/[^/]+/main\\.go$"
+        linters: [gocyclo]
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10

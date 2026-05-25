@@ -3,37 +3,105 @@ kind: Deployment
 metadata:
   name: triton
   namespace: aegis-inference
-  labels: { app.kubernetes.io/name: triton }
+  labels:
+    app.kubernetes.io/name: triton
+    app.kubernetes.io/part-of: aegisvision
+    app.kubernetes.io/component: gpu-hot-path
 spec:
   replicas: {{ .Values.replicaCount }}
-  selector: { matchLabels: { app.kubernetes.io/name: triton } }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: triton
   template:
     metadata:
-      labels: { app.kubernetes.io/name: triton }
+      labels:
+        app.kubernetes.io/name: triton
+        app.kubernetes.io/part-of: aegisvision
+        app.kubernetes.io/component: gpu-hot-path
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8002"
+        prometheus.io/port: "{{ .Values.ports.metrics }}"
         prometheus.io/path: /metrics
+        # Force a pod restart when chart-managed runtime flags change.
+        checksum/config: "{{ .Values.triton.modelControlMode }}-{{ .Values.triton.strictModelConfig }}-{{ .Values.triton.responseCache.sizeBytes }}"
     spec:
       serviceAccountName: triton
       priorityClassName: {{ .Values.priorityClassName | quote }}
-      securityContext: { runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000, seccompProfile: { type: RuntimeDefault } }
+      {{- with .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
+      # Allow Triton up to its configured exit timeout to drain in-flight
+      # inferences before the kubelet SIGKILLs it.
+      terminationGracePeriodSeconds: {{ add .Values.triton.exitTimeoutSeconds 10 }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
       tolerations: {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ toYaml . | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: model-puller
           image: "{{ .Values.modelRepository.pullerImage }}"
           command: ["/bin/sh", "-c"]
           args:
-            - aws s3 sync {{ .Values.modelRepository.uri | quote }} /models --no-progress
+            - |
+              set -eu
+              echo "Syncing Triton model repository from {{ .Values.modelRepository.uri }}"
+              aws s3 sync {{ .Values.modelRepository.uri | quote }} /models {{ .Values.modelRepository.syncFlags }}
+              {{- if .Values.modelRepository.failIfEmpty }}
+              if [ -z "$(ls -A /models 2>/dev/null)" ]; then
+                echo "ERROR: model repository is empty and failIfEmpty=true" >&2
+                exit 1
+              fi
+              {{- end }}
+              echo "Repository sync complete:"
+              ls -la /models
           env:
-            - { name: AWS_REGION, value: us-east-1 }
+            - name: AWS_REGION
+              value: {{ .Values.modelRepository.region | quote }}
+            {{- if .Values.modelRepository.credentialsSecret }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.modelRepository.credentialsSecret }}
+                  key: access-key-id
+                  optional: true
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.modelRepository.credentialsSecret }}
+                  key: secret-access-key
+                  optional: true
+            {{- end }}
           volumeMounts:
-            - { name: models, mountPath: /models }
+            - name: models
+              mountPath: /models
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities: { drop: [ALL] }
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
       containers:
         - name: triton
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -41,30 +109,98 @@ spec:
           args:
             - tritonserver
             - --model-repository=/models
-            - --strict-model-config=false
+            - --model-control-mode={{ .Values.triton.modelControlMode }}
+            {{- if eq .Values.triton.modelControlMode "poll" }}
+            - --repository-poll-secs={{ .Values.triton.pollIntervalSeconds }}
+            {{- end }}
+            - --strict-model-config={{ .Values.triton.strictModelConfig }}
             - --allow-metrics=true
-            - --allow-cpu-metrics=true
-            - --allow-gpu-metrics=true
-            - --metrics-port=8002
-            - --log-verbose=0
+            - --allow-cpu-metrics={{ .Values.triton.allowCpuMetrics }}
+            - --allow-gpu-metrics={{ .Values.triton.allowGpuMetrics }}
+            - --http-port={{ .Values.ports.http }}
+            - --grpc-port={{ .Values.ports.grpc }}
+            - --metrics-port={{ .Values.ports.metrics }}
+            - --log-verbose={{ if eq .Values.logLevel "debug" }}1{{ else }}0{{ end }}
+            - --log-info=true
+            - --log-warning=true
+            - --log-error=true
+            - --exit-timeout-secs={{ .Values.triton.exitTimeoutSeconds }}
+            - --model-load-thread-count={{ .Values.triton.modelLoadThreadCount }}
+            - --pinned-memory-pool-byte-size={{ .Values.triton.pinnedMemoryPoolByteSize }}
+            - --cuda-memory-pool-byte-size=0:{{ .Values.triton.cudaMemoryPoolByteSize }}
+            - --buffer-manager-thread-count={{ .Values.triton.bufferManagerThreadCount }}
+            - --rate-limit={{ .Values.triton.rateLimitMode }}
+            {{- if .Values.triton.responseCache.enabled }}
+            - --cache-config=local,size={{ .Values.triton.responseCache.sizeBytes }}
+            {{- end }}
+            {{- range .Values.triton.backends }}
+            - --backend-config={{ . }},default-max-batch-size=8
+            {{- end }}
+          env:
+            - name: AEGIS_OTLP_ENDPOINT
+              value: {{ .Values.otel.endpoint | quote }}
+            # Triton's CUDA + NCCL runtime variables. The defaults are
+            # safe for MIG-partitioned pods.
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: "all"
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: "compute,utility"
+            - name: TRT_LOGGER_VERBOSITY
+              value: "WARNING"
+            # Disable telemetry to NVIDIA's collection endpoints —
+            # required for air-gap.
+            - name: NVIDIA_VISIBLE_DEVICES_TYPE
+              value: "mig"
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities: { drop: [ALL] }
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
           ports:
-            - { name: http, containerPort: 8000 }
-            - { name: grpc, containerPort: 8001 }
-            - { name: metrics, containerPort: 8002 }
-          env:
-            - { name: AEGIS_OTLP_ENDPOINT, value: {{ .Values.otel.endpoint | quote }} }
+            - name: http
+              containerPort: {{ .Values.ports.http }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.ports.grpc }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.ports.metrics }}
+              protocol: TCP
+          # Use a startup probe so a slow cold start (model warm-up) does
+          # not trip the liveness probe and cause a restart loop.
+          startupProbe:
+            httpGet:
+              path: /v2/health/live
+              port: http
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
           readinessProbe:
-            httpGet: { path: /v2/health/ready, port: http }
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            httpGet:
+              path: /v2/health/ready
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
           livenessProbe:
-            httpGet: { path: /v2/health/live, port: http }
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            httpGet:
+              path: /v2/health/live
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          # PreStop sleeps long enough for the service mesh to remove this
+          # pod from the endpoint set before Triton starts draining.
+          # This avoids 503s during rolling updates.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
           resources:
             requests:
               cpu: {{ .Values.resources.requests.cpu | quote }}
@@ -75,10 +211,24 @@ spec:
               memory: {{ .Values.resources.limits.memory | quote }}
               {{ .Values.gpu.resourceName }}: {{ .Values.gpu.count }}
           volumeMounts:
-            - { name: models, mountPath: /models, readOnly: true }
-            - { name: cache, mountPath: /tmp }
+            - name: models
+              mountPath: /models
+              readOnly: true
+            - name: cache
+              mountPath: /tmp
+            - name: shm
+              mountPath: /dev/shm
       volumes:
         - name: models
-          emptyDir: { sizeLimit: 50Gi }
+          emptyDir:
+            sizeLimit: {{ .Values.volumes.models.sizeLimit }}
         - name: cache
-          emptyDir: { sizeLimit: 5Gi }
+          emptyDir:
+            sizeLimit: {{ .Values.volumes.cache.sizeLimit }}
+        # Triton uses /dev/shm for the pinned-memory pool when shared-memory
+        # I/O is in use. The default 64Mi is too small; size it to match
+        # the pinned-memory pool plus headroom.
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi

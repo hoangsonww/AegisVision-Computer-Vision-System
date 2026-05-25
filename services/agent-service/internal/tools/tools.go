@@ -40,7 +40,7 @@ func (e *Endpoints) httpc() *http.Client {
 	return &http.Client{Timeout: 10 * time.Second}
 }
 
-// Register installs the default Phase 4 tool catalog onto reg.
+// Register installs the default tool catalog onto reg.
 func Register(reg *agent.Registry, ep *Endpoints) {
 	reg.Register(&searchDetections{ep: ep})
 	reg.Register(&queryPipeline{ep: ep})
