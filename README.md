@@ -579,8 +579,8 @@ What you get out of the box:
   [`deploy/chaos/triton-model-evict.yaml`](./deploy/chaos/triton-model-evict.yaml).
 
 The architectural rule:
-[ADR-0003 (MIG-default)](./docs/adr/0003-mig-gpu-sharing.md) and
-[ADR-0008 (no frames on the bus)](./docs/adr/0008-claim-check-bus.md)
+[ADR-0003 (MIG-default)](./docs/adr/0003-mig-default.md) and
+[ADR-0008 (no frames on the bus)](./docs/adr/0008-claim-check-for-frames.md)
 together mean every byte that hits Triton came from object storage via a
 claim-check URN, on a hardware-isolated MIG slice. That is the property
 that lets the platform scale to thousands of concurrent streams without

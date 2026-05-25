@@ -600,8 +600,8 @@ kubectl -n aegis-inference rollout status deploy/triton
 - [NVIDIA Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/)
 - [KServe v2 inference protocol](https://kserve.github.io/website/master/modelserving/data_plane/v2_protocol/)
 - [`ARCHITECTURE.md` § NVIDIA Triton — the inference substrate](../ARCHITECTURE.md#nvidia-triton--the-inference-substrate)
-- [`docs/adr/0003-mig-gpu-sharing.md`](./adr/0003-mig-gpu-sharing.md) — MIG-default GPU sharing.
-- [`docs/adr/0008-claim-check-bus.md`](./adr/0008-claim-check-bus.md) — no frames on the bus.
+- [`docs/adr/0003-mig-default.md`](./adr/0003-mig-default.md) — MIG-default GPU sharing.
+- [`docs/adr/0008-claim-check-for-frames.md`](./adr/0008-claim-check-for-frames.md) — no frames on the bus.
 - [`docs/adr/0026-predictive-prefetch.md`](./adr/0026-predictive-prefetch.md) — predictive model warm-up.
 - [`docs/runbooks/triton.md`](./runbooks/triton.md) — production runbook.
 - [`deploy/helm/triton/`](../deploy/helm/triton) — the chart.
