@@ -54,7 +54,7 @@ jobs:
       - name: log in to ghcr
         run: echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: install helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
       - name: build bundle
         run: |
           set -euo pipefail
