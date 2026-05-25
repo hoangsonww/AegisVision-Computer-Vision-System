@@ -45,7 +45,7 @@ func (c *PipelineClient) Close() error { return c.conn.Close() }
 func (c *PipelineClient) Get(ctx context.Context, id string) (*controlv1.Pipeline, error) {
 	resp, err := c.cli.GetPipeline(ctx, &controlv1.GetPipelineRequest{Id: id})
 	if isNotFound(err) {
-		return nil, nil
+		return nil, nil //nolint:nilnil // documented (nil, nil) sentinel — handler maps to 404
 	}
 	if err != nil {
 		return nil, err

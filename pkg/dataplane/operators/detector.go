@@ -97,18 +97,18 @@ func (d *Detect) Run(ctx context.Context, in <-chan *dataplane.FrameEnvelope, ou
 // back into a single Detection at the encoded coordinates. Deterministic;
 // useful for testing the full chain.
 type SyntheticDetector struct {
-	ModelID_, ModelVersionID_ string
+	modelID, modelVersionID string
 }
 
 func NewSyntheticDetector() *SyntheticDetector {
 	return &SyntheticDetector{
-		ModelID_:        "synthetic-detector",
-		ModelVersionID_: "v1",
+		modelID:        "synthetic-detector",
+		modelVersionID: "v1",
 	}
 }
 
-func (s *SyntheticDetector) ModelID() string        { return s.ModelID_ }
-func (s *SyntheticDetector) ModelVersionID() string { return s.ModelVersionID_ }
+func (s *SyntheticDetector) ModelID() string        { return s.modelID }
+func (s *SyntheticDetector) ModelVersionID() string { return s.modelVersionID }
 
 func (s *SyntheticDetector) Detect(_ context.Context, frame *dataplanev1.FrameDescriptor, payload []byte) ([]*dataplanev1.Detection, error) {
 	var t SyntheticTarget
@@ -121,8 +121,8 @@ func (s *SyntheticDetector) Detect(_ context.Context, frame *dataplanev1.FrameDe
 		StreamId:       frame.GetStreamId(),
 		FrameSeq:       frame.GetFrameSeq(),
 		CaptureTime:    frame.GetCaptureTime(),
-		ModelId:        s.ModelID_,
-		ModelVersionId: s.ModelVersionID_,
+		ModelId:        s.modelID,
+		ModelVersionId: s.modelVersionID,
 		ClassLabel:     t.Class,
 		Score:          t.Score,
 		Bbox: &dataplanev1.BoundingBox{

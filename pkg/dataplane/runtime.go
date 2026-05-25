@@ -6,6 +6,7 @@ package dataplane
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -44,7 +45,6 @@ func (p *Pipeline) Run(ctx context.Context) (chan<- *FrameEnvelope, func() error
 	errs := make([]error, len(p.Operators))
 
 	for i, op := range p.Operators {
-		i, op := i, op
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -84,7 +84,7 @@ func (p *Pipeline) Run(ctx context.Context) (chan<- *FrameEnvelope, func() error
 			if p.Metrics != nil {
 				p.Metrics.OperatorLatency.WithLabelValues(p.ID, op.Name()).Observe(time.Since(start).Seconds())
 			}
-			if err != nil && err != ErrUpstreamClosed {
+			if err != nil && !errors.Is(err, ErrUpstreamClosed) {
 				errs[i] = fmt.Errorf("operator %s: %w", op.Name(), err)
 				p.Logger.Error("operator failed",
 					slog.String("operator", op.Name()),
