@@ -19,7 +19,7 @@ API_BASE="${AEGIS_API_BASE:-http://localhost:8080}"
 TENANT_ID="${AEGIS_DEMO_TENANT:-t-demo}"
 
 curl_json() {
-  curl -sS -fail \
+  curl -sS --fail \
     -H "X-Tenant-Id: $TENANT_ID" \
     -H "Content-Type: application/json" \
     -H "Idempotency-Key: seed-$2" \

@@ -46,7 +46,7 @@ spec:
     - from:
         - source:
             principals:
-              - cluster.local/ns/aegis-inference/sa/shadow-inference-service
+              - cluster.local/ns/aegis-system/sa/shadow-inference-service
       to:
         - operation:
             ports: ["{{ .Values.ports.http }}", "{{ .Values.ports.grpc }}"]
@@ -57,7 +57,7 @@ spec:
     - from:
         - source:
             principals:
-              - cluster.local/ns/aegis-inference/sa/prefetch-service
+              - cluster.local/ns/aegis-system/sa/prefetch-service
       to:
         - operation:
             ports: ["{{ .Values.ports.http }}"]

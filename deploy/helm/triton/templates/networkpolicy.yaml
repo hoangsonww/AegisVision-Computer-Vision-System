@@ -33,12 +33,18 @@ spec:
       ports:
         - port: {{ .Values.ports.http }}
           protocol: TCP
-    # shadow-inference + prefetch.
+    # shadow-inference + prefetch (both live in aegis-system).
     - from:
-        - podSelector:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: aegis-system
+          podSelector:
             matchLabels:
               app.kubernetes.io/name: shadow-inference-service
-        - podSelector:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: aegis-system
+          podSelector:
             matchLabels:
               app.kubernetes.io/name: prefetch-service
       ports:
