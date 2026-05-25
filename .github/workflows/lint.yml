@@ -46,10 +46,11 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          # golangci-lint v2.x — matches the `version: "2"` schema in
-          # .golangci.yml. Keep the binary version in lock-step with the
-          # config schema; v1.x will refuse to load this file.
-          version: v2.1
+          # golangci-lint v2.12+ is built with Go 1.26 and can type-check
+          # source files that declare `go 1.26` in go.mod. Earlier v2.x
+          # releases (e.g. v2.1, built with Go 1.24) panic on those files.
+          # The v2 schema in .golangci.yml is supported from v2.0 onward.
+          version: v2.12.2
           working-directory: ${{ matrix.module }}
           args: --config=${{ github.workspace }}/.golangci.yml --timeout=5m
 

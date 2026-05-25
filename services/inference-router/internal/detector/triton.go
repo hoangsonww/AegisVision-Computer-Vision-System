@@ -332,10 +332,10 @@ func (c *TritonClient) Detect(ctx context.Context, frame *dataplanev1.FrameDescr
 	}
 }
 
-func exponentialBackoff(initial, max time.Duration, attempt int) time.Duration {
+func exponentialBackoff(initial, ceiling time.Duration, attempt int) time.Duration {
 	d := initial << attempt
-	if d > max {
-		d = max
+	if d > ceiling {
+		d = ceiling
 	}
 	return d
 }
