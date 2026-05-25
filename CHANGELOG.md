@@ -7,6 +7,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.7](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.6...v0.5.7) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ci:** bump golangci-lint to v2.12.2 (go1.26 binary) and clear lint findings ([3ab7697](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/3ab76977d041875897c65f175513c720012724ca))
+* **ci:** lint job — drop linter's go target to 1.24, broaden shellcheck excludes ([bf4a9d6](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/bf4a9d61f237902051755d58fdef95bb83dfd9c1))
+* production-readiness audit — namespace drift, CI lint, broken links ([038e15f](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/038e15f9f12468dc2b0f8140c8309a1ef9ca9346))
+
 ## [0.5.6](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.5...v0.5.6) (2026-05-24)
 
 
