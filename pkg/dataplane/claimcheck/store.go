@@ -5,8 +5,8 @@
 // In production this is realized by hugepages-backed shared-memory rings or
 // CUDA-IPC; for the walking skeleton we implement an in-process ring whose
 // observable contract is the same: descriptor on the bus, pixels behind the
-// locator. When Phase 2 lands real on-node operators, the ring graduates to
-// an mmap-backed implementation without changing operator code.
+// locator. When real on-node operators land, the ring graduates to an
+// mmap-backed implementation without changing operator code.
 package claimcheck
 
 import (

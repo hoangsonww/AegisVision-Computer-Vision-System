@@ -121,7 +121,7 @@ func (t *promoteModelTool) Run(context.Context, json.RawMessage) (any, error) {
 	return nil, nil
 }
 
-// TestSmoke_BoundedAutonomy_GateRoundTrip exercises the full Phase 4
+// TestSmoke_BoundedAutonomy_GateRoundTrip exercises the full
 // bounded-autonomy flow. Verifies:
 //  1. Agent refuses to auto-execute a tier-3 tool (returns awaiting_gate).
 //  2. Gate decision triggers the canonical bus event shape.

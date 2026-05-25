@@ -171,14 +171,14 @@ func Idempotency(store idempotency.Store, ttl time.Duration) func(http.Handler) 
 				return
 			}
 
-			cap := &captureWriter{ResponseWriter: w, status: 200}
-			next.ServeHTTP(cap, r)
+			cw := &captureWriter{ResponseWriter: w, status: 200}
+			next.ServeHTTP(cw, r)
 
-			if cap.status >= 200 && cap.status < 300 {
+			if cw.status >= 200 && cw.status < 300 {
 				_ = store.Put(r.Context(), tenant, key, idempotency.Entry{
-					Status:          cap.status,
+					Status:          cw.status,
 					ContentType:     w.Header().Get("Content-Type"),
-					Body:            cap.buf.Bytes(),
+					Body:            cw.buf.Bytes(),
 					BodyFingerprint: fp,
 					StoredAt:        time.Now(),
 					ExpiresAt:       time.Now().Add(ttl),

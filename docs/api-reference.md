@@ -271,8 +271,8 @@ Two surfaces exist:
 
 | Surface | Path | Notes |
 | --- | --- | --- |
-| Walking-skeleton (Phase 1) | `GET /console/` on `api-gateway` | Served when `AEGIS_CONSOLE_DIR` is set. Minimal HTML+JS for the 5-service skeleton demo. |
-| Production console (Phase 7) | Separate `services/console/` Next.js app, served on its own host (e.g. `console.<your-domain>`) | Exposes every endpoint in this reference as a usable UI page. See [`console.md`](./console.md). |
+| Walking-skeleton demo | `GET /console/` on `api-gateway` | Served when `AEGIS_CONSOLE_DIR` is set. Minimal HTML+JS bundled with the 5-service skeleton. |
+| Production console | Separate `services/console/` Next.js app, served on its own host (e.g. `console.<your-domain>`) | Exposes every endpoint in this reference as a usable UI page. See [`console.md`](./console.md). |
 
 Both consume **only the public REST endpoints documented above**. The
 console is, in effect, the largest and best-tested client of this API

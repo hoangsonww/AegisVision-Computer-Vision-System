@@ -67,13 +67,13 @@ This card is stored alongside the model artifact and signed (cosign).
 - ADR-0014: consequential actions require human approval via a Temporal
   signal gate. Agents may propose but cannot promote a model or change a
   safety rule.
-- ADR-0017 (Phase 4) implements this gate as `policy-gate-service`. The
+- ADR-0017 implements this gate as `policy-gate-service`. The
   gate is enforced in code (the agent loop refuses to execute tier-3
   tools) — not just in the LLM prompt. A jailbroken model cannot bypass.
 - Every gate decision is published to `audit.v1` and stored append-only;
   the audit record is the evidence trail for Art. 12 (record-keeping).
 
-## Agentic-AI specific controls (Phase 4)
+## Agentic-AI specific controls
 
 The platform ships agents that can issue tool calls. Each tool has a
 risk tier (read / advise / reversible / consequential — see ADR-0017).

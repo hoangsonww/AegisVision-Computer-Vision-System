@@ -1,0 +1,44 @@
+# Minimal OpenTelemetry Collector config for local dev. Receives OTLP
+# (gRPC + HTTP) from every AegisVision service via `AEGIS_OTLP_ENDPOINT`
+# and writes traces, metrics, and logs to stdout — so you can
+# `docker logs aegis-dev-otel` to see what's flowing.
+#
+# In production this collector forwards to Tempo / Prometheus / Loki;
+# see deploy/platform/observability/.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 100
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+    spike_limit_mib: 64
+
+exporters:
+  debug:
+    verbosity: normal
+    sampling_initial: 2
+    sampling_thereafter: 200
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]

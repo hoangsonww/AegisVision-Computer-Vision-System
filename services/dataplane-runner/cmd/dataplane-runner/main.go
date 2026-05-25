@@ -1,7 +1,8 @@
 // Command dataplane-runner hosts the operator DAG for one or more pipelines.
-// The walking skeleton ships a single replica that watches every pipeline
-// via operator.control.> — Phase 2 partitions pipelines across replicas
-// using the queue-group consumer pattern (one delivery per group).
+// The walking-skeleton configuration ships a single replica that watches
+// every pipeline via operator.control.> — production deployments partition
+// pipelines across replicas using the queue-group consumer pattern (one
+// delivery per group).
 package main
 
 import (

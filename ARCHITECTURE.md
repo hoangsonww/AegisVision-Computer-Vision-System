@@ -190,6 +190,103 @@ because it's simpler and has fewer model dependencies.
 
 ---
 
+## NVIDIA Triton — the inference substrate
+
+Every `detect` operator in the data plane talks to **NVIDIA Triton
+Inference Server** through the `inference-router`. Triton is the
+canonical model-serving runtime in AegisVision and the platform is
+shaped around it.
+
+```mermaid
+flowchart LR
+    DR[dataplane-runner<br/>detect operator] -->|KServe v2| IR[inference-router]
+    IR -->|reservation| GS[gpu-scheduler<br/>MIG ledger]
+    IR -->|ModelInfer<br/>POST /v2/models/.../infer| TRT[Triton Inference Server]
+    TRT --> TRT_BE_TRT[TensorRT backend]
+    TRT --> TRT_BE_ONNX[ONNX backend]
+    TRT --> TRT_BE_PT[PyTorch backend]
+    TRT --> TRT_BE_PY[Python backend]
+    TRT --> TRT_BE_ENS[Ensemble / BLS]
+    TRT_BE_TRT --> MIG[MIG slice]
+    TRT_BE_ONNX --> MIG
+    TRT_BE_PT --> MIG
+    TRT_BE_PY --> MIG
+    TRT --> CACHE[(Response cache)]
+    TRT --> METRICS[(Prometheus :8002)]
+```
+
+**Why Triton, not "roll your own server".** Triton ships the
+production-grade pieces that you would otherwise have to build:
+
+| Requirement | What Triton gives you |
+| --- | --- |
+| Dynamic batching across concurrent requests | `dynamic_batching` block per model in `config.pbtxt`. |
+| Response caching for deterministic models | Triton response cache + per-request `parameters.cache_key`. |
+| Multiple framework backends in one process | TensorRT, ONNX Runtime, PyTorch (LibTorch), TensorFlow, Python, ensemble, BLS. |
+| Model warm-up before first request | `model_warmup` in `config.pbtxt`. |
+| Live model load / unload | `--model-control-mode=explicit` + `POST /v2/repository/models/{name}/load`. |
+| Per-model and per-tenant rate limiting | `--rate-limit=execution_count` and per-model rate-limiter resources. |
+| Built-in Prometheus metrics | `:8002/metrics` — request counts, queue duration, compute time, response-cache hit/miss. |
+| KServe v2 wire protocol | HTTP and gRPC; we use both. |
+
+**MIG-aware scheduling.** Every Triton pod runs on a node selected by
+`aegisvision.io/pool: gpu-inference`, requests a single MIG slice
+(`nvidia.com/mig-1g.10gb` by default), and **never** runs on a shared
+GPU. The `gpu-scheduler` ledger reserves slices before
+`inference-router` issues the `ModelInfer` call; reservations are
+released on completion or on a deadline expiration. The same
+reservation envelope binds canary candidates and shadow-inference
+runs so a noisy candidate cannot starve baseline traffic.
+
+**Production model-control.** In production-shape values the Triton
+chart starts with `--model-control-mode=explicit` so a freshly-started
+Triton pod loads **no** models. Models are loaded by `model-registry`
+via the Triton management API, recorded in the registry, and warmed
+before the canary controller is allowed to send candidate traffic. The
+benefit: model-load storms (a Triton anti-pattern that kills cold
+nodes) are impossible by construction. The dev-shape values use
+`--model-control-mode=poll` for ergonomics in single-binary tests.
+
+**Dynamic batching defaults.** Every model checked into the
+template's reference repository ships a `dynamic_batching` block in
+its `config.pbtxt` with `preferred_batch_size: [4, 8]` and
+`max_queue_delay_microseconds: 2000`. These are tuning starts — see
+[`docs/triton.md`](./docs/triton.md) for the calibration procedure.
+
+**Response cache.** Triton's response cache is enabled by default
+(`--response-cache-byte-size=1073741824` = 1 GiB). For models where
+cache is unsafe (per-frame detectors) the cache is disabled in the
+model `config.pbtxt`. The `inference-router` surfaces
+`triton_response_cache_hit{model,version}` on every response so cost
+accounting can credit cached calls correctly.
+
+**Telemetry.** Triton's Prometheus endpoint is scraped via the chart's
+`ServiceMonitor` on `:8002`. We alert on:
+
+- `nv_inference_queue_duration_us` p99 above SLO → KEDA scales out.
+- `nv_inference_request_failure` > 0 → page on-call.
+- `nv_gpu_utilization` saturating combined with high queue duration →
+  capacity warning, prefetch the next shard.
+- `nv_inference_compute_infer_duration_us` regression > 20% → drift
+  the canary controller.
+
+**Failure modes the platform plans for.**
+
+| Failure | Detection | Reaction |
+| --- | --- | --- |
+| Triton model evicted under cache pressure | Cold-start `compute_input_duration_us` spike | `prefetch-service` warms ahead of demand; `inference-router` retries once. |
+| Triton OOM on a MIG slice | Pod restarts | PDB caps concurrent eviction; `gpu-scheduler` reissues reservations. |
+| Triton model-load storm on cold node | `--model-control-mode=explicit` + `model-registry` rate-limit | Storm is impossible by construction. |
+| Response-cache thrash on a high-cardinality model | Hit rate drop alarm | Disable cache for that model in its `config.pbtxt`. |
+| Queue duration spike | KEDA HPA on `nv_inference_queue_duration_us` | Scale out before glass-to-event SLO burns. |
+
+The full operating manual is in [`docs/triton.md`](./docs/triton.md);
+the production runbook is in
+[`docs/runbooks/triton.md`](./docs/runbooks/triton.md); the chaos
+experiment is `deploy/chaos/triton-model-evict.yaml`.
+
+---
+
 ## The control plane in detail
 
 The control plane is built around a set of CRUD-and-revision services,
@@ -268,8 +365,9 @@ REST. Third, the gateway enforces auth uniformly.
 
 ## The intelligence tier
 
-Phase 4 introduced the intelligence tier: agents, RAG, LLM gateway. The
-critical architectural property: **there is exactly one LLM endpoint**.
+The intelligence tier wraps the platform with agents, RAG, and an LLM
+gateway. The critical architectural property: **there is exactly one LLM
+endpoint**.
 
 ```mermaid
 flowchart LR
@@ -335,8 +433,8 @@ and auto-resumes when the human approves. This is documented in
 
 ## Adaptive autonomy tier
 
-Phase 5 layered on the *adaptive* side: canary, shadow, drift, SLO,
-prefetch.
+On top of the intelligence tier sits the *adaptive autonomy* tier:
+canary, shadow, drift, SLO, prefetch.
 
 ```mermaid
 flowchart LR
@@ -507,8 +605,8 @@ deployment choice.
 
 **At the network layer:**
 
-- Each tenant can opt into a per-tenant namespace (Phase 6, advanced
-  multi-tenant isolation). Otherwise they share `aegis-system`.
+- Each tenant can opt into a per-tenant namespace for advanced
+  multi-tenant isolation. Otherwise they share `aegis-system`.
 
 **Crypto-shredding** (ADR-0014). Each tenant has a Vault transit key.
 Destroying that key renders the tenant's encrypted bytes unreadable —

@@ -4,8 +4,8 @@
 
 ## Context
 
-Phase 5 autonomy agents need to know *what changed*. Two signal classes
-matter:
+Adaptive-autonomy agents need to know *what changed*. Two signal
+classes matter:
 
 - **Concept drift** — the distribution of inputs the model sees today
   is different from the distribution it was promoted on. Drift doesn't
@@ -65,8 +65,8 @@ Each crossing emits `autonomy.signal.slo.v1`.
   promotion gate runbook.
 - **No frames or PII in drift signals.** Drift signals carry class
   *counts* and *names* — no payload. PII can still hide in class
-  names (e.g. license-plate text), so the redaction operator
-  (Phase 3) is upstream of the class label.
+  names (e.g. license-plate text), so the redaction operator is
+  upstream of the class label.
 - **Multi-window burn rates are sticky.** A single bad minute won't
   fire critical; that's intentional — paging on noise is the most
   expensive SRE failure mode.

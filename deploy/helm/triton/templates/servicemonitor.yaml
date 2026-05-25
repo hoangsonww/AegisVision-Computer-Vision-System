@@ -1,8 +1,63 @@
 {{- if .Values.serviceMonitor.enabled }}
+# ServiceMonitor — scrapes Triton's Prometheus endpoint on :8002.
+#
+# The Triton-specific metrics we care about (alerts + the canary
+# controller + the HPA all depend on these names):
+#
+#   nv_inference_request_success
+#   nv_inference_request_failure
+#   nv_inference_count
+#   nv_inference_exec_count
+#   nv_inference_queue_duration_us
+#   nv_inference_compute_input_duration_us
+#   nv_inference_compute_infer_duration_us
+#   nv_inference_compute_output_duration_us
+#   nv_inference_pending_request_count
+#   nv_inference_response_cache_hit_count
+#   nv_inference_response_cache_miss_count
+#   nv_gpu_utilization
+#   nv_gpu_memory_total_bytes
+#   nv_gpu_memory_used_bytes
+#   nv_gpu_power_usage
+#   nv_cpu_utilization
+#
+# We keep them as-is — no relabel to AegisVision conventions — so that
+# operators reading upstream NVIDIA docs can use the same metric names.
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
-metadata: { name: triton, namespace: aegis-inference, labels: { release: prometheus } }
+metadata:
+  name: triton
+  namespace: aegis-inference
+  labels:
+    release: prometheus
+    app.kubernetes.io/name: triton
+    app.kubernetes.io/part-of: aegisvision
 spec:
-  selector: { matchLabels: { app.kubernetes.io/name: triton } }
-  endpoints: [{ port: metrics, interval: {{ .Values.serviceMonitor.interval }}, path: /metrics }]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: triton
+  namespaceSelector:
+    matchNames: [aegis-inference]
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.serviceMonitor.interval }}
+      path: /metrics
+      scheme: http
+      honorLabels: true
+      metricRelabelings:
+        # Drop very-high-cardinality CUDA library version labels — keeps
+        # Prometheus storage bounded on big fleets.
+        - sourceLabels: [__name__]
+          regex: 'nv_cuda_compilation_.*'
+          action: drop
+        # Promote the model + version labels onto a stable name so the
+        # canary controller's PromQL is portable across Triton versions.
+        - sourceLabels: [model]
+          targetLabel: triton_model
+          regex: '(.+)'
+          replacement: '$1'
+        - sourceLabels: [version]
+          targetLabel: triton_model_version
+          regex: '(.+)'
+          replacement: '$1'
 {{- end }}

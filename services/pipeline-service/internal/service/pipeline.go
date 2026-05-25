@@ -156,7 +156,7 @@ func (s *Server) DeployPipeline(ctx context.Context, req *controlv1.DeployPipeli
 }
 
 // NoopDeployer is a stand-in for the Temporal client; it mints a synthetic
-// workflow id so the contract is satisfied during Phase 0.
+// workflow id so the contract is satisfied when no Temporal cluster is wired.
 type NoopDeployer struct{}
 
 func (NoopDeployer) StartDeploy(_ context.Context, pipelineID string) (string, error) {

@@ -49,6 +49,8 @@ func run() error {
 	httpAddr := config.String("AEGIS_HTTP_ADDR", ":8094")
 	healthAddr := config.String("AEGIS_HEALTH_ADDR", ":8095")
 	tritonBase := config.String("AEGIS_TRITON_URL", "")
+	tritonTimeoutSec := config.Int("AEGIS_TRITON_TIMEOUT_SEC", 5)
+	tritonMaxRetries := config.Int("AEGIS_TRITON_MAX_RETRIES", 2)
 	natsURL := config.String("AEGIS_NATS_URL", "")
 	logLevel := config.String("AEGIS_LOG_LEVEL", "info")
 
@@ -78,6 +80,8 @@ func run() error {
 	}
 
 	svc := service.New(tritonBase, publisher)
+	svc.TritonTimeoutSeconds = tritonTimeoutSec
+	svc.TritonMaxRetries = tritonMaxRetries
 
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(prometheus.NewGoCollector(), prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))

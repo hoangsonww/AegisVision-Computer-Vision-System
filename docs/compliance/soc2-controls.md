@@ -69,7 +69,7 @@ It is the source-of-truth for procurement teams + auditors.
 - Crypto-shredding via per-tenant Vault keys (ADR-0014)
 - Bounded autonomy gates on agent-initiated consequential actions
 - Cross-region replication: ClickHouse 3-shard MergeTree, Postgres logical
-  replication (Phase 3+)
+  replication
 
 ## Availability
 

@@ -165,11 +165,10 @@ type Agent struct {
 	sessionID string
 
 	// Internal state.
-	mu       sync.Mutex
-	step     int
-	history  []llm.Message
-	finished bool
-	gateID   string // set when blocked on a gate
+	mu      sync.Mutex
+	step    int
+	history []llm.Message
+	gateID  string // set when blocked on a gate
 }
 
 // New constructs an Agent for a fresh session.

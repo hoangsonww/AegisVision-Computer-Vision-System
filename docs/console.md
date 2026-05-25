@@ -3,10 +3,11 @@
 > **The production UI.** Next.js 14 + TanStack Query + Tailwind. One app,
 > 33 routes, every public AegisVision feature usable from a browser.
 
-The Phase-1 walking-skeleton HTML console at
-`services/api-gateway/console/` is a deliberately minimal placeholder.
-The **production console** lives at [`services/console/`](../services/console)
-and is the surface end-users, operators, and auditors interact with.
+The minimal walking-skeleton HTML console at
+`services/api-gateway/console/` is a deliberately stripped-down vanilla
+HTML+JS demo bundled with the 5-service skeleton. The **production
+console** lives at [`services/console/`](../services/console) and is the
+surface end-users, operators, and auditors interact with.
 
 ---
 

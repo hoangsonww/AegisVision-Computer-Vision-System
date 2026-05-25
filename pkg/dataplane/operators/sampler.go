@@ -1,6 +1,7 @@
 // The sampler clamps the per-stream FPS to a budget. It is the simplest
-// shape of an "adaptive sampler"; Phase 2 swaps in a feedback loop that
-// raises and lowers the sample rate based on inference pressure.
+// shape of an "adaptive sampler"; a future revision swaps in a feedback
+// loop that raises and lowers the sample rate based on inference
+// pressure.
 package operators
 
 import (

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: agent-service
-description: AegisVision Phase 4 autonomous agents runtime
+description: AegisVision autonomous agents runtime
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

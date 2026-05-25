@@ -1,22 +1,101 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
-metadata: { name: triton, namespace: aegis-inference }
+metadata:
+  name: triton
+  namespace: aegis-inference
+  labels:
+    app.kubernetes.io/name: triton
+    app.kubernetes.io/part-of: aegisvision
 spec:
-  podSelector: { matchLabels: { app.kubernetes.io/name: triton } }
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: triton
   policyTypes: [Ingress, Egress]
   ingress:
+    # inference-router → Triton inference traffic.
     - from:
-        - podSelector: { matchLabels: { app.kubernetes.io/name: inference-router } }
-      ports: [{ port: 8000, protocol: TCP }, { port: 8001, protocol: TCP }]
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: inference-router
+      ports:
+        - port: {{ .Values.ports.http }}
+          protocol: TCP
+        - port: {{ .Values.ports.grpc }}
+          protocol: TCP
+    # model-registry → Triton management traffic.
     - from:
-        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: aegis-observability } }
-          podSelector: { matchLabels: { app.kubernetes.io/name: prometheus } }
-      ports: [{ port: 8002, protocol: TCP }]
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: aegis-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: model-registry
+      ports:
+        - port: {{ .Values.ports.http }}
+          protocol: TCP
+    # shadow-inference + prefetch (both live in aegis-system).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: aegis-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: shadow-inference-service
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: aegis-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prefetch-service
+      ports:
+        - port: {{ .Values.ports.http }}
+          protocol: TCP
+        - port: {{ .Values.ports.grpc }}
+          protocol: TCP
+    # Prometheus → Triton metrics port.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: aegis-observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: {{ .Values.ports.metrics }}
+          protocol: TCP
   egress:
+    # OTel collector (traces).
     - to:
-        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: aegis-observability } }
-          podSelector: { matchLabels: { app.kubernetes.io/name: otel-collector } }
-      ports: [{ port: 4317, protocol: TCP }]
-    # Egress to S3 for model pulls.
-    - to: [] # cluster-wide — restricted by Cilium L7 in production
-      ports: [{ port: 443, protocol: TCP }]
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: aegis-observability
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: otel-collector
+      ports:
+        - port: 4317
+          protocol: TCP
+    # DNS — required for the init container to resolve the model
+    # repository hostname.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # S3 / object storage egress for the model puller. Restricted by
+    # Cilium L7 policy in production to specific S3 endpoints.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.0.0/16    # metadata service
+              - 10.0.0.0/8        # cluster
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - port: 443
+          protocol: TCP

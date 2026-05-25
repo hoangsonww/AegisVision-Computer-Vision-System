@@ -1,6 +1,6 @@
 // Command event-service consumes events.v1 from the bus, retains a recent-
-// events ring (placeholder for the ClickHouse-backed read store in Phase 2),
-// and serves the realtime SSE feed the console subscribes to.
+// events ring (placeholder for the ClickHouse-backed read store in
+// production), and serves the realtime SSE feed the console subscribes to.
 package main
 
 import (

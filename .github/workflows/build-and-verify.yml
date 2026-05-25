@@ -36,7 +36,7 @@ jobs:
           - pkg/intelligence
           - pkg/canary
           - pkg/autonomy
-          # phase 0–3 services
+          # foundations / control + data plane / multi-tenant / edge / storage services
           - services/api-gateway
           - services/pipeline-service
           - services/stream-manager
@@ -59,21 +59,21 @@ jobs:
           - services/auth-proxy
           - services/edge-gateway
           - services/cost-accounting
-          # phase 4 — intelligence
+          # intelligence tier
           - services/llm-gateway
           - services/agent-service
           - services/policy-gate-service
           - services/active-learning-service
           - services/nlq-service
           - services/knowledge-service
-          # phase 5 — autonomy
+          # adaptive autonomy
           - services/canary-controller
           - services/shadow-inference-service
           - services/drift-detection-service
           - services/slo-watchdog
           - services/prefetch-service
           - services/autonomy-orchestrator
-          # phase 6 — GA hardening
+          # operations & compliance
           - services/compliance-evidence-service
           # tools
           - tools/conformance

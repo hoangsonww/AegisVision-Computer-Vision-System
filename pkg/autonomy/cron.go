@@ -1,5 +1,5 @@
-// Package autonomy implements the AegisVision Phase 5 continuous
-// autonomy primitives:
+// Package autonomy implements the AegisVision continuous-autonomy
+// primitives:
 //
 //   - Cron — a small cron expression parser (6-field: sec min hour dom mon
 //     dow) with Next() to compute the next tick. We avoid bringing in

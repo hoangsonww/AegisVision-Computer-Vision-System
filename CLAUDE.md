@@ -2,15 +2,26 @@
 
 ## Repo identity
 
-This is the AegisVision monorepo. The canonical reference is the architecture
-& delivery plan in Notion (see memory `reference-aegisvision-arch-doc`). Local
-ADRs in `docs/adr/` mirror the load-bearing decisions.
+This is the AegisVision monorepo — an open computer-vision platform
+**template** that any organization can fork and operate as the backbone
+of their own perception product. The canonical reference is the
+architecture in [`ARCHITECTURE.md`](./ARCHITECTURE.md) and the ADRs in
+[`docs/adr/`](./docs/adr/).
 
-Current state: **Phases 0–6 complete.** Thirty-five Go services including
-the Phase-6 GA-hardening additions (compliance-evidence-service + the
-air-gapped bundle builder + chaos experiments + DR drill harness +
-release pipeline). Shared platform/llm/agent/embeddings/canary/autonomy
-libs, protobuf contracts, deploy manifests (38 Helm charts), 30 ADRs.
+The repo ships 35 Go services + 1 Next.js console, shared
+platform/llm/agent/embeddings/canary/autonomy libs, protobuf contracts,
+deploy manifests (39 Helm charts including a hardened NVIDIA Triton
+chart), and 30 ADRs. Compliance evidence packages for SOC 2, EU AI Act,
+GDPR DPIA, and a pen-test scope live under `docs/compliance/`.
+
+**Public framing rule.** AegisVision is presented as an
+adoptable template, not as a phased delivery plan. Do not introduce
+"Phase N" language into user-facing docs, READMEs, the landing page, or
+the console — keep that vocabulary out of anything an adopter or
+auditor reads. Internal references to specific historical milestones
+should use the capability area names (foundations, walking skeleton,
+GPU hot path, multi-tenant + edge + storage, intelligence tier,
+adaptive autonomy, operations & compliance, production console).
 
 ## Commands
 

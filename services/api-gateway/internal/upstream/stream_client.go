@@ -34,7 +34,7 @@ func (c *StreamClient) Close() error { return c.conn.Close() }
 func (c *StreamClient) Get(ctx context.Context, id string) (*controlv1.Stream, error) {
 	resp, err := c.cli.GetStream(ctx, &controlv1.GetStreamRequest{Id: id})
 	if isStreamNotFound(err) {
-		return nil, nil
+		return nil, nil //nolint:nilnil // documented (nil, nil) sentinel — handler maps to 404
 	}
 	if err != nil {
 		return nil, err

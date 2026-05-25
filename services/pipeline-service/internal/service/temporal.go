@@ -1,6 +1,6 @@
-// Temporal-backed Deployer. We don't pull in the Temporal SDK at this
-// point — that's a large dep and operationally it's still a Phase 2 piece
-// we'd configure via Helm.  Instead this file gives us:
+// Temporal-backed Deployer. We don't pull in the Temporal SDK directly
+// — that's a large dependency, configured via Helm when used. Instead
+// this file gives us:
 //
 //   - the TemporalDeployer struct that satisfies the Deployer interface,
 //   - a concrete HTTP-call to Temporal's frontend gRPC gateway, OR the

@@ -4,17 +4,18 @@
 
 ## Context
 
-Phase 5 promotes models and pipelines progressively: 5% → 25% → 50% →
-100%. Between steps the controller must decide *is the candidate worse
-than the baseline?* with confidence. The naive choices are bad:
+The canary controller promotes models and pipelines progressively:
+5% → 25% → 50% → 100%. Between steps the controller must decide *is
+the candidate worse than the baseline?* with confidence. The naive
+choices are bad:
 
 - **Equal-rate threshold (`candidate < baseline - 0.01`).** Triggers on
   noise at low traffic, ignores real regressions when the baseline is
   already saturated at 100%.
 - **Naive t-test on every observation.** Multiple-comparisons problem;
   false positives compound across steps.
-- **Manual promotion only.** Phase 5's whole point is removing this
-  manual burden where it's safe to do so.
+- **Manual promotion only.** Adaptive autonomy's whole point is
+  removing this manual burden where it's safe to do so.
 
 We need a test that handles small n gracefully and that is cheap to
 recompute on every controller tick.

@@ -1,9 +1,9 @@
 // Package store is the persistence boundary for pipeline-service.
 //
-// The Phase 0 skeleton uses an in-memory implementation with the same
-// interface a future Postgres-backed store will satisfy. The cursor-based
-// listing is wired here because pagination semantics are easiest to validate
-// against the same data structure that holds the items.
+// The walking-skeleton configuration uses an in-memory implementation
+// with the same interface a Postgres-backed store satisfies. The
+// cursor-based listing is wired here because pagination semantics are
+// easiest to validate against the same data structure that holds the items.
 package store
 
 import (

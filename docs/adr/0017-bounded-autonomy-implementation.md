@@ -10,10 +10,10 @@ advisory, and reversible operations within guardrails; any consequential
 or outward-facing action requires a human approval through a Temporal-style
 signal gate.
 
-Phase 4 makes this real. We need to ship the actual policy gate, the
-actual agent runtime, and the actual integration between the two — without
-backsliding on the principle that *"an autonomous platform that can change
-production must not be able to do so unreviewably"*.
+The intelligence tier makes this real. We need an actual policy gate,
+an actual agent runtime, and an actual integration between the two —
+without backsliding on the principle that *"an autonomous platform that
+can change production must not be able to do so unreviewably"*.
 
 ## Decision
 
@@ -39,8 +39,9 @@ subscribes and resumes the awaiting session via `Resume()`, feeding the
 human's chosen result back into the LLM context as a tool result.
 
 We deliberately model the gate as a database row plus a bus signal — not
-as a Temporal signal — for Phase 4. Phase 5 will migrate this into a
-proper Temporal workflow (same external API, durable timer for expiry).
+as a Temporal signal — for the initial implementation. A later
+migration may move this into a proper Temporal workflow (same external
+API, durable timer for expiry).
 
 ## Consequences
 
