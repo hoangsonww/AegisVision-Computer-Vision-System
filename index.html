@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AegisVision — A distributed, autonomous, GPU-native visual-intelligence OS</title>
-<meta name="description" content="AegisVision is a 35-service Go monorepo for distributed GPU-native realtime visual intelligence: bounded-autonomy agents, Wilson canary promotion, same-URN shadow inference, multi-window SLOs, signed air-gapped install. Built by Son Nguyen.">
+<meta name="description" content="AegisVision is an open, Apache 2.0 computer-vision platform template built around NVIDIA Triton — 35 Go services, MIG-aware GPU scheduling, bounded-autonomy agents, Wilson canary promotion, same-URN shadow inference, multi-window SLOs, signed air-gapped install. Fork it as the backbone of your CV product.">
 <meta name="keywords" content="AegisVision, computer vision, distributed systems, GPU, Kubernetes, agents, LLM, bounded autonomy, canary, shadow inference, drift, SLO, Istio, Vault, Cosign, SLSA, air-gap, Son Nguyen, hoangsonww">
 <meta name="author" content="Son Nguyen">
 <meta name="theme-color" content="#0a1530">
 <meta property="og:title" content="AegisVision — distributed GPU-native visual intelligence">
-<meta property="og:description" content="35 Go services. 38 Helm charts. 30 ADRs. Bounded-autonomy agents. Wilson canary. Same-URN shadow. Signed air-gapped install. Built by Son Nguyen.">
+<meta property="og:description" content="An open computer-vision platform template. 35 Go services. 39 Helm charts (incl. hardened NVIDIA Triton). 30 ADRs. Bounded-autonomy agents. Wilson canary. Same-URN shadow. Signed air-gapped install. Fork it.">
 <meta property="og:url" content="https://github.com/hoangsonww/AegisVision-Computer-Vision-System">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://hoangsonww.github.io/AegisVision-Computer-Vision-System/og-image.svg">
@@ -887,16 +887,18 @@
   <div class="hero-inner">
     <div class="hero-shield">🛡️</div>
     <h1 class="hero-title">
-      Distributed, autonomous,<br/>
-      <span class="accent">GPU-native visual intelligence.</span>
+      A computer-vision platform<br/>
+      <span class="accent">template you can fork.</span>
     </h1>
     <p class="hero-tag">
-      AegisVision is a 35-service Go monorepo for realtime multimodal perception,
-      reasoning, and orchestration. Bounded-autonomy agents, Wilson canary, same-URN
-      shadow, multi-window SLOs, signed air-gapped install — built from scar tissue.
+      AegisVision is a 35-service Go monorepo built around NVIDIA Triton
+      that any organization can adopt as the backbone of their own realtime
+      perception product. Bounded-autonomy agents, Wilson canary, same-URN
+      shadow, multi-window SLOs, signed air-gapped install — wired up so
+      you don't have to.
     </p>
     <p class="hero-subtag">
-      Built by Son Nguyen · Apache 2.0 · Phases 0–7 complete (incl. production Next.js console)
+      Apache 2.0 · NVIDIA Triton + MIG · 35 Go services · 39 Helm charts · production Next.js console
     </p>
 
     <div class="hero-buttons">
@@ -945,10 +947,12 @@
     </p>
 
     <div class="callout">
-      AegisVision is what you get when you take the hardest lessons learned from
-      operating large CV platforms (Matroid, Scale, Roboflow, ClearML, Sensible)
-      — and rebuild from first principles around the constraints that
-      <strong>actually</strong> dominate at scale.
+      AegisVision is an <strong>open template</strong> for the platform you'd
+      build if you took every hard lesson from operating large CV platforms
+      (Matroid, Scale, Roboflow, ClearML, Sensible) and turned them into
+      load-bearing rules. Fork it, plug in your NVIDIA Triton model
+      repository and your cameras, and you're operating the backbone of a
+      production CV product.
     </div>
 
     <h3 class="subsec-title">The five non-negotiables</h3>
@@ -985,20 +989,20 @@
       </div>
     </div>
 
-    <h3 class="subsec-title">Status today</h3>
-    <p>Phases 0–6 complete. The code is end-to-end green; operational validation (real SOC 2 audit, real 10k-stream soak, real production cluster) is what remains.</p>
+    <h3 class="subsec-title">What's in the box</h3>
+    <p>The template ships every capability area below as code, charts, and ADRs. Adopting it means inheriting all of this on day one — your audit window and physical cluster are what remain.</p>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>Phase</th><th>Theme</th><th>Status</th></tr></thead>
+        <thead><tr><th>Capability area</th><th>What you get</th></tr></thead>
         <tbody>
-          <tr><td>0</td><td>Foundations: proto contracts, <code class="inline">pkg/platform</code>, walking-skeleton spine</td><td><span class="pill pill-ok">complete</span></td></tr>
-          <tr><td>1</td><td>Glass-to-event walking skeleton (5 services + NATS)</td><td><span class="pill pill-ok">complete</span> · p95 ≈ 2.7 ms local</td></tr>
-          <tr><td>2</td><td>GPU hot path: Triton + MIG + inference-router + canary plumbing</td><td><span class="pill pill-ok">complete</span></td></tr>
-          <tr><td>3</td><td>Multi-tenant + edge + storage tier (Patroni / ClickHouse / Vault)</td><td><span class="pill pill-ok">complete</span></td></tr>
-          <tr><td>4</td><td>Intelligence tier: LLM gateway + agent + RAG + bounded autonomy</td><td><span class="pill pill-ok">complete</span></td></tr>
-          <tr><td>5</td><td>Adaptive autonomy: canary + shadow + drift + SLO + prefetch</td><td><span class="pill pill-ok">complete</span></td></tr>
-          <tr><td>6</td><td>GA hardening: compliance evidence + air-gap + chaos + DR drills + release</td><td><span class="pill pill-ok">complete</span></td></tr>
-          <tr><td>7</td><td>Production console: Next.js 14 + Tailwind UI exposing every public endpoint (33 routes)</td><td><span class="pill pill-ok">complete</span></td></tr>
+          <tr><td>Foundations</td><td>Buf-managed proto contracts, the golden-path <code class="inline">pkg/platform</code> library, and a walking-skeleton spine.</td></tr>
+          <tr><td>Glass-to-event ingest</td><td>api-gateway, pipeline-service, stream-manager, event-service, dataplane-runner. p95 ≈ 2.7 ms on local hardware (300 ms target).</td></tr>
+          <tr><td>GPU hot path</td><td><strong>NVIDIA Triton Inference Server</strong> with MIG-aware scheduling, dynamic batching, response cache, model warm-up, KServe v2 client; inference-router + gpu-scheduler + canary plumbing.</td></tr>
+          <tr><td>Multi-tenant + edge + storage</td><td>Patroni Postgres, ClickHouse, Vault transit per-tenant keys, Redis Sentinel, k3s edge profile with outbox sync.</td></tr>
+          <tr><td>Intelligence tier</td><td>One LLM/VLM gateway, bounded-autonomy agent runtime, RAG citation discipline, NLQ, active learning, policy-gate-service.</td></tr>
+          <tr><td>Adaptive autonomy</td><td>Canary controller (Wilson lower bound), shadow inference, drift (JS/KL/TVD), multi-window SLO burn-rate, predictive prefetch, autonomy orchestrator.</td></tr>
+          <tr><td>Operations & compliance</td><td>Compliance evidence service, air-gapped bundle builder, chaos harness, DR drill runner, release automation, append-only audit log.</td></tr>
+          <tr><td>Production console</td><td>Next.js 14 + Tailwind. 33 routes covering every public REST endpoint.</td></tr>
         </tbody>
       </table>
     </div>
@@ -1204,7 +1208,7 @@ flowchart LR
       <div class="service-tile"><div class="name">edge-gateway</div><div class="desc">k3s-friendly outbox sync to core.</div></div>
     </div>
 
-    <h3 class="subsec-title">Intelligence tier <span class="pill pill-accent">Phase 4</span></h3>
+    <h3 class="subsec-title">Intelligence tier</h3>
     <div class="services-grid">
       <div class="service-tile"><div class="name">llm-gateway</div><div class="desc">One OpenAI-compatible endpoint. Sanitizer + PII redactor + refusal threshold.</div></div>
       <div class="service-tile"><div class="name">agent-service</div><div class="desc">Bounded-autonomy runtime. Tier-3 routes via policy-gate. Auto-resume on gate.resolved.</div></div>
@@ -1214,7 +1218,7 @@ flowchart LR
       <div class="service-tile"><div class="name">nlq-service</div><div class="desc">Natural-language → structured query.</div></div>
     </div>
 
-    <h3 class="subsec-title">Adaptive autonomy <span class="pill pill-accent">Phase 5</span></h3>
+    <h3 class="subsec-title">Adaptive autonomy</h3>
     <div class="services-grid">
       <div class="service-tile"><div class="name">canary-controller</div><div class="desc">Wilson lower-bound + min-sample floor proportion test.</div></div>
       <div class="service-tile"><div class="name">shadow-inference-service</div><div class="desc">Same-URN candidate-vs-baseline. Tenant never sees candidate.</div></div>
@@ -1224,7 +1228,7 @@ flowchart LR
       <div class="service-tile"><div class="name">autonomy-orchestrator</div><div class="desc">Cron + signal-driven agent sessions. No second runtime.</div></div>
     </div>
 
-    <h3 class="subsec-title">GA hardening <span class="pill pill-accent">Phase 6</span></h3>
+    <h3 class="subsec-title">Operations & compliance</h3>
     <div class="services-grid">
       <div class="service-tile"><div class="name">compliance-evidence-service</div><div class="desc">Composes per-control evidence; owns no data.</div></div>
       <div class="service-tile"><div class="name">semantic-search</div><div class="desc">Cross-tenant semantic search over events + clips.</div></div>
@@ -1232,7 +1236,7 @@ flowchart LR
       <div class="service-tile"><div class="name">metering-service</div><div class="desc">Billable-event aggregation from inference.completed.v1.</div></div>
     </div>
 
-    <h3 class="subsec-title">Production console <span class="pill pill-accent">Phase 7</span></h3>
+    <h3 class="subsec-title">Production console</h3>
     <div class="services-grid">
       <div class="service-tile"><div class="name">console</div><div class="desc">Next.js 14 + Tailwind. 33 routes covering every public REST endpoint: dashboard with live SSE, streams + pipelines + models, agents with citations + tier-3 gate banner, gate inbox, canary decision board, drift heatmap, SLO burn-rate, prefetch grid, knowledge RAG, audit log + chain-verify, tenants, cost, compliance bundles, and more. Conformance-clean Helm chart.</div></div>
     </div>
@@ -1654,27 +1658,36 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
 <!-- ==================== AUTHOR ==================== -->
 <section id="author">
   <div class="container" style="max-width:780px;">
-    <h2 class="section-title">Built by <span class="accent">one person.</span></h2>
+    <h2 class="section-title">Fork it. <span class="accent">Make it yours.</span></h2>
     <p class="section-sub">
-      AegisVision is authored and maintained by Son Nguyen. The author would love to hear from you.
+      AegisVision is an open template under Apache 2.0. Maintained by
+      Son Nguyen and open to contributors. New maintainers welcome.
     </p>
 
     <div class="card" style="text-align:center; padding:38px 28px;">
       <img src="https://github.com/hoangsonww.png" alt="Son Nguyen" style="width:120px;height:120px;border-radius:50%;border:3px solid var(--acc-1);box-shadow:0 0 32px rgba(61,90,241,.5);margin-bottom:18px;" onerror="this.style.display='none'"/>
       <h3 style="font-family: var(--display); font-size:1.6rem; margin-bottom:4px;">Son Nguyen</h3>
-      <p style="color: var(--text-2); margin-bottom:18px;">Author · Maintainer · BDFL</p>
+      <p style="color: var(--text-2); margin-bottom:18px;">Maintainer · open to contributors</p>
       <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
         <a class="btn btn-secondary" href="https://github.com/hoangsonww">⭐ GitHub</a>
         <a class="btn btn-secondary" href="https://linkedin.com/in/hoangsonw">💼 LinkedIn</a>
         <a class="btn btn-secondary" href="https://sonnguyenhoang.com">🌐 sonnguyenhoang.com</a>
         <a class="btn btn-primary" href="mailto:hoangson091104@gmail.com">✉️ Email</a>
       </div>
+      <p style="margin-top:22px; color: var(--text-2); font-size: .96rem;">
+        See <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/TEMPLATE.md">TEMPLATE.md</a>
+        for the rebrand playbook,
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/GOVERNANCE.md">GOVERNANCE.md</a>
+        for how decisions get made, and
+        <a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>
+        to land your first PR.
+      </p>
     </div>
 
     <div class="callout" style="margin-top:32px;">
-      "AegisVision is what you get when you take the hardest lessons learned from
-      operating large CV platforms — and rebuild from first principles around the
-      constraints that <strong>actually</strong> dominate at scale."
+      AegisVision encodes the hardest lessons learned from operating large CV
+      platforms as load-bearing architectural rules — so the next CV product
+      built on top doesn't relearn them at scale.
     </div>
   </div>
 </section>
@@ -1687,7 +1700,7 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
         <div class="logo"></div>
         AegisVision
       </div>
-      <p>A distributed, autonomous, GPU-native visual-intelligence operating system.</p>
+      <p>An open computer-vision platform template — fork it as the backbone of your CV product.</p>
       <p style="font-family: var(--mono); font-size:.84rem; color: var(--text-3); margin-top:14px;">
         Apache 2.0
       </p>
@@ -1695,7 +1708,7 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
         <img src="https://github.com/hoangsonww.png" alt="Son Nguyen" onerror="this.style.display='none'"/>
         <div>
           <div class="author-name">Son Nguyen</div>
-          <div class="author-role">Author · Maintainer</div>
+          <div class="author-role">Maintainer</div>
         </div>
       </div>
     </div>
@@ -1706,7 +1719,6 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
         <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/README.md">README</a></li>
         <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/ARCHITECTURE.md">Architecture</a></li>
         <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/SETUP_GUIDE.md">Setup guide</a></li>
-        <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/ROADMAP.md">Roadmap</a></li>
         <li><a href="https://github.com/hoangsonww/AegisVision-Computer-Vision-System/blob/main/CHANGELOG.md">Changelog</a></li>
       </ul>
     </div>
@@ -1722,7 +1734,7 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
       </ul>
     </div>
     <div class="footer-col">
-      <h4>Author</h4>
+      <h4>Maintainer</h4>
       <ul>
         <li><a href="https://github.com/hoangsonww">github.com/hoangsonww</a></li>
         <li><a href="https://linkedin.com/in/hoangsonw">linkedin.com/in/hoangsonw</a></li>
@@ -1734,7 +1746,7 @@ curl -X POST -H <span class="token-s">'X-Tenant-Id: t-demo'</span> -H <span clas
     </div>
   </div>
   <div class="footer-meta">
-    © 2026 Son Nguyen · Apache License 2.0 · Built solo · Honest about it
+    © 2026 Son Nguyen · Apache License 2.0 · An open computer-vision platform template · Fork it.
   </div>
 </footer>
 

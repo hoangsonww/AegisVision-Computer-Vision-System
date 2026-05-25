@@ -9,7 +9,7 @@
 | --- | --- |
 | **ADR** | Architecture Decision Record. Lives in `docs/adr/`. |
 | **Active learning** | Sampling strategy that picks uncertain + diverse samples for labelling. ADR-0019. |
-| **Adaptive autonomy** | Phase 5 tier: canary, shadow, drift, SLO, prefetch, autonomy-orchestrator. |
+| **Adaptive autonomy** | The capability area covering canary, shadow, drift, SLO, prefetch, and autonomy-orchestrator. |
 | **Agent** | The bounded-autonomy reasoning loop. ADR-0014/0017. |
 | **Air-gapped bundle** | Single signed tarball containing every image + chart + manifest + signature. ADR-0027. |
 | **Annotation** | A label attached to a sample. Owned by `annotation-service`. |
@@ -23,8 +23,8 @@
 | **Candidate (canary)** | The model under evaluation. Promoted only on Wilson lower bound + gate. |
 | **Canary plan** | A statistical comparison of two model versions. ADR-0023. |
 | **Citation discipline** | Every platform-fact answer must cite knowledge-service snippets. ADR-0020. |
-| **Console** | The production Next.js UI at `services/console/`. Exposes every public REST endpoint as a usable page. Phase 7. |
-| **Console (walking-skeleton)** | The Phase-1 HTML+JS placeholder at `services/api-gateway/console/`. Used only for the 5-service skeleton demo. |
+| **Console** | The production Next.js UI at `services/console/`. Exposes every public REST endpoint as a usable page. |
+| **Console (walking-skeleton)** | The minimal vanilla HTML+JS demo at `services/api-gateway/console/`. Used only for the 5-service walking-skeleton demo. |
 | **Claim-check** | Pattern: store bytes in object storage, send only the reference (URN) on the bus. ADR-0008. |
 | **ClickHouse** | Columnar OLAP database for detections + events firehose. ADR-0002. |
 | **Continuous autonomy** | Cron + signal-driven agent sessions. Opens regular agent-service sessions. ADR-0022. |
@@ -50,7 +50,7 @@
 | **HMAC JWT** | Symmetric-signed JWT. **Deliberately not supported.** Sharing the key defeats OIDC. |
 | **Idempotency-Key** | Header on every mutating endpoint; replays cached 24h. |
 | **In-cluster registry** | Where the air-gapped install pushes images. |
-| **Intelligence tier** | Phase 4 tier: LLM gateway, agent, knowledge, policy-gate, NLQ, active-learning. |
+| **Intelligence tier** | The capability area covering LLM gateway, agent, knowledge, policy-gate, NLQ, and active-learning. |
 | **Istio Ambient** | Sidecar-less mesh. Used for mTLS STRICT. |
 | **JS divergence** | Jensen-Shannon. Symmetric, bounded. Default drift metric. ADR-0025. |
 | **JWKS** | JSON Web Key Set. IdP's public-key endpoint for JWT verification. |
@@ -97,6 +97,6 @@
 | **TVD** | Total Variation Distance. Bounded, interpretable. ADR-0025. |
 | **URN** | Uniform Resource Name. Claim-check identifier (`cc://tenant/stream/seq`). |
 | **Vault transit** | Per-tenant encryption keys. Destruction = crypto-shredding. |
-| **Walking skeleton** | Phase 1 (ADR-0016): thin but complete end-to-end. |
+| **Walking skeleton** | The thin-but-complete end-to-end slice of the platform (ADR-0016). Five services + embedded NATS in five terminals; produces a real detection event end-to-end. |
 | **Wilson lower bound** | Confidence-interval method for binomial proportions. Canary stat. ADR-0023. |
 | **Zone** | A polygon region used in rule predicates. |

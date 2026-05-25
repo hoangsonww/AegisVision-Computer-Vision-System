@@ -1,0 +1,65 @@
+name: Lint
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+permissions:
+  contents: read
+
+jobs:
+  golangci-lint:
+    name: golangci-lint (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # Lint the heavy-traffic modules first. Lighter services rely on
+        # the same golden-path code and are covered by the build/test
+        # job; we surface lint at the entry points where it matters most.
+        module:
+          - pkg/platform
+          - pkg/bus
+          - pkg/dataplane
+          - pkg/llm
+          - pkg/agent
+          - pkg/canary
+          - pkg/autonomy
+          - services/api-gateway
+          - services/inference-router
+          - services/agent-service
+          - services/policy-gate-service
+          - services/canary-controller
+          - services/event-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache: true
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v1.62
+          working-directory: ${{ matrix.module }}
+          args: --config=${{ github.workspace }}/.golangci.yml --timeout=5m
+
+  shellcheck:
+    name: shellcheck (tools/scripts + tools/airgap + tools/dr-drills)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: -e SC2086 -e SC2046
+        with:
+          severity: warning
+          scandir: ./tools

@@ -1,9 +1,10 @@
 // The detector operator runs an inference Detector against the claim-check
 // payload referenced by each frame, attaches detections to the envelope,
-// and forwards. The Detector interface is the seam Phase 2 will swap a
-// Triton client into; the walking skeleton ships SyntheticDetector which
-// reads the JSON payload back from the ring and produces a single
-// detection per frame at the encoded coordinates.
+// and forwards. The Detector interface is the seam where a real Triton
+// client (production), a DeepStream pipeline, or a custom backend plugs
+// in; the walking skeleton ships SyntheticDetector which reads the JSON
+// payload back from the ring and produces a single detection per frame
+// at the encoded coordinates.
 package operators
 
 import (
@@ -18,8 +19,10 @@ import (
 )
 
 // Detector is the abstract interface any model serving layer satisfies.
-// The Phase 2 Triton client will implement this; until then,
-// SyntheticDetector implements it deterministically.
+// The NVIDIA Triton client in services/inference-router/internal/detector
+// implements this against a real Triton Inference Server;
+// SyntheticDetector implements it deterministically for tests and the
+// walking-skeleton demo.
 type Detector interface {
 	// Detect produces zero or more Detections for the supplied frame payload.
 	// The payload bytes are whatever shape the upstream operator agreed with

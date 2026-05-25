@@ -86,7 +86,7 @@ breaking changes per semver §4. The first GA release will be v1.0.0.
 CI cuts entries here automatically via release-please when commits
 landing on `main` follow [Conventional Commits](https://www.conventionalcommits.org/).
 
-## [0.5.0] — 2026-05-21 — Phase 6: GA hardening
+## [0.5.0] — 2026-05-21 — Operations & compliance hardening
 
 ### Features
 
@@ -119,7 +119,7 @@ landing on `main` follow [Conventional Commits](https://www.conventionalcommits.
 - DR drill scripts (`tools/dr-drills/`) — runnable Postgres + ClickHouse
   + Vault restore drills.
 
-## [0.4.0] — 2026-05-21 — Phase 5: Continuous autonomy
+## [0.4.0] — 2026-05-21 — Continuous autonomy
 
 ### Features
 
@@ -137,7 +137,7 @@ landing on `main` follow [Conventional Commits](https://www.conventionalcommits.
   inference-router. Per ADR-0026.
 - `pkg/canary` + `pkg/autonomy` shared libraries.
 
-## [0.3.0] — 2026-05-21 — Phase 4: Intelligence
+## [0.3.0] — 2026-05-21 — Intelligence tier
 
 ### Features
 
@@ -156,7 +156,7 @@ landing on `main` follow [Conventional Commits](https://www.conventionalcommits.
 - Prompt-injection defense-in-depth (sanitizer + PII redactor +
   refusal threshold). Per ADR-0021.
 
-## [0.2.0] — 2026-05-21 — Phase 3: Scale & enterprise
+## [0.2.0] — 2026-05-21 — Multi-tenant scale & enterprise
 
 ### Features
 
@@ -168,14 +168,15 @@ landing on `main` follow [Conventional Commits](https://www.conventionalcommits.
 - Per-tenant rate-limit middleware; resource quotas; redaction operator.
 - GDPR + EU AI Act + SOC 2 control documents.
 
-## [0.1.0] — 2026-05-21 — Phase 0–2
+## [0.1.0] — 2026-05-21 — Walking skeleton + core platform
 
 ### Features
 
 Initial walking skeleton + core platform.
-- Phase 0: monorepo structure, ADRs, Buf-managed proto, GitOps base.
-- Phase 1: api-gateway, pipeline-service, stream-manager, event-service,
-  dataplane-runner. End-to-end glass-to-event ≈ 2.7 ms p95.
-- Phase 2: full 22-service catalog, ClickHouse + Kafka, DAG compiler +
-  YAML loader + visual editor, Triton model serving, conformance-gated
-  supply chain.
+- Foundations: monorepo structure, ADRs, Buf-managed proto, GitOps base.
+- Glass-to-event walking skeleton: api-gateway, pipeline-service,
+  stream-manager, event-service, dataplane-runner. End-to-end
+  glass-to-event ≈ 2.7 ms p95.
+- Full 22-service catalog, ClickHouse + Kafka, DAG compiler +
+  YAML loader + visual editor, NVIDIA Triton model serving,
+  conformance-gated supply chain.

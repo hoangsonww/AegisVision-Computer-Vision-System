@@ -1,4 +1,4 @@
-// Package intelligence holds the Phase 4 platform-internal domain types that
+// Package intelligence holds the intelligence-tier platform-internal domain types that
 // mirror proto/aegisvision/intelligence/v1. Services and the agent/LLM libs
 // import these directly so they don't pull the protobuf dependency just to
 // shape an HTTP payload. The proto files remain the canonical contract

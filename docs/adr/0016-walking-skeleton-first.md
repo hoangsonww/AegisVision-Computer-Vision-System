@@ -13,20 +13,21 @@ moment.
 
 ## Decision
 
-Phase 1 is a **walking skeleton**: one stream → Triton inference →
-detections → events → console; control plane and data plane *actually
-separated*; claim-check *actually used*; OTel traces actually flowing from
-the browser to a Kafka header.
+The platform's first deliverable is a **walking skeleton**: one stream →
+NVIDIA Triton inference → detections → events → console; control plane
+and data plane *actually separated*; claim-check *actually used*; OTel
+traces actually flowing from the browser to a Kafka header.
 
-Every Phase 0 building block (this commit) exists to make Phase 1
-achievable: protobuf contracts, golden-path platform library, minimum two
-services, deploy manifests, ADRs, CI.
+The platform's foundational building blocks (protobuf contracts,
+golden-path platform library, the minimum two services on each plane,
+deploy manifests, ADRs, CI) exist to make the walking skeleton
+achievable.
 
 ## Consequences
 
-- We will accept lower per-component fidelity early in exchange for
+- Lower per-component fidelity early is acceptable in exchange for
   end-to-end integration earlier.
-- Teams may not start their second feature until the walking skeleton
-  reaches Phase 1 exit criteria.
+- New work on a capability does not begin until the walking skeleton it
+  depends on is green.
 - New services do not get a slot in the GitOps fleet until they have a
   proven path through the gateway, mesh, OPA, and observability stack.

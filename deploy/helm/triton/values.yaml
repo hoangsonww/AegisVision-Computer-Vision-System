@@ -1,30 +1,154 @@
+# NVIDIA Triton Inference Server — enterprise-grade defaults.
+#
+# This chart is one of the load-bearing components of the AegisVision
+# platform: the GPU hot path runs through Triton. The defaults here
+# encode the operational rules from `docs/triton.md` so a fresh install
+# is production-shaped on day one.
+#
+# To override any of the values below, supply your own values.yaml at
+# `helm install`. The reference values below are tuned for an inference
+# pool of MIG-partitioned A100 / H100 nodes; smaller clusters should
+# revise `replicaCount`, the resource block, and `autoscaling.maxReplicas`.
+
 image:
   repository: nvcr.io/nvidia/tritonserver
+  # 24.10-py3 is the current LTS image used in the air-gap bundle and the
+  # release pipeline. Update lock-step with the bundle so signatures match.
   tag: "24.10-py3"
   pullPolicy: IfNotPresent
+  # Optional: image pull secret name if you mirror nvcr.io to a private
+  # registry. Leave empty when pulling directly from nvcr.io.
+  pullSecret: ""
+
+# Two replicas is the floor for HA. The HPA scales above this on Triton's
+# own queue-duration metric (see `autoscaling.queueDurationTargetMicros`).
 replicaCount: 2
 env: prod
+# Triton's own log verbosity. 0 = INFO. Crank to 1 only when debugging a
+# model-load issue; verbose logging hurts throughput.
 logLevel: info
 
-# GPU placement. MIG profiles are advertised via the GPU operator; this
-# selector pins the deployment to nodes that publish the right resource.
+# GPU placement. The default selector pulls Triton onto MIG-partitioned
+# nodes published by the NVIDIA GPU Operator. Per ADR-0003, production
+# Triton MUST run on MIG slices — never on whole GPUs.
 gpu:
   resourceName: nvidia.com/mig-1g.10gb
   count: 1
+  # If your fleet has heterogeneous MIG profiles, set this to the profile
+  # you want THIS Triton pool to consume. The GPU operator advertises
+  # profiles as separate extended resources.
+  migProfile: 1g.10gb
 nodeSelector:
   aegisvision.io/pool: gpu-inference
+  # Triton requires the NVIDIA driver + nvidia-container-toolkit. The GPU
+  # operator labels nodes with `nvidia.com/gpu.present=true` once ready.
+  nvidia.com/gpu.present: "true"
 tolerations:
   - key: nvidia.com/gpu
     operator: Exists
     effect: NoSchedule
+  - key: aegisvision.io/inference-pool
+    operator: Exists
+    effect: NoSchedule
+# Spread replicas across nodes so a node loss does not take out a whole
+# Triton pool. The platform-tier scheduler honours this hint.
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels: { app.kubernetes.io/name: triton }
 
-# Model repository on object storage. Triton mounts via s3fs / a CSI driver,
-# OR the chart can run a model-puller init container to pre-warm the local
-# directory.
+# --- Model repository -------------------------------------------------------
+# Triton loads model artifacts from a "model repository". We pull the
+# repository onto a writable emptyDir at pod start via an init container.
+# A puller is required because Triton expects a POSIX path; a CSI mount
+# from object storage would also work but is more operationally complex.
 modelRepository:
   uri: s3://aegis-models/triton-repo
   pullerImage: amazon/aws-cli:2.17
+  region: us-east-1
+  # AWS credentials are sourced from the pod's ServiceAccount via IRSA
+  # (set `serviceAccount.eksRoleArn` in your overlay) or from an
+  # ExternalSecret-managed Secret named `triton-s3-credentials`.
+  credentialsSecret: triton-s3-credentials
+  # Sync flags. `--exact-timestamps` is important: it avoids re-downloading
+  # the same blob on rolling restarts.
+  syncFlags: "--no-progress --exact-timestamps"
+  # When `false`, the puller succeeds on an empty repository (Triton then
+  # starts with no models — this is the production-shape posture; models
+  # are loaded explicitly by model-registry). When `true`, the puller
+  # aborts the pod if the bucket is empty (useful for static deployments).
+  failIfEmpty: false
 
+# --- Triton runtime configuration ------------------------------------------
+triton:
+  # Model-control mode. "explicit" is the production posture — Triton
+  # loads NO models at startup and waits for `POST /v2/repository/models/{name}/load`
+  # from `model-registry`. "poll" is the dev posture — Triton polls the
+  # repository every `pollIntervalSeconds`. "none" loads all models at
+  # startup; use only for tiny static deployments.
+  modelControlMode: explicit
+  pollIntervalSeconds: 30
+  # Per-instance rate limiting. Triton enforces this across all models in
+  # the same instance. The value here is "queued executions"; for "max
+  # parallel executions" use `rateLimitMode: execution_count`.
+  rateLimitMode: execution_count
+  # Response cache. The cache stores results keyed by the input tensor
+  # bytes. Models that should not be cached (per-frame detectors) MUST
+  # disable cache in their per-model `config.pbtxt`. Cache size is in bytes;
+  # default 1 GiB.
+  responseCache:
+    enabled: true
+    sizeBytes: 1073741824
+  # Backends. Triton can preload backend shared libraries; the default
+  # set covers TensorRT, ONNX Runtime, PyTorch, TensorFlow, Python, and
+  # Ensemble. Trim this list if you want to lock the platform to a
+  # smaller subset for supply-chain reasons.
+  backends:
+    - tensorrt
+    - onnxruntime
+    - pytorch
+    - tensorflow
+    - python
+    - ensemble
+  # Strict model configuration. `false` lets Triton auto-fill some fields
+  # from the framework metadata (useful for TensorRT engines). Production
+  # deployments should ship complete `config.pbtxt` files and flip this
+  # to `true` to refuse mis-configured models loudly.
+  strictModelConfig: false
+  # Allow GPU metrics + CPU metrics. Disable CPU metrics if you have a
+  # noisy-neighbour scrape budget.
+  allowGpuMetrics: true
+  allowCpuMetrics: true
+  # Exit timeout — how long Triton will wait for in-flight inferences to
+  # complete on graceful shutdown. The PDB + HPA scale-down cooldown
+  # together ensure we never drain faster than this.
+  exitTimeoutSeconds: 30
+  # Model load thread count. Caps concurrent loads; prevents storms when
+  # `model-registry` issues many loads at once.
+  modelLoadThreadCount: 4
+  # Pin-memory pool for shared-memory I/O. Required for the gRPC streaming
+  # client. Size in bytes; default 256 MiB.
+  pinnedMemoryPoolByteSize: 268435456
+  # Per-GPU CUDA memory pool. Triton uses this to avoid per-request mallocs.
+  # Size in bytes; default 1 GiB.
+  cudaMemoryPoolByteSize: 1073741824
+  # Buffer manager thread count. Triton uses these to copy tensors in/out.
+  bufferManagerThreadCount: 2
+
+# --- Ports ------------------------------------------------------------------
+# Triton exposes three distinct ports. They MUST be separated so the
+# AuthorizationPolicy can ALLOW Prometheus to scrape metrics without
+# being able to reach the inference surface.
+ports:
+  http: 8000
+  grpc: 8001
+  metrics: 8002
+
+# --- Resources --------------------------------------------------------------
+# These are starts. Calibrate against your model mix; see `docs/triton.md`
+# section "Capacity planning" for the methodology.
 resources:
   requests:
     cpu: "2"
@@ -33,16 +157,78 @@ resources:
     cpu: "8"
     memory: 32Gi
 
+# --- Autoscaling ------------------------------------------------------------
+# The HPA scales on CPU (cheap signal) AND on Triton's own queue
+# duration (the right signal). The queue-duration metric requires KEDA
+# or Prometheus Adapter; when those are not installed, the HPA falls
+# back to CPU only.
 autoscaling:
   enabled: true
   minReplicas: 2
   maxReplicas: 50
   targetCPUUtilizationPercentage: 60
-  # Triton-specific: scale on queue duration too. KEDA + Triton metrics
-  # provides a richer signal in production.
+  # The maximum acceptable Triton queue duration (p95) in microseconds.
+  # When p95 exceeds this for >30s the HPA scales out. Default 5 ms —
+  # tune this against your glass-to-event SLO.
+  queueDurationTargetMicros: 5000
+  # Use KEDA when present. When `false`, the HPA uses only the CPU metric.
+  useKEDA: true
+  scaleDown:
+    stabilizationWindowSeconds: 300
+  scaleUp:
+    stabilizationWindowSeconds: 30
+
+# --- Workload identity ------------------------------------------------------
+serviceAccount:
+  create: true
+  # If your platform uses SPIRE for workload identity, the SPIFFE ID is
+  # issued by the platform-tier installation; leave this empty.
+  eksRoleArn: ""
+  annotations: {}
 
 priorityClassName: aegis-data-plane
-serviceMonitor: { enabled: true, interval: 15s }
 
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  # Triton's metrics are listed at https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/metrics.html
+  # We surface them under their original names — the inference-router and
+  # canary-controller dashboards depend on those exact label names.
+
+# --- Pod Disruption Budget --------------------------------------------------
+pdb:
+  minAvailable: 50%
+
+# --- Probes -----------------------------------------------------------------
+# Triton exposes /v2/health/live and /v2/health/ready on the HTTP port.
+# - liveness flips when Triton itself is unresponsive.
+# - readiness flips when ANY model in the repository is in an
+#   unrecoverable error state. Tight readiness keeps traffic off a pod
+#   that cannot serve.
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 6
+  startup:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 60   # allow up to 5 minutes for cold start with model warmup
+
+# --- Volumes ----------------------------------------------------------------
+volumes:
+  models:
+    sizeLimit: 50Gi
+  cache:
+    sizeLimit: 5Gi
+
+# --- OTel -------------------------------------------------------------------
 otel:
   endpoint: otel-collector.aegis-observability.svc.cluster.local:4317

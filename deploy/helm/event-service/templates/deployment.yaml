@@ -3,13 +3,25 @@ kind: Deployment
 metadata:
   name: event-service
   namespace: aegis-system
-  labels: { app.kubernetes.io/name: event-service }
+  labels:
+    app.kubernetes.io/name: event-service
+    app.kubernetes.io/part-of: aegisvision
+    app.kubernetes.io/component: event-tier
 spec:
   replicas: {{ .Values.replicaCount }}
-  selector: { matchLabels: { app.kubernetes.io/name: event-service } }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: event-service
   template:
     metadata:
-      labels: { app.kubernetes.io/name: event-service }
+      labels:
+        app.kubernetes.io/name: event-service
+        app.kubernetes.io/part-of: aegisvision
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8091"
@@ -17,7 +29,23 @@ spec:
     spec:
       serviceAccountName: event-service
       priorityClassName: {{ .Values.priorityClassName | quote }}
-      securityContext: { runAsNonRoot: true, runAsUser: 65532, fsGroup: 65532, seccompProfile: { type: RuntimeDefault } }
+      # SSE subscribers hold long-lived connections; give them time to
+      # cleanly disconnect on rollout.
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: event-service
       containers:
         - name: event-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -25,20 +53,51 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-            capabilities: { drop: [ALL] }
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop: [ALL]
           ports:
-            - { name: http, containerPort: 8090 }
-            - { name: metrics, containerPort: 8091 }
+            - name: http
+              containerPort: 8090
+              protocol: TCP
+            - name: metrics
+              containerPort: 8091
+              protocol: TCP
           env:
-            - { name: AEGIS_ENV, value: {{ .Values.env | quote }} }
-            - { name: AEGIS_VERSION, value: {{ .Values.image.tag | quote }} }
-            - { name: AEGIS_LOG_LEVEL, value: {{ .Values.logLevel | quote }} }
-            - { name: AEGIS_HTTP_ADDR, value: ":8090" }
-            - { name: AEGIS_HEALTH_ADDR, value: ":8091" }
-            - { name: AEGIS_NATS_URL, value: {{ .Values.nats.url | quote }} }
-            - { name: AEGIS_EMBED_NATS, value: "false" }
-            - { name: AEGIS_EVENT_RING_CAP, value: "{{ .Values.ringCapacity }}" }
-            - { name: AEGIS_OTLP_ENDPOINT, value: {{ .Values.otel.endpoint | quote }} }
-          readinessProbe: { httpGet: { path: /readyz, port: metrics }, initialDelaySeconds: 2, periodSeconds: 5 }
-          livenessProbe:  { httpGet: { path: /healthz, port: metrics }, initialDelaySeconds: 10, periodSeconds: 10 }
+            - name: AEGIS_ENV
+              value: {{ .Values.env | quote }}
+            - name: AEGIS_VERSION
+              value: {{ .Values.image.tag | quote }}
+            - name: AEGIS_LOG_LEVEL
+              value: {{ .Values.logLevel | quote }}
+            - name: AEGIS_HTTP_ADDR
+              value: ":8090"
+            - name: AEGIS_HEALTH_ADDR
+              value: ":8091"
+            - name: AEGIS_NATS_URL
+              value: {{ .Values.nats.url | quote }}
+            - name: AEGIS_EMBED_NATS
+              value: "false"
+            - name: AEGIS_EVENT_RING_CAP
+              value: "{{ .Values.ringCapacity }}"
+            - name: AEGIS_OTLP_ENDPOINT
+              value: {{ .Values.otel.endpoint | quote }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 15"]
           resources: {{ toYaml .Values.resources | nindent 12 }}

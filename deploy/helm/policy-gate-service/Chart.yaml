@@ -1,6 +1,6 @@
 apiVersion: v2
 name: policy-gate-service
-description: AegisVision Phase 4 bounded-autonomy human gate
+description: AegisVision bounded-autonomy human gate
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

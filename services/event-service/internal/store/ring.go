@@ -1,6 +1,7 @@
-// Bounded in-memory ring buffer of recent events. The walking skeleton
-// uses this as the read-side store; Phase 2 replaces with a ClickHouse-
-// backed implementation (ADR-0002). The interface is intentionally narrow.
+// Bounded in-memory ring buffer of recent events. The walking-skeleton
+// configuration uses this as the read-side store; production swaps in a
+// ClickHouse-backed implementation (ADR-0002). The interface is
+// intentionally narrow.
 package store
 
 import (

@@ -1,5 +1,6 @@
-// Phase 5 domain types. These mirror proto/aegisvision/autonomy/v1; the
-// proto definitions remain the canonical contract.
+// Adaptive-autonomy domain types. These mirror
+// proto/aegisvision/autonomy/v1; the proto definitions remain the
+// canonical contract.
 package intelligence
 
 import "time"

@@ -5,8 +5,9 @@
 // command for the same tuple is a no-op (idempotent reconcile). A "stop"
 // command cancels the pipeline's context.
 //
-// For the walking skeleton the operator chain is hard-coded; Phase 2 will
-// read the DAG from the Pipeline resource and instantiate operators by name.
+// In the walking-skeleton configuration the operator chain is hard-coded;
+// production deployments read the DAG from the Pipeline resource and
+// instantiate operators by name.
 package runner
 
 import (
@@ -129,8 +130,9 @@ func (r *Runner) handle(parent context.Context, cmd Command) {
 }
 
 // runOne builds and runs the operator chain for one (pipeline, stream) tuple.
-// The walking-skeleton chain is fixed; Phase 2 reads the DAG from the
-// pipeline-service Pipeline resource and instantiates operators by name.
+// The walking-skeleton chain is fixed; production deployments read the
+// DAG from the pipeline-service Pipeline resource and instantiate
+// operators by name.
 func (r *Runner) runOne(ctx context.Context, cmd Command) {
 	ring, err := r.Registry.Ensure(cmd.StreamID, 64)
 	if err != nil {

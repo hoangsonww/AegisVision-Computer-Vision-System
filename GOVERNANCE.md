@@ -2,22 +2,21 @@
 
 > **How AegisVision is governed.**
 
-AegisVision is authored and maintained by a single owner. The
-governance model reflects that — decisions, releases, and security
-fixes all rest with the owner below.
+AegisVision is an open Apache 2.0 template currently maintained by a
+single lead maintainer. The governance model below documents how the
+upstream is run; adopters who fork the template are free to govern
+their downstream however they like.
 
 ---
 
-## Project owner
+## Lead maintainer
 
 **Son Nguyen** ([@hoangsonww](https://github.com/hoangsonww),
-<hoangson091104@gmail.com>) is the sole project owner and benevolent
-dictator for life (BDFL).
+<hoangson091104@gmail.com>) is the current lead maintainer.
 
-The owner has final authority over:
+The lead maintainer has final authority over:
 
 - The architecture (ADRs in `docs/adr/`).
-- The roadmap ([`ROADMAP.md`](./ROADMAP.md)).
 - The release schedule.
 - Codeowners + merge access.
 - Security disclosures.
@@ -28,11 +27,11 @@ The owner has final authority over:
 
 For day-to-day decisions:
 
-- **Trivial changes** (typos, small fixes): the author merges.
-- **Feature work**: an issue or discussion exists; the owner reviews;
-  ship when ready.
-- **Architectural changes**: an ADR exists; the owner approves;
-  PR merges only after the ADR.
+- **Trivial changes** (typos, small fixes): the lead maintainer merges.
+- **Feature work**: an issue or discussion exists; the lead maintainer
+  reviews; ship when ready.
+- **Architectural changes**: an ADR exists; the lead maintainer
+  approves; PR merges only after the ADR.
 - **Security**: see [`SECURITY.md`](./SECURITY.md).
 
 ---
@@ -45,16 +44,19 @@ A contributor becomes a **trusted contributor** after a consistent
 track record of high-quality PRs + reviews. Trusted contributors may
 be granted triage + label permissions.
 
-A contributor becomes a **maintainer** only by invitation from the
-project owner. Maintainership comes with the responsibility to abide
-by the governance documents and the [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
+A contributor becomes a **maintainer** by invitation from the lead
+maintainer once they have a sustained track record of high-quality
+contributions and reviews. Maintainership comes with the
+responsibility to abide by the governance documents and the
+[`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md). The lead maintainer
+expects this list to grow over time.
 
 ---
 
 ## Conflict resolution
 
-For technical disagreements, the owner is the final arbiter, but
-prefers consensus where possible.
+For technical disagreements, the lead maintainer is the final arbiter
+on the upstream template, but prefers consensus where possible.
 
 For interpersonal conflicts: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
 
@@ -62,9 +64,14 @@ For interpersonal conflicts: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
 
 ## Forks
 
-The project is licensed under **Apache 2.0**. You are free to fork.
-A fork that diverges from the upstream architecture is welcomed; just
-please rename so users don't conflate it with this project.
+The project is licensed under **Apache 2.0** specifically so it can
+be forked, rebranded, and embedded in commercial products. A fork is
+welcomed and expected — that is the entire point of the template
+framing. See [`TEMPLATE.md`](./TEMPLATE.md) for the rebrand playbook.
+
+If a fork diverges from the upstream architecture, please rename so
+adopters can tell the projects apart. Continuing to call a heavily
+diverged fork "AegisVision" makes it harder for everyone.
 
 ---
 

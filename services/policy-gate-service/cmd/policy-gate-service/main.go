@@ -14,9 +14,9 @@
 //   - Publish a `gate.resolved.<gate_id>` event so agent-service can
 //     unblock the awaiting session.
 //
-// This is the Temporal-style signal gate from the architecture doc, simplified
-// to an HTTP+NATS surface for Phase 4. When Temporal lands fully (Phase 5),
-// this service becomes a Temporal workflow with the same external API.
+// This is the Temporal-style signal gate from the architecture doc,
+// implemented as an HTTP+NATS surface. A later migration may turn this
+// service into a Temporal workflow with the same external API.
 package main
 
 import (

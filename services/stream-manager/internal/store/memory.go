@@ -1,5 +1,5 @@
 // In-memory store for Stream resources. The interface is intentionally
-// narrow; a Phase 2 Postgres implementation drops in by satisfying it.
+// narrow; a Postgres-backed implementation drops in by satisfying it.
 package store
 
 import (

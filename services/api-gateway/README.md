@@ -229,11 +229,11 @@ walking-skeleton placeholder.
 
 | Console | Path | Served by | Used for |
 | --- | --- | --- | --- |
-| Walking-skeleton (Phase 1) | `services/api-gateway/console/` | api-gateway via `AEGIS_CONSOLE_DIR` → `/console/` | The 5-service walking-skeleton demo. Vanilla HTML+JS. |
-| Production console (Phase 7) | `services/console/` | A separate Next.js standalone server (its own Helm chart at `deploy/helm/console/`) | Real operator UI for every platform feature. |
+| Walking-skeleton demo | `services/api-gateway/console/` | api-gateway via `AEGIS_CONSOLE_DIR` → `/console/` | The 5-service walking-skeleton demo. Vanilla HTML+JS. |
+| Production console | `services/console/` | A separate Next.js standalone server (its own Helm chart at `deploy/helm/console/`) | Real operator UI for every platform feature. |
 
-For the walking skeleton: set `AEGIS_CONSOLE_DIR` to the Phase-1 path
-and the gateway serves it at `/console/` with strict CSP, no inline
+For the walking skeleton: set `AEGIS_CONSOLE_DIR` to the demo path and
+the gateway serves it at `/console/` with strict CSP, no inline
 scripts, SRI on every external resource.
 
 For production: deploy the [`console`](../console) chart separately;

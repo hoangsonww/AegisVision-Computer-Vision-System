@@ -44,8 +44,8 @@ sidecar so operators can verify offline.
 
 ## Consequences
 
-- **Every CI release ships a self-contained installable.** No "Phase 6
-  retrofit" effort.
+- **Every CI release ships a self-contained installable.** Air-gap is
+  not a retrofit — it is a day-one CI artifact.
 - **Bundle size is non-trivial.** Typical bundle: ~6–8 GiB compressed
   with zstd-19. Acceptable for a once-per-release artifact; not a hot
   path.

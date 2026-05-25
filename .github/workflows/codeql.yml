@@ -1,0 +1,78 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  schedule:
+    # Weekly scan even when no commits land — catches new CVEs published
+    # against dependencies that haven't moved.
+    - cron: "37 4 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [go, javascript-typescript]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache: true
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # `security-extended` adds the security queries beyond the
+          # default set. `security-and-quality` adds correctness queries
+          # too — we want both.
+          queries: security-and-quality
+
+      # Go projects in a workspace need a manual build for the extractor.
+      # We compile every module so CodeQL sees every package.
+      - name: Build Go modules
+        if: matrix.language == 'go'
+        run: |
+          set -eu
+          for mod in $(find . -name go.mod -not -path "./.git/*" -not -path "*/node_modules/*" -exec dirname {} \;); do
+            echo "==> building $mod"
+            (cd "$mod" && go build ./...)
+          done
+
+      - name: Install Node + build console
+        if: matrix.language == 'javascript-typescript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install console deps
+        if: matrix.language == 'javascript-typescript'
+        working-directory: services/console
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

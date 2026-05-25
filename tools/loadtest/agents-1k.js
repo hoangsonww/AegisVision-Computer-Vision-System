@@ -1,6 +1,6 @@
 // k6 load test: 1,000 concurrent agent sessions against agent-service +
-// llm-gateway + policy-gate-service. Phase 6 SLO gate: agent sessions
-// must reach a terminal state within 30s (completed / awaiting_gate /
+// llm-gateway + policy-gate-service. SLO gate: agent sessions must
+// reach a terminal state within 30s (completed / awaiting_gate /
 // failed); the gateway's token-burn rate must stay within budget.
 import http from 'k6/http';
 import { check, fail, sleep } from 'k6';

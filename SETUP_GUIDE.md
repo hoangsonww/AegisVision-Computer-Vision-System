@@ -143,18 +143,18 @@ data: {"kind":"KIND_DWELL","severity":"SEVERITY_HIGH","stream_id":"stream-dock-1
 **That's the platform working end-to-end.** REST → gRPC → bus → operator
 DAG → rule → bus → SSE.
 
-For the **walking-skeleton minimal browser console** (Phase-1 HTML+JS),
-open <http://localhost:8080/console/> after Terminal 5 starts. For the
-**production Next.js console** with every page wired, see Path B's console
-section below.
+For the **walking-skeleton minimal browser console** (vanilla HTML+JS,
+the 5-service demo UI), open <http://localhost:8080/console/> after
+Terminal 5 starts. For the **production Next.js console** with every
+page wired, see Path B's console section below.
 
 ---
 
 ## Path B — Local dev (full platform with dependencies)
 
-If you want to exercise the *whole* stack locally (Phase 4–6 services
-included), you'll need real backing services. The fastest way is
-`docker-compose`:
+If you want to exercise the *whole* stack locally (intelligence tier
++ adaptive autonomy + operations & compliance services included),
+you'll need real backing services. The fastest way is `docker-compose`:
 
 ```bash
 # Spin up Postgres, Redis, NATS, MinIO, ClickHouse single-node.
@@ -217,9 +217,10 @@ defaults.
 
 ### Production Next.js console (browser UI)
 
-The walking-skeleton HTML console at `/console/` is the Phase-1 placeholder.
-The **production UI** lives in [`services/console/`](./services/console)
-and exposes every public REST endpoint as a polished page.
+The walking-skeleton HTML console at `/console/` is the minimal vanilla
+HTML+JS demo for the 5-service skeleton. The **production UI** lives in
+[`services/console/`](./services/console) and exposes every public REST
+endpoint as a polished page.
 
 ```bash
 cd services/console
