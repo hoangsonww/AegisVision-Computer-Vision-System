@@ -2,11 +2,12 @@
 
 > **Standing on the shoulders of giants.**
 
-AegisVision was designed and built by **Son Nguyen**
-([@hoangsonww](https://github.com/hoangsonww)), but the platform would
-not exist without an enormous ecosystem of open-source work. This
-file is a thank-you to the projects, papers, and people whose work
-made AegisVision possible.
+AegisVision is an open template assembled from an enormous ecosystem
+of open-source work. The lead maintainer is **Son Nguyen**
+([@hoangsonww](https://github.com/hoangsonww)); the template itself
+stands entirely on the shoulders of the projects below. This file is
+a thank-you to the projects, papers, and people whose work made
+AegisVision possible.
 
 ---
 

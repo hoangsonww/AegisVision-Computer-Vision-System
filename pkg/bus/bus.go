@@ -11,8 +11,9 @@
 //
 // The walking-skeleton lands on **NATS only** — events.v1 included — because
 // NATS JetStream gives us at-least-once + replay without standing up Kafka.
-// When Phase 2 brings Kafka online, only the wiring at startup changes; the
-// Publisher / Subscriber interfaces below are deliberately bus-agnostic.
+// When Kafka is added (production-shape deployments), only the wiring at
+// startup changes; the Publisher / Subscriber interfaces below are
+// deliberately bus-agnostic.
 //
 // Subject naming (subject == "topic" in NATS lingo):
 //

@@ -2,9 +2,11 @@
 
 <h1>🛡️ AegisVision</h1>
 
-<p><b>A distributed, autonomous, GPU-native visual-intelligence operating system
-for realtime multimodal perception, reasoning, and orchestration at planetary
-scale.</b></p>
+<p><b>An open, distributed, GPU-native computer-vision platform <em>template</em>
+that any individual or organization can fork, brand, and operate as the
+backbone of their own realtime perception product — multimodal inference on
+NVIDIA Triton, bounded-autonomy agents, gated promotion, and signed
+air-gapped delivery, out of the box.</b></p>
 
 <p>
   <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00ADD8.svg?style=flat-square&logo=go&logoColor=white">
@@ -85,15 +87,20 @@ scale.</b></p>
 
 
 
-AegisVision is what you get when you take the hardest lessons learned from
-operating large computer-vision platforms (Scale, Roboflow, ClearML,
-Sensible) — and rebuild the platform from first principles around the
-constraints that *actually* dominate at scale:
+AegisVision is a **production-grade template** for building computer-vision
+products. Fork it, point it at your cameras and your **NVIDIA Triton
+Inference Server**, and you have the backbone of a realtime perception
+platform — without re-inventing claim-check ring buffers, MIG-aware GPU
+scheduling, Wilson-bound canary promotion, RAG-cited agents, or a
+signed air-gap bundle. It encodes the lessons learned from operating
+production CV deployments as
+load-bearing architectural rules:
 
 - **Frames must never go on the bus.** (Claim-check, ADR-0008.)
 - **The control plane must never see per-frame work.** (Two-plane separation,
   ADR-0001.)
-- **GPUs are partitioned, not shared by hope.** (MIG-default, ADR-0003.)
+- **GPUs are partitioned, not shared by hope.** (MIG-default + Triton
+  model-control, ADR-0003.)
 - **Agents must not auto-execute consequential actions.** (Bounded autonomy,
   ADR-0014/0017.)
 - **Every public answer about platform state must cite its source.** (RAG over
@@ -103,33 +110,37 @@ constraints that *actually* dominate at scale:
 - **Air-gapped installation is a first-class CI artifact, not an afterthought.**
   (Bundle-as-day-one, ADR-0027.)
 
-This repository contains **35 Go services + 1 Next.js console**, **14
-shared libraries**, **39 Helm charts**, **30 Architecture Decision
-Records**, and a complete set of **compliance evidence packages** (SOC 2,
-EU AI Act, GDPR DPIA, pen-test scope). Phases 0–7 of the delivery plan are
-complete; the platform is **code-functional end-to-end** with a 5-test
+This repository ships **35 Go services + 1 Next.js console**, **14
+shared libraries**, **39 Helm charts** (including a dedicated, hardened
+NVIDIA Triton chart), **30 Architecture Decision Records**, and a
+complete set of **compliance evidence packages** (SOC 2, EU AI Act, GDPR
+DPIA, pen-test scope). The codebase is **green end-to-end** under a
 cross-service integration smoke suite and a 39-chart Helm conformance
-test, plus a production-ready Next.js console at
+test, with a production-ready Next.js console at
 [`services/console/`](./services/console) that exposes every public API as
-a usable page.
+a usable page. Everything in this repository is permissively licensed
+(Apache 2.0) — you can lift it wholesale and use it as the foundation of
+your own CV product.
 
 ---
 
 ## Table of contents
 
 1. [What is AegisVision?](#what-is-aegisvision)
-2. [Status at a glance](#status-at-a-glance)
-3. [Repository layout](#repository-layout)
-4. [Quickstart — walking skeleton](#quickstart--walking-skeleton)
-5. [The 35 services](#the-35-services)
-6. [Architectural commitments (the ADRs)](#architectural-commitments-the-adrs)
-7. [Public API discipline](#public-api-discipline)
-8. [Errors, idempotency, pagination](#errors-idempotency-pagination)
-9. [Observability](#observability)
-10. [Security posture](#security-posture)
-11. [Deploy](#deploy)
-12. [How to contribute](#how-to-contribute)
-13. [Further reading](#further-reading)
+2. [Use AegisVision as a template](#use-aegisvision-as-a-template)
+3. [Capabilities at a glance](#capabilities-at-a-glance)
+4. [Repository layout](#repository-layout)
+5. [Quickstart — walking skeleton](#quickstart--walking-skeleton)
+6. [The 35 services](#the-35-services)
+7. [NVIDIA Triton — the GPU inference core](#nvidia-triton--the-gpu-inference-core)
+8. [Architectural commitments (the ADRs)](#architectural-commitments-the-adrs)
+9. [Public API discipline](#public-api-discipline)
+10. [Errors, idempotency, pagination](#errors-idempotency-pagination)
+11. [Observability](#observability)
+12. [Security posture](#security-posture)
+13. [Deploy](#deploy)
+14. [How to contribute](#how-to-contribute)
+15. [Further reading](#further-reading)
 
 ---
 
@@ -219,30 +230,95 @@ flowchart LR
 
 ---
 
-## Status at a glance
+## Use AegisVision as a template
 
-| Phase | Theme | Status |
-| --- | --- | --- |
-| 0 | Foundations: protobuf contracts, `pkg/platform`, walking-skeleton spine | **complete** |
-| 1 | Glass-to-event walking skeleton (5 services + NATS) | **complete** (p95 ≈ 2.7 ms on local hardware vs 300 ms target) |
-| 2 | GPU hot path: Triton + MIG + inference-router + canary plumbing | **complete** |
-| 3 | Multi-tenant + edge + storage tier (Patroni / Clickhouse / Vault) | **complete** |
-| 4 | Intelligence tier: LLM gateway + agent + RAG + bounded autonomy | **complete** |
-| 5 | Adaptive autonomy: canary controller + shadow + drift + SLO + prefetch | **complete** |
-| 6 | GA hardening: compliance evidence + air-gap bundle + chaos + DR drills + release | **complete** |
-| 7 | Production console: Next.js UI exposing every platform feature | **complete** |
+AegisVision is structured to be **forked and adapted** — not just admired.
+The pieces you usually have to glue together yourself are already wired:
+
+- **A hardened NVIDIA Triton chart** with MIG-aware scheduling, KServe v2
+  client, response-cache, dynamic batching, model warm-up, model-control
+  modes, and KEDA-driven autoscaling on Triton's own queue-duration
+  metrics. See [`docs/triton.md`](./docs/triton.md) and
+  [`deploy/helm/triton/`](./deploy/helm/triton).
+- **A two-plane architecture** (control plane / data plane) with strict
+  rules about what is allowed where, so your perception product scales
+  without becoming an event-loop tar pit.
+- **A bounded-autonomy agent runtime** that you can extend with your own
+  tools while inheriting the tier-3 human-gate refusal in code.
+- **Compliance scaffolding** (SOC 2 / EU AI Act / GDPR / pen-test) you
+  can adopt verbatim or trim, with evidence pipelines wired to the
+  audit log.
+- **GitOps-first deploy** (ArgoCD ApplicationSet + 39 Helm charts) and
+  a signed air-gap bundle for regulated environments.
+
+### Adapt it to your product in three moves
+
+1. **Rename the brand.** Run
+   `task template:rebrand:dry-run PRODUCT_NAME=YourProduct PRODUCT_SLUG=yourproduct ENV_PREFIX=YOURPROD`
+   first to preview, then drop `:dry-run` to apply. The full
+   playbook — module path rewrite, LICENSE handling, secrets,
+   IdP wiring, observability, and an adoption checklist — lives in
+   [`TEMPLATE.md`](./TEMPLATE.md).
+2. **Plug in your models.** Drop your TensorRT / ONNX / PyTorch / Python
+   models into the Triton model repository (see
+   [`docs/triton.md`](./docs/triton.md) for the layout, plus an
+   example tree at
+   [`deploy/helm/triton/examples/`](./deploy/helm/triton/examples))
+   and register them via the platform's `/v1/models` endpoint.
+3. **Pick a deploy path.** Walking-skeleton on a laptop, ArgoCD on a
+   cluster, or signed air-gap bundle on a DMZ — see
+   [`SETUP_GUIDE.md`](./SETUP_GUIDE.md).
+
+The ADRs explain *why* each rule exists, so you can override them on
+purpose — never by accident.
+
+After your first deploy, run `task template:check` — it walks the
+adoption checklist (modules build, `go vet`, race-detected tests,
+Helm conformance, integration smoke, proto lint) and reports
+anything red.
+
+To exercise the full stack locally with one command:
+
+```bash
+task dev:up           # docker-compose: Postgres + NATS + Kafka + ClickHouse + MinIO + OTel
+task run:event-service &
+task run:api-gateway &
+# … any other services you want to iterate on …
+task seed:demo        # seeds a demo tenant, pipeline, model, stream
+```
+
+See [`deploy/dev/README.md`](./deploy/dev/README.md) for env-var
+exports and connection URLs.
+
+---
+
+## Capabilities at a glance
+
+The platform is organized into seven capability areas. Every area is
+load-bearing and verified end-to-end under unit, conformance, and
+integration suites.
+
+| Capability area | What it gives you |
+| --- | --- |
+| **Foundations** | Buf-managed protobuf contracts, the golden-path `pkg/platform` library (logging, OTel, metrics, problem+json, idempotency, pagination, health, shutdown), and a walking-skeleton spine. |
+| **Glass-to-event ingest** | `api-gateway`, `pipeline-service`, `stream-manager`, `event-service`, `dataplane-runner` — produces a real detection event end-to-end with p95 ≈ 2.7 ms on local hardware (300 ms target). |
+| **GPU hot path** | NVIDIA Triton Inference Server with MIG-aware scheduling, dynamic batching, response cache, model warm-up, KServe v2 client; `inference-router` + `gpu-scheduler` + canary plumbing. |
+| **Multi-tenant + edge + storage** | Patroni Postgres, ClickHouse, Vault transit per-tenant keys, Redis Sentinel, k3s edge profile with outbox sync. |
+| **Intelligence tier** | One LLM/VLM gateway, bounded-autonomy agent runtime, RAG citation discipline, NLQ, active learning, policy-gate-service. |
+| **Adaptive autonomy** | Canary controller (Wilson lower bound), shadow inference, drift detection (JS/KL/TVD), multi-window SLO burn-rate, predictive prefetch, autonomy orchestrator. |
+| **Operations & compliance** | Compliance evidence service, air-gapped bundle builder, chaos engineering harness, DR drill runner, release automation, append-only audit log. |
+| **Production console** | Next.js 14 + Tailwind UI exposing every public REST endpoint as a usable page (33 routes). Conformance-clean Helm chart. |
 
 **49 of 49 Go modules** build and test green under `-race`.
 **39 of 39 Helm charts** pass the conformance test (mTLS STRICT, AuthZ ALLOW
 list, NetworkPolicy default-deny, ServiceMonitor, HPA, PDB).
-**5 of 5 cross-service integration smoke tests** pass (bus subjects,
-wildcards, concurrent gate resolutions, bounded-autonomy round trip, LLM
-safety refusal).
+**Cross-service integration smoke tests** cover bus subjects, wildcards,
+concurrent gate resolutions, the bounded-autonomy round trip, and LLM
+safety refusal.
 
-The system has **not yet been deployed** to a real production cluster, nor
-been audited by an external SOC 2 / EU AI Act assessor. Those activities
-need physical clusters and an actual audit window; the platform is *ready
-for* them.
+Adopting AegisVision as a template means you inherit all of this on day
+one. A real production rollout still needs your own SOC 2 / EU AI Act
+audit window and a physical cluster — the platform is *ready for* them.
 
 ---
 
@@ -307,9 +383,11 @@ for* them.
 
 ## Quickstart — walking skeleton
 
-The walking skeleton (Phase 1, ADR-0016) runs five services + an embedded
-NATS in five terminals and produces a real end-to-end detection event in
-under five seconds.
+The walking skeleton (ADR-0016) is the smallest end-to-end slice of the
+platform — five services + an embedded NATS in five terminals — and
+produces a real detection event in under five seconds. It is the
+recommended starting point if you are evaluating AegisVision as a
+template for your own product.
 
 ```bash
 brew install go-task                       # task runner
@@ -409,16 +487,16 @@ protobuf contracts (gRPC + JSON/REST for tenant-facing APIs).
 
 | Service | Purpose |
 | --- | --- |
-| `dataplane-runner` | Hosts the streaming operator DAG. Walking-skeleton impl in Go; DeepStream swap-in in Phase 2 via the `Detector` interface. |
-| `inference-router` | Routes inference requests to Triton; publishes `inference.completed.v1` + `inference.baseline.v1`. |
-| `gpu-scheduler` | MIG-default GPU reservation ledger. Hard bound on blast radius. |
+| `dataplane-runner` | Hosts the streaming operator DAG (ingest → sampler → detect → tracker → rule → emit). The `Detector` interface lets you swap the Go-native operator for NVIDIA DeepStream, a pure-Triton client, or a custom backend without touching the rest of the pipeline. |
+| `inference-router` | The GPU front door. Routes inference requests to NVIDIA Triton over the KServe v2 protocol (HTTP today, gRPC streaming + shared memory swap-in via the same `Detector` interface), surfaces Triton response-cache hits, applies per-tenant model allow-lists, and publishes `inference.completed.v1` + `inference.baseline.v1` + `inference.outcome.v1`. |
+| `gpu-scheduler` | MIG-default GPU reservation ledger. Coordinates Triton model placement against MIG slices for hard isolation between tenants and pipelines. |
 | `rule-engine` | Rule evaluation: dwell, count, line-cross, zone-enter. |
 | `event-service` | Consumes `events.v1` from NATS; serves SSE feed; persists to ClickHouse. |
 | `realtime-hub` | Fan-out WebSocket hub for console + integrations. |
 | `notification-service` | Webhooks, email, Slack with replay-safe idempotency. |
 | `edge-gateway` | k3s-friendly reduced-operator runtime; sync to core via outbox. |
 
-### Intelligence tier (Phase 4)
+### Intelligence tier
 
 | Service | Purpose |
 | --- | --- |
@@ -429,7 +507,7 @@ protobuf contracts (gRPC + JSON/REST for tenant-facing APIs).
 | `active-learning-service` | Uncertainty + diversity sampling (ADR-0019). |
 | `nlq-service` | Natural-language query → structured queries against event-service / ClickHouse. |
 
-### Adaptive autonomy (Phase 5)
+### Adaptive autonomy
 
 | Service | Purpose |
 | --- | --- |
@@ -440,7 +518,7 @@ protobuf contracts (gRPC + JSON/REST for tenant-facing APIs).
 | `prefetch-service` | 7×24 EMA grid; warm-ups dispatched at horizon ahead of demand (ADR-0026). |
 | `autonomy-orchestrator` | Cron + signal-driven agent sessions (ADR-0022). |
 
-### GA hardening (Phase 6)
+### Operations & compliance
 
 | Service | Purpose |
 | --- | --- |
@@ -449,11 +527,66 @@ protobuf contracts (gRPC + JSON/REST for tenant-facing APIs).
 | `cost-accounting` | Per-tenant GPU-second + token + storage accounting. |
 | `metering-service` | Billable-event aggregation (consumes `inference.completed.v1`). |
 
-### Production console (Phase 7)
+### Production console
 
 | Service | Purpose |
 | --- | --- |
 | `console` | Next.js 14 + TanStack Query + Tailwind. Exposes every public REST endpoint as a usable page. 33 routes covering dashboard, streams, pipelines, models, datasets, annotations, training, media, rules, events, agents (chat UI with citations + tier-3 gate banner), gates inbox, canary decision board, drift, SLO, prefetch heatmap, knowledge RAG, NLQ, active-learning, semantic search, tenants/projects/members, cost, compliance evidence bundles, audit log + chain-verify, settings. Read the per-service README at [`services/console/`](./services/console). |
+
+---
+
+## NVIDIA Triton — the GPU inference core
+
+AegisVision treats **NVIDIA Triton Inference Server** as the canonical
+model-serving runtime. Triton is not a footnote in this template — it is
+the load-bearing layer that turns model artifacts into low-latency
+predictions, and the platform is shaped around getting the most out of it.
+
+What you get out of the box:
+
+- **A dedicated, conformance-clean Helm chart** at
+  [`deploy/helm/triton/`](./deploy/helm/triton) — KServe v2 HTTP, gRPC,
+  and dedicated metrics ports, MIG-aware resource requests, ServiceAccount,
+  PeerAuthentication (mTLS STRICT), AuthorizationPolicy ALLOW list,
+  default-deny NetworkPolicy, PDB, ServiceMonitor scraping Triton's
+  metrics on `:8002`, and an HPA backed by both CPU and Triton's own
+  `nv_inference_queue_duration_us` metric (via KEDA when enabled).
+- **A model repository contract** described in
+  [`docs/triton.md`](./docs/triton.md): TensorRT, ONNX, PyTorch, Python,
+  Ensemble, and BLS backends are all supported with the same naming
+  conventions and the same model warm-up policy.
+- **Production model-control mode** (`explicit`) by default in
+  production-shape values, so deploys never auto-load every model in the
+  bucket. Models are loaded by `model-registry` via the Triton
+  `POST /v2/repository/models/{name}/load` API.
+- **A native KServe v2 client** in
+  [`pkg/dataplane/operators/detector.go`](./pkg/dataplane/operators/detector.go)
+  and [`services/inference-router/internal/detector/triton.go`](./services/inference-router/internal/detector/triton.go)
+  — connection pooling, deadline propagation, retries with jitter,
+  response-cache hit/miss surfacing, OTel spans around every `ModelInfer`,
+  and a graceful drain on shutdown.
+- **Dynamic batching + response caching** defaults wired in the chart and
+  documented in [`docs/triton.md`](./docs/triton.md). Per-model overrides
+  live in the `config.pbtxt` checked in alongside the model.
+- **Air-gap and SBOM coverage** — the Triton container is pinned to
+  `nvcr.io/nvidia/tritonserver:24.10-py3` and bundled by
+  `tools/airgap/build.sh`, with Cosign signatures and Syft SBOMs attached
+  to the air-gap tarball.
+- **A Triton-specific runbook** in
+  [`docs/runbooks/triton.md`](./docs/runbooks/triton.md) — model load
+  storms, response-cache thrash, MIG slice exhaustion, OOM, queue
+  duration spikes, with the corresponding chaos experiment at
+  [`deploy/chaos/triton-model-evict.yaml`](./deploy/chaos/triton-model-evict.yaml).
+
+The architectural rule:
+[ADR-0003 (MIG-default)](./docs/adr/0003-mig-gpu-sharing.md) and
+[ADR-0008 (no frames on the bus)](./docs/adr/0008-claim-check-bus.md)
+together mean every byte that hits Triton came from object storage via a
+claim-check URN, on a hardware-isolated MIG slice. That is the property
+that lets the platform scale to thousands of concurrent streams without
+turning the GPU pool into a noisy neighbourhood.
+
+For the full operating manual see [`docs/triton.md`](./docs/triton.md).
 
 ---
 
@@ -585,7 +718,12 @@ transport without a protobuf contract. Don't grow a second agent runtime.
 ## Further reading
 
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — the canonical architecture deep dive.
+- [`TEMPLATE.md`](./TEMPLATE.md) — the rebrand + adoption playbook for forking the template.
 - [`SETUP_GUIDE.md`](./SETUP_GUIDE.md) — local dev → online cluster → air-gapped install.
+- [`docs/triton.md`](./docs/triton.md) — NVIDIA Triton operating manual.
+- [`docs/runbooks/triton.md`](./docs/runbooks/triton.md) — Triton runbook.
+- [`deploy/helm/triton/examples/`](./deploy/helm/triton/examples) — example Triton model repository.
+- [`deploy/platform/observability/prometheus/triton-rules.yaml`](./deploy/platform/observability/prometheus/triton-rules.yaml) — Triton alert rules.
 - [`CHANGELOG.md`](./CHANGELOG.md) — release notes.
 - [`CLAUDE.md`](./CLAUDE.md) — working notes for Claude Code.
 - [`docs/adr/`](./docs/adr/) — 30 Architecture Decision Records.
@@ -595,12 +733,11 @@ transport without a protobuf contract. Don't grow a second agent runtime.
   observability, deployment, troubleshooting, glossary.
 - [`index.html`](./index.html) — the project landing page / wiki.
 - [`ACKNOWLEDGMENTS.md`](./ACKNOWLEDGMENTS.md) — the open-source giants this stands on.
-- [`ROADMAP.md`](./ROADMAP.md) — what's next.
 - [`AUTHORS`](./AUTHORS), [`MAINTAINERS`](./MAINTAINERS), [`GOVERNANCE.md`](./GOVERNANCE.md) — who runs this.
 
 ---
 
-## Author
+## Maintainer
 
 <div align="center">
 
@@ -613,7 +750,7 @@ transport without a protobuf contract. Don't grow a second agent runtime.
   <br/>
   <b>Son Nguyen</b>
   <br/>
-  <sub>Author · Maintainer · BDFL</sub>
+  <sub>Maintainer</sub>
   <br/>
   <br/>
   <a href="https://github.com/hoangsonww"><img src="https://img.shields.io/badge/GitHub-hoangsonww-181717?style=flat-square&logo=github&logoColor=white"></a>
@@ -626,14 +763,21 @@ transport without a protobuf contract. Don't grow a second agent runtime.
 
 </div>
 
+Governance is in [`GOVERNANCE.md`](./GOVERNANCE.md); contributors are
+listed in [`AUTHORS`](./AUTHORS). New maintainers welcome — see
+[`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
 ---
 
 ## License
 
-**AegisVision** is published under the **Apache License, Version 2.0**.
-See [`LICENSE`](./LICENSE) for the full text and [`NOTICE`](./NOTICE) for
-attribution of the open-source projects this stands on. Cite via
-[`CITATION.cff`](./CITATION.cff).
+**AegisVision** is published under the **Apache License, Version 2.0** —
+chosen specifically so that individuals and organizations can fork this
+repository, rebrand it, embed it in commercial products, and operate it
+as the foundation of their own computer-vision platform. See
+[`LICENSE`](./LICENSE) for the full text and [`NOTICE`](./NOTICE) for
+attribution of the open-source projects this template stands on. Cite
+via [`CITATION.cff`](./CITATION.cff).
 
 <div align="center">
 

@@ -1,0 +1,63 @@
+# Person detector — TensorRT-served YOLO-family detection model.
+# Drop your compiled `model.plan` into `1/` to make this real.
+#
+# Calibration steps and the per-GPU recompile procedure are in
+# docs/triton.md (Capacity planning + Common failure modes).
+name: "person-detector"
+platform: "tensorrt_plan"
+max_batch_size: 16
+
+input [
+  {
+    name: "images"
+    data_type: TYPE_FP32
+    format: FORMAT_NCHW
+    dims: [ 3, 640, 640 ]
+  }
+]
+
+output [
+  {
+    name: "detections"
+    data_type: TYPE_FP32
+    dims: [ -1, 6 ]   # [x, y, w, h, score, class_id]
+  }
+]
+
+instance_group [
+  {
+    count: 1
+    kind: KIND_GPU
+    gpus: [ 0 ]
+  }
+]
+
+dynamic_batching {
+  preferred_batch_size: [ 4, 8 ]
+  max_queue_delay_microseconds: 2000
+}
+
+# Per-frame detector — caching is unsafe.
+response_cache {
+  enable: false
+}
+
+# Warm with a zero-filled tensor so the CUDA graph is captured before
+# the first real inference. model-registry waits for warmup to finish
+# before marking the model "ready".
+model_warmup [
+  {
+    name: "zero-tensor"
+    batch_size: 1
+    inputs {
+      key: "images"
+      value: {
+        data_type: TYPE_FP32
+        dims: [ 3, 640, 640 ]
+        zero_data: true
+      }
+    }
+  }
+]
+
+version_policy { latest: { num_versions: 1 } }

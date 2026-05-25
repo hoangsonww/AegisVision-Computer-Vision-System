@@ -1,6 +1,6 @@
 apiVersion: v2
 name: canary-controller
-description: AegisVision Phase 5 progressive-delivery controller
+description: AegisVision progressive-delivery controller
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

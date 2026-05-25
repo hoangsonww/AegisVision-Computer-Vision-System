@@ -1,7 +1,7 @@
 // k6 load test that drives 10,000 synthetic streams against api-gateway
-// + stream-manager + dataplane-runner. This is the Phase-6 GA scale gate
-// (architecture doc §1.4): the platform must sustain 10k 30-fps streams
-// concurrently with glass-to-event p95 < 300 ms.
+// + stream-manager + dataplane-runner. This is the platform's scale
+// gate (architecture doc §1.4): the platform must sustain 10k 30-fps
+// streams concurrently with glass-to-event p95 < 300 ms.
 //
 // The test is split into three scenarios:
 //   1. Create 10k streams.       (ramp + idempotent — re-running re-uses ids)

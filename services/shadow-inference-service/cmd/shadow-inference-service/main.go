@@ -1,4 +1,4 @@
-// Command shadow-inference-service runs the Phase-5 shadow comparator
+// Command shadow-inference-service runs the shadow comparator
 // (ADR-0024). It subscribes to two bus subjects:
 //
 //   - frame.descriptor.* — the claim-check envelope for a single frame

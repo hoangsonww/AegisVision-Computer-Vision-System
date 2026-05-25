@@ -1,6 +1,6 @@
 apiVersion: v2
 name: drift-detection-service
-description: AegisVision Phase 5 concept-drift detector
+description: AegisVision concept-drift detector
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

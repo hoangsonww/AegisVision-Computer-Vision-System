@@ -1,6 +1,6 @@
 apiVersion: v2
 name: dataplane-runner
-description: Hosts the streaming operator DAG. Walking-skeleton implementation; Phase 2 swaps in DeepStream pods.
+description: Hosts the streaming operator DAG. The Detector interface allows swapping in DeepStream, native Triton, or a custom backend without re-deploying the runner.
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

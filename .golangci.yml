@@ -1,0 +1,103 @@
+# golangci-lint configuration for AegisVision.
+#
+# The platform's golden-path is deliberately uniform — see pkg/platform.
+# This linter config enforces that uniformity:
+#
+#   - errcheck      catches unchecked errors (the platform's most common
+#                   class of bug).
+#   - govet         the standard set.
+#   - staticcheck   the recommended replacement for golint + the
+#                   security checks SA1xxx.
+#   - revive        style + naming conventions.
+#   - gosec         security-focused static analysis.
+#   - bodyclose     missing resp.Body.Close on HTTP clients.
+#   - rowserrcheck  missing sql.Rows.Err().
+#   - sqlclosecheck missing sql.Rows.Close().
+#   - errorlint     wrap errors with %w.
+#   - misspell      typos.
+#   - unconvert     unnecessary type conversions.
+#   - nilnil        functions that return nil, nil — usually a bug.
+#   - copyloopvar   loop variable captured by reference (Go 1.22+ semantics).
+#
+# Run locally with:  golangci-lint run --config .golangci.yml ./...
+
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  go: "1.26"
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - revive
+    - gosec
+    - bodyclose
+    - rowserrcheck
+    - sqlclosecheck
+    - errorlint
+    - misspell
+    - unconvert
+    - nilnil
+    - copyloopvar
+    - ineffassign
+    - unused
+    - gocritic
+    - gocyclo
+    - dupword
+  settings:
+    errcheck:
+      check-type-assertions: true
+      exclude-functions:
+        - (io.Closer).Close       # close-on-defer is intentional
+        - (net/http.ResponseWriter).Write
+        - encoding/json.NewEncoder.Encode
+    gosec:
+      # G601: loop variable capture — covered by copyloopvar with the
+      # Go 1.22+ semantics fix.
+      excludes: [G601]
+    gocyclo:
+      min-complexity: 25
+    revive:
+      severity: warning
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: var-declaration
+        - name: var-naming
+  exclusions:
+    rules:
+      # Tests are allowed to be terser / use math/rand.
+      - path: "_test\\.go$"
+        linters: [gosec, errcheck, gocritic, gocyclo, revive]
+      # Generated protobuf code.
+      - path: "proto/gen/"
+        linters: [gosec, errcheck, gocritic, gocyclo, revive, staticcheck]
+      # Test helpers in tools/.
+      - path: "tools/(integration|conformance|loadtest)/"
+        linters: [gosec, gocyclo]
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10

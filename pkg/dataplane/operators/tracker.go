@@ -1,7 +1,8 @@
 // The tracker operator assigns stable track IDs to detections across
-// frames. Phase 2 brings ByteTrack / BoT-SORT in C++; the skeleton ships
-// a small IOU-greedy tracker that is correct enough for one moving target
-// and exercises the same data flow.
+// frames. Production deployments plug in ByteTrack / BoT-SORT in C++;
+// the walking-skeleton configuration ships a small IOU-greedy tracker
+// that is correct enough for one moving target and exercises the same
+// data flow.
 package operators
 
 import (

@@ -1,13 +1,76 @@
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
-metadata: { name: triton, namespace: aegis-inference }
+metadata:
+  name: triton
+  namespace: aegis-inference
+  labels:
+    app.kubernetes.io/name: triton
+    app.kubernetes.io/part-of: aegisvision
 spec:
-  selector: { matchLabels: { app.kubernetes.io/name: triton } }
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: triton
   action: ALLOW
   rules:
+    # inference-router runs inferences (gRPC + HTTP).
     - from:
-        - source: { principals: [cluster.local/ns/aegis-inference/sa/inference-router] }
-      to: [{ operation: { ports: ["8000", "8001"] } }]
+        - source:
+            principals:
+              - cluster.local/ns/aegis-inference/sa/inference-router
+      to:
+        - operation:
+            ports: ["{{ .Values.ports.http }}", "{{ .Values.ports.grpc }}"]
+            methods: ["GET", "POST"]
+            paths:
+              - /v2/models/*
+              - /v2/health/*
+              - /v2/system/*
+    # model-registry issues load / unload / repository management. The
+    # repository management endpoints are deliberately separated so the
+    # router cannot accidentally evict a model.
     - from:
-        - source: { principals: [cluster.local/ns/aegis-observability/sa/prometheus] }
-      to: [{ operation: { ports: ["8002"] } }]
+        - source:
+            principals:
+              - cluster.local/ns/aegis-system/sa/model-registry
+      to:
+        - operation:
+            ports: ["{{ .Values.ports.http }}"]
+            methods: ["GET", "POST"]
+            paths:
+              - /v2/repository/*
+              - /v2/models/*/load
+              - /v2/models/*/unload
+              - /v2/models/*/config
+              - /v2/models/*/stats
+    # shadow-inference-service runs candidate models for canary comparison.
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/aegis-inference/sa/shadow-inference-service
+      to:
+        - operation:
+            ports: ["{{ .Values.ports.http }}", "{{ .Values.ports.grpc }}"]
+            methods: ["POST"]
+            paths:
+              - /v2/models/*/infer
+    # prefetch-service warms models ahead of demand.
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/aegis-inference/sa/prefetch-service
+      to:
+        - operation:
+            ports: ["{{ .Values.ports.http }}"]
+            methods: ["POST"]
+            paths:
+              - /v2/models/*/load
+    # Prometheus scrapes the metrics port only.
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/aegis-observability/sa/prometheus
+      to:
+        - operation:
+            ports: ["{{ .Values.ports.metrics }}"]
+            methods: ["GET"]
+            paths: ["/metrics"]

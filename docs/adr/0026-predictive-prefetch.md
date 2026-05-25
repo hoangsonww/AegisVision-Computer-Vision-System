@@ -19,7 +19,7 @@ keeping them all in VRAM all the time.
 
 ## Decision
 
-`prefetch-service` (Phase 5):
+`prefetch-service`:
 
 1. Subscribes to `detections.v1` and bumps a per-(tenant, model)
    counter into a 7×24 grid of (day-of-week, hour) cells.
@@ -44,11 +44,11 @@ The predictor is intentionally simple:
 - **No personally-identifiable data in the predictor.** Only
   (tenant, model) pairs and counts.
 - **No predictive prefetch on the edge.** Edge sites have fixed
-  per-camera model assignments — the grid wouldn't help. Phase-5
-  edge-profile disables this service.
+  per-camera model assignments — the grid wouldn't help. The
+  edge-profile chart disables this service.
 - **Privacy-by-construction.** The predictor doesn't see frame data,
-  only the (tenant, model) tuple from detection events. PII redaction
-  upstream (Phase 3) is preserved.
+  only the (tenant, model) tuple from detection events. Upstream PII
+  redaction is preserved.
 
 ## Rejected alternatives
 

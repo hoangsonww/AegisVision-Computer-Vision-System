@@ -1,4 +1,4 @@
-// Command autonomy-orchestrator is the Phase-5 control loop (ADR-0022).
+// Command autonomy-orchestrator is the continuous-autonomy control loop (ADR-0022).
 //
 // It owns Schedule resources (cron-fired + signal-fired) and translates
 // each fire into a regular agent-service session. The agent runs with a

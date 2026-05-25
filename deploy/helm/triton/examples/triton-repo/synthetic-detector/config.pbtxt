@@ -1,0 +1,58 @@
+# Synthetic detector — a Python-backend Triton model that returns a
+# deterministic single detection for any input. Used by the walking
+# skeleton and the integration smoke tests; never use in production.
+name: "synthetic-detector"
+backend: "python"
+max_batch_size: 16
+
+input [
+  {
+    name: "input"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+output [
+  {
+    name: "output"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+instance_group [
+  {
+    count: 1
+    kind: KIND_CPU
+  }
+]
+
+dynamic_batching {
+  preferred_batch_size: [ 4, 8 ]
+  max_queue_delay_microseconds: 2000
+}
+
+# Per-frame detector — caching is unsafe (every input is unique).
+response_cache {
+  enable: false
+}
+
+# Warm the Python interpreter with a synthetic input so the first real
+# inference is fast.
+model_warmup [
+  {
+    name: "synthetic-zero"
+    batch_size: 1
+    inputs {
+      key: "input"
+      value: {
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+        string_data: [ "{}" ]
+      }
+    }
+  }
+]
+
+version_policy { specific: { versions: [ 1 ] } }

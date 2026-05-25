@@ -1,6 +1,6 @@
 apiVersion: v2
 name: autonomy-orchestrator
-description: AegisVision Phase 5 continuous-autonomy control loop
+description: AegisVision continuous-autonomy control loop
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

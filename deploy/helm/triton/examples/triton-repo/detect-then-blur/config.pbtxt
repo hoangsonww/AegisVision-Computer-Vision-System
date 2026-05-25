@@ -1,0 +1,53 @@
+# Detect-then-blur — an Ensemble model that chains person-detector
+# with a (notional) face-blur operator into one inference call.
+#
+# Ensembles are how Triton glues multiple backends together with zero
+# extra network hops. The platform uses this pattern for
+# privacy-preserving detection pipelines: detect → redact → emit.
+#
+# To make this real you'll also need a `face-blur` model in the
+# repository (e.g. an ONNX-served blur operator) — this config wires
+# them together.
+name: "detect-then-blur"
+platform: "ensemble"
+max_batch_size: 16
+
+input [
+  {
+    name: "images"
+    data_type: TYPE_FP32
+    format: FORMAT_NCHW
+    dims: [ 3, 640, 640 ]
+  }
+]
+
+output [
+  {
+    name: "redacted_image"
+    data_type: TYPE_FP32
+    dims: [ 3, 640, 640 ]
+  },
+  {
+    name: "detections"
+    data_type: TYPE_FP32
+    dims: [ -1, 6 ]
+  }
+]
+
+ensemble_scheduling {
+  step [
+    {
+      model_name: "person-detector"
+      model_version: -1
+      input_map { key: "images" value: "images" }
+      output_map { key: "detections" value: "raw_detections" }
+    },
+    {
+      model_name: "face-blur"
+      model_version: -1
+      input_map { key: "image" value: "images" }
+      input_map { key: "boxes" value: "raw_detections" }
+      output_map { key: "blurred" value: "redacted_image" }
+    }
+  ]
+}

@@ -143,7 +143,7 @@ tasks:
     cmds:
       - go run ./cmd/dataplane-runner
 
-  # Phase 4 — agentic/LLM stack.
+  # Intelligence tier — agentic / LLM stack.
   run:llm-gateway:
     desc: Run llm-gateway locally in dev mode (fake backend)
     dir: services/llm-gateway
@@ -200,7 +200,7 @@ tasks:
     cmds:
       - go run ./cmd/nlq-service
 
-  # Phase 5 — continuous autonomy.
+  # Adaptive autonomy — canary / shadow / drift / SLO / prefetch / continuous autonomy.
   run:canary-controller:
     desc: Run canary-controller locally
     dir: services/canary-controller
@@ -245,7 +245,7 @@ tasks:
     cmds:
       - go run ./cmd/autonomy-orchestrator
 
-  # Phase 6 — GA hardening.
+  # Operations & compliance.
   run:compliance-evidence-service:
     desc: Run compliance-evidence-service locally
     dir: services/compliance-evidence-service
@@ -268,17 +268,17 @@ tasks:
       - ./tools/dr-drills/run-quarterly.sh --cluster {{.CLI_ARGS}}
 
   loadtest:streams-10k:
-    desc: Phase-6 GA-scale load test (10k synthetic streams)
+    desc: Scale load test (10k synthetic streams)
     cmds:
       - k6 run tools/loadtest/streams-10k.js
 
   loadtest:agents-1k:
-    desc: Phase-6 GA-scale load test (1k concurrent agent sessions)
+    desc: Scale load test (1k concurrent agent sessions)
     cmds:
       - k6 run tools/loadtest/agents-1k.js
 
   loadtest:slo-gate:
-    desc: Phase-6 SLO assertion gate (run before release)
+    desc: SLO assertion gate (run before release)
     cmds:
       - k6 run tools/loadtest/slo-gate.js
 
@@ -316,3 +316,51 @@ tasks:
       - find . -name "coverage.out" -delete
       - find . -name "*.test" -delete
       - rm -rf bin/ dist/
+
+  # --- template adoption ---
+
+  template:rebrand:dry-run:
+    desc: |
+      Preview the brand rewrite without modifying any files. Vars:
+        PRODUCT_NAME (e.g. "YourProduct")
+        PRODUCT_SLUG (e.g. "yourproduct")
+        ENV_PREFIX   (e.g. "YOURPROD")
+      Usage: task template:rebrand:dry-run PRODUCT_NAME=Foo PRODUCT_SLUG=foo ENV_PREFIX=FOO
+    cmds:
+      - ./tools/scripts/rebrand.sh --dry-run "{{.PRODUCT_NAME}}" "{{.PRODUCT_SLUG}}" "{{.ENV_PREFIX}}"
+
+  template:rebrand:
+    desc: |
+      Apply the brand rewrite in place. Read TEMPLATE.md first. Vars:
+        PRODUCT_NAME, PRODUCT_SLUG, ENV_PREFIX (see :dry-run).
+    cmds:
+      - ./tools/scripts/rebrand.sh "{{.PRODUCT_NAME}}" "{{.PRODUCT_SLUG}}" "{{.ENV_PREFIX}}"
+
+  template:check:
+    desc: Confirm the adoption checklist items that can be checked locally.
+    cmds:
+      - ./tools/scripts/template-check.sh
+
+  dev:up:
+    desc: Bring up the local dev backing services (Postgres, NATS, Kafka, ClickHouse, MinIO, OTel).
+    dir: deploy/dev
+    cmds:
+      - docker compose up -d
+      - docker compose ps
+
+  dev:down:
+    desc: Tear down the local dev backing services (keeps volumes).
+    dir: deploy/dev
+    cmds:
+      - docker compose down
+
+  dev:clean:
+    desc: Tear down the local dev backing services and wipe volumes.
+    dir: deploy/dev
+    cmds:
+      - docker compose down -v
+
+  seed:demo:
+    desc: Seed a demo tenant + pipeline + stream + model into a running deployment. Defaults to localhost:8080.
+    cmds:
+      - ./tools/scripts/seed-dev.sh
