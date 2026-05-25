@@ -26,7 +26,11 @@ version: "2"
 run:
   timeout: 5m
   tests: true
-  go: "1.26"
+  # Target Go 1.24 for the linter's parser. The codebase compiles with
+  # Go 1.26 (go.work), but golangci-lint refuses to load a config whose
+  # `go:` target exceeds the toolchain it was itself built with. 1.24 is
+  # backwards-compatible — no 1.25/1.26 language features in this repo.
+  go: "1.24"
 
 linters:
   default: none

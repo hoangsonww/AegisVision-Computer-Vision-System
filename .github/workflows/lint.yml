@@ -62,7 +62,14 @@ jobs:
       - name: Run shellcheck
         uses: ludeeus/action-shellcheck@master
         env:
-          SHELLCHECK_OPTS: -e SC2086 -e SC2046
+          # SC2086 / SC2046: word-splitting on unquoted expansions — used
+          # intentionally in our scripts.
+          # SC2034: unused variable — the dr-drills scripts parse CLI args
+          # into vars some of which are only consumed by subcommands; the
+          # noise outweighs the value.
+          # SC2044: for-loop over find — fine for our small fixed trees;
+          # we run find with predictable, hyphen-safe paths.
+          SHELLCHECK_OPTS: -e SC2086 -e SC2046 -e SC2034 -e SC2044
         with:
           severity: warning
           scandir: ./tools
