@@ -62,7 +62,7 @@ flowchart LR
 | [`drift-slo.md`](./drift-slo.md) | JS / KL / TVD divergence + multi-window burn-rate. |
 | [`air-gap.md`](./air-gap.md) | The bundle, day-one. Why it isn't a retrofit. |
 | [`api-reference.md`](./api-reference.md) | Public REST API reference. |
-| [`console.md`](./console.md) | The production Next.js console — what every page does + how to extend it. |
+| [`console.md`](./console.md) | The production Next.js console — what every page does + how to extend it. ([screenshot](./img/console.png)) |
 | [`deployment.md`](./deployment.md) | Online + air-gapped + edge install. |
 | [`testing.md`](./testing.md) | Unit + integration + conformance + chaos + load + console build. |
 | [`troubleshooting.md`](./troubleshooting.md) | Common failures + diagnostic paths. |
