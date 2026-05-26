@@ -229,6 +229,14 @@ NEXT_PUBLIC_AEGIS_API_BASE=http://localhost:8080 npm run dev
 # → http://localhost:8090
 ```
 
+<p align="center">
+  <a href="./docs/console.md">
+    <img src="./docs/img/console.png" alt="AegisVision operator console — Mission control" width="820"/>
+  </a>
+  <br/>
+  <sub><em>What http://localhost:8090 looks like once <code>api-gateway</code> is up — Mission control with live SSE, tier-3 gate inbox, canary / drift / SLO triptych. Full doc at <a href="./docs/console.md"><code>docs/console.md</code></a>.</em></sub>
+</p>
+
 Open <http://localhost:8090>. Top-right has a tenant switcher — use
 `t-demo` to match the walking-skeleton's events. The console covers
 **33 routes**: dashboard with live SSE feed, streams + pipelines + models

@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aegisvision/pkg/platform/config"
@@ -59,6 +60,7 @@ func run() error {
 	jwksURL := config.String("AEGIS_JWKS_URL", "")
 	jwtIssuer := config.String("AEGIS_JWT_ISSUER", "")
 	jwtAudience := config.String("AEGIS_JWT_AUDIENCE", "")
+	allowedOrigins := config.String("AEGIS_ALLOWED_ORIGINS", devCORSDefault(env))
 
 	// Production-mode hardening: the api-gateway is the public face of the
 	// platform; the cost of an insecure default in prod is the entire
@@ -172,9 +174,10 @@ func run() error {
 			Pipelines: pipelineClient,
 			Cursors:   pagination.NewEncoder(cursorKey),
 		},
-		Streams:     streamHandlers,
-		EventStream: eventStream,
-		ConsoleDir:  consoleDir,
+		Streams:        streamHandlers,
+		EventStream:    eventStream,
+		ConsoleDir:     consoleDir,
+		AllowedOrigins: parseOrigins(allowedOrigins),
 	})
 
 	httpSrv := &http.Server{
@@ -220,4 +223,31 @@ func run() error {
 		}
 	}()
 	return runner.Wait(ctx)
+}
+
+// devCORSDefault returns the default CORS allow-list. In dev we permit any
+// origin so the local console (which runs on a different port) can talk to
+// the gateway without manual config. In any other env we default to empty —
+// adopters must opt in explicitly.
+func devCORSDefault(env string) string {
+	if env == "dev" {
+		return "*"
+	}
+	return ""
+}
+
+// parseOrigins splits a comma-separated AEGIS_ALLOWED_ORIGINS list. Empty
+// string returns nil so the router skips wiring CORS.
+func parseOrigins(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := parts[:0]
+	for _, p := range parts {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
