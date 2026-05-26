@@ -188,6 +188,55 @@ func Idempotency(store idempotency.Store, ttl time.Duration) func(http.Handler) 
 	}
 }
 
+// CORS allows browsers to make cross-origin calls to the API. allowedOrigins
+// is the list of origins permitted (e.g. "http://localhost:8090"); "*" means
+// any. Preflight OPTIONS requests short-circuit before the chain reaches
+// AuthZ — there is no auth context to enforce on a preflight.
+func CORS(allowedOrigins []string) func(http.Handler) http.Handler {
+	allowAny := false
+	for _, o := range allowedOrigins {
+		if o == "*" {
+			allowAny = true
+			break
+		}
+	}
+	allowSet := map[string]struct{}{}
+	for _, o := range allowedOrigins {
+		allowSet[o] = struct{}{}
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			if origin != "" {
+				if allowAny {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					w.Header().Set("Vary", "Origin")
+				} else if _, ok := allowSet[origin]; ok {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					w.Header().Set("Vary", "Origin")
+				}
+			}
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			// Echo back whatever the browser asked for via
+			// Access-Control-Request-Headers, so we never miss a custom
+			// header (X-Aegis-Tenant, X-Tenant-Id, Idempotency-Key, …).
+			reqHdrs := r.Header.Get("Access-Control-Request-Headers")
+			if reqHdrs == "" {
+				reqHdrs = "Accept, Content-Type, Authorization, X-Tenant-Id, X-Aegis-Tenant, Idempotency-Key, X-Request-Id"
+			}
+			w.Header().Set("Access-Control-Allow-Headers", reqHdrs)
+			w.Header().Set("Access-Control-Expose-Headers", "X-Request-Id, Idempotent-Replay")
+			w.Header().Set("Access-Control-Max-Age", "600")
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func isMutating(method string) bool {
 	switch method {
 	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
