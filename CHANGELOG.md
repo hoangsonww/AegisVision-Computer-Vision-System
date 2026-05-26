@@ -7,6 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.8](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.7...v0.5.8) (2026-05-26)
+
+
+### Features
+
+* **console+gateway:** add operator console screenshot, /v1/health + CORS ([671f1cb](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/671f1cbdf288a1cfc16077a96c4ee2a6eb992b6d))
+* **console+gateway:** add operator console screenshot, /v1/health + CORS ([eed2092](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/eed20927220bed857f935ff56c23bf30d527419d))
+
 ## [0.5.7](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.6...v0.5.7) (2026-05-25)
 
 
