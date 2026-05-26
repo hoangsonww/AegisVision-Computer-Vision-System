@@ -544,14 +544,6 @@ protobuf contracts (gRPC + JSON/REST for tenant-facing APIs).
 | --- | --- |
 | `console` | Next.js 14 + TanStack Query + Tailwind. Exposes every public REST endpoint as a usable page. 33 routes covering dashboard, streams, pipelines, models, datasets, annotations, training, media, rules, events, agents (chat UI with citations + tier-3 gate banner), gates inbox, canary decision board, drift, SLO, prefetch heatmap, knowledge RAG, NLQ, active-learning, semantic search, tenants/projects/members, cost, compliance evidence bundles, audit log + chain-verify, settings. Read the per-service README at [`services/console/`](./services/console). |
 
-<p align="center">
-  <a href="./docs/console.md">
-    <img src="./docs/img/console.png" alt="AegisVision Mission control dashboard" width="820"/>
-  </a>
-  <br/>
-  <sub><em>Mission control — live SSE feed, pending tier-3 approvals, canary plans with Wilson lower-bound, drift KL/JS/TVD, SLO burn-rate.</em></sub>
-</p>
-
 ---
 
 ## NVIDIA Triton — the GPU inference core
