@@ -7,6 +7,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.9](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.8...v0.5.9) (2026-05-26)
+
+
+### Bug Fixes
+
+* **landing:** bump navbar mobile breakpoint from 900px to 1150px ([42a40a4](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/42a40a4626a863ca4acd64e69b32a51dc3248795))
+
+
+### Documentation
+
+* **readme:** move console screenshot from top to the Production console capability section ([97c73f8](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/97c73f846e64500c07167587f980187223d89adf))
+* remove duplicate console screenshot from README ([e211002](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/e211002bd4f9e5a5921b50e18f79015a8f94f651))
+
 ## [0.5.8](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.7...v0.5.8) (2026-05-26)
 
 
