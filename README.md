@@ -85,6 +85,17 @@ air-gapped delivery, out of the box.</b></p>
 
 ---
 
+<p align="center">
+  <a href="./docs/console.md">
+    <img src="./docs/img/console.png" alt="AegisVision operator console — Mission control" width="900"/>
+  </a>
+  <br/>
+  <sub><em>The production console — pipelines, streams, canary plans, drift, SLOs, gates, RAG-cited agents, audit log.
+  One Next.js app, 33 routes. See <a href="./docs/console.md"><code>docs/console.md</code></a>.</em></sub>
+</p>
+
+---
+
 
 
 AegisVision is a **production-grade template** for building computer-vision
@@ -532,6 +543,14 @@ protobuf contracts (gRPC + JSON/REST for tenant-facing APIs).
 | Service | Purpose |
 | --- | --- |
 | `console` | Next.js 14 + TanStack Query + Tailwind. Exposes every public REST endpoint as a usable page. 33 routes covering dashboard, streams, pipelines, models, datasets, annotations, training, media, rules, events, agents (chat UI with citations + tier-3 gate banner), gates inbox, canary decision board, drift, SLO, prefetch heatmap, knowledge RAG, NLQ, active-learning, semantic search, tenants/projects/members, cost, compliance evidence bundles, audit log + chain-verify, settings. Read the per-service README at [`services/console/`](./services/console). |
+
+<p align="center">
+  <a href="./docs/console.md">
+    <img src="./docs/img/console.png" alt="AegisVision Mission control dashboard" width="820"/>
+  </a>
+  <br/>
+  <sub><em>Mission control — live SSE feed, pending tier-3 approvals, canary plans with Wilson lower-bound, drift KL/JS/TVD, SLO burn-rate.</em></sub>
+</p>
 
 ---
 

@@ -3,6 +3,15 @@
 > **The AegisVision production UI.** Next.js 14 + TanStack Query + Tailwind.
 > Exposes every platform feature.
 
+<p align="center">
+  <a href="../../docs/console.md">
+    <img src="../../docs/img/console.png" alt="AegisVision operator console — Mission control" width="900"/>
+  </a>
+  <br/>
+  <sub><em>Mission control with the Canary / Drift / SLO triptych. Full doc at
+  <a href="../../docs/console.md"><code>docs/console.md</code></a>.</em></sub>
+</p>
+
 A single Next.js app that talks to `api-gateway` and surfaces every public
 endpoint as a usable, themed page. Dashboard, live SSE event feed,
 pipelines + revisions, streams with pause/resume, models + gated promotion,

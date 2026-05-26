@@ -189,12 +189,21 @@ Most adopters start at A → B → C. D and E are additive on top of C.
 ## Customize the console
 
 The Next.js console at [`services/console/`](./services/console)
-exposes every public REST endpoint as a page. Customizing it is a
-normal Next.js project — change `tailwind.config.ts`, the brand
-colours in `src/app/layout.tsx`, the logo in `src/components/TopBar.tsx`,
-and the title in `src/app/page.tsx`. The console reads
-`NEXT_PUBLIC_AEGIS_API_BASE` at build time — change the variable name
-and references to it if your env-var prefix differs.
+exposes every public REST endpoint as a page.
+
+<p align="center">
+  <a href="./docs/console.md">
+    <img src="./docs/img/console.png" alt="AegisVision operator console — what adopters inherit out of the box" width="820"/>
+  </a>
+  <br/>
+  <sub><em>What you inherit before any rebrand — Mission control with live SSE, tier-3 gate inbox, canary state machine, drift, and SLO panels.</em></sub>
+</p>
+
+Customizing it is a normal Next.js project — change `tailwind.config.ts`,
+the brand colours in `src/app/layout.tsx`, the logo in
+`src/components/TopBar.tsx`, and the title in `src/app/page.tsx`. The
+console reads `NEXT_PUBLIC_AEGIS_API_BASE` at build time — change the
+variable name and references to it if your env-var prefix differs.
 
 If you ship your own UI on top of the API instead of the bundled
 console, point `services/console/` at your own repo (disable the

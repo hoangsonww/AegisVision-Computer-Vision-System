@@ -37,6 +37,11 @@ type Deps struct {
 	// ConsoleDir is the directory served at /console for the walking
 	// skeleton; empty disables the console route entirely.
 	ConsoleDir string
+
+	// AllowedOrigins enables CORS for the listed origins. "*" allows any.
+	// Leave empty (nil) to disable CORS — the gateway will then reject
+	// browser preflight OPTIONS requests.
+	AllowedOrigins []string
 }
 
 // NewRouter composes the public REST surface. The middleware order is the
@@ -95,6 +100,18 @@ func NewRouter(d Deps) http.Handler {
 		mux.Handle("/v1/events:stream", d.EventStream.Handler())
 	}
 
+	// Health — public probe for clients (console, monitors). Lives on the
+	// API surface (not the dedicated AEGIS_HEALTH_ADDR) so a browser fetch
+	// can confirm the gateway is reachable without a separate CORS surface.
+	mux.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			methodNotAllowed(w)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
+
 	// Build the protected middleware chain. SSE is handled separately
 	// because Idempotency middleware would buffer the entire response.
 	tenantMW := middleware.TenantFromHeader()
@@ -125,6 +142,13 @@ func NewRouter(d Deps) http.Handler {
 	root.Handle("/v1/events:stream", sseChain(mux))
 	root.Handle("/v1/", protected(mux))
 
+	// CORS sits in front of everything so browser preflight OPTIONS
+	// requests are answered before AuthZ has a chance to 401 them.
+	var rootHandler http.Handler = root
+	if len(d.AllowedOrigins) > 0 {
+		rootHandler = middleware.CORS(d.AllowedOrigins)(root)
+	}
+
 	// Console: unauthenticated static files. The console is HTML + JS that
 	// itself authenticates via X-Tenant-Id when it talks to /v1/.
 	if d.ConsoleDir != "" {
@@ -134,7 +158,7 @@ func NewRouter(d Deps) http.Handler {
 		})
 	}
 
-	return root
+	return rootHandler
 }
 
 func routeLabel(r *http.Request) string {
