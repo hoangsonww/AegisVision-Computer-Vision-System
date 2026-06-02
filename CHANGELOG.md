@@ -7,6 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.11](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.10...v0.5.11) (2026-06-02)
+
+
+### Bug Fixes
+
+* **ci:** upload airgap release assets via gh --clobber (drop flaky softprops) ([3c48559](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/3c48559e67804bf8b8a128a0ca869ba7a9d616a2))
+* **ci:** upload airgap release assets via gh --clobber (drop flaky softprops) ([37e958b](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/37e958bd6fdf34fecc8ad646b42bb20a9203145e))
+
 ## [0.5.10](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.9...v0.5.10) (2026-06-02)
 
 
