@@ -202,24 +202,30 @@ See [`console.md`](./console.md) for the full design.
 
 ## Dependency updates (Dependabot)
 
-Dependabot **version-update PRs are currently paused** — every ecosystem in
-[`.github/dependabot.yml`](../.github/dependabot.yml) is kept but throttled
-with `open-pull-requests-limit: 0` to avoid PR noise. CVE/security alerts are
-unaffected (those are governed by repo settings, not this file, and ignore
-this limit).
+Dependabot **version updates are disabled by default**. The full config ships
+as a template at
+[`.github/dependabot.yml.example`](../.github/dependabot.yml.example).
+Dependabot only reads `.github/dependabot.yml`, so while the config keeps its
+`.example` suffix it is invisible to Dependabot — no scheduled runs, no
+version-update PRs. (This is more reliable than `open-pull-requests-limit: 0`,
+which leaves Dependabot running on schedule and only caps the PR count.)
 
-The config stays **valid** on purpose: Dependabot requires a non-empty
-`updates:` key, so commenting the block out would fail config validation
-(`did not contain a required property of 'updates'`). The limit-0 approach
-disables version PRs while keeping the file parseable.
+**To enable version updates** (e.g. after forking this template):
 
-- **Re-enable an ecosystem:** set its `open-pull-requests-limit` back to a
-  positive number (e.g. `10`).
-- **Pause again:** set it back to `0`.
-- The file documents the toggle at the top — no need to delete anything.
+```bash
+mv .github/dependabot.yml.example .github/dependabot.yml
+git commit -am "ci: enable Dependabot version updates"
+```
 
-Until it's re-enabled, bump dependencies manually as part of the change
-that needs them (`go get -u ./... && go mod tidy`, then `task test`).
+The template covers Go modules, GitHub Actions, and the service Dockerfiles.
+Tune each ecosystem with `open-pull-requests-limit` (`10` = normal, `0` =
+pause that ecosystem) or delete its block.
+
+CVE/security alerts are **unaffected** either way — they're governed by repo
+Settings (Security → Code security), not this file.
+
+While version updates are off, bump dependencies manually as part of the
+change that needs them (`go get -u ./... && go mod tidy`, then `task test`).
 
 ---
 
