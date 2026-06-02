@@ -7,6 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.10](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.9...v0.5.10) (2026-06-02)
+
+
+### Bug Fixes
+
+* **ci:** make dependabot.yml valid while keeping version PRs paused ([7ed369b](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/7ed369bba50fd28ae236a60a93dd834e61d6ada0))
+* **ci:** valid dependabot.yml that keeps version-update PRs paused ([508f21f](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/508f21fa9945b960e81d55e64419024705b65646))
+
 ## [0.5.9](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.8...v0.5.9) (2026-05-26)
 
 
