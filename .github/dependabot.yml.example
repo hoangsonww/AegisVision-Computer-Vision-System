@@ -1,17 +1,25 @@
 # ──────────────────────────────────────────────────────────────────────────
-# Dependabot version-update PRs are PAUSED (too much PR noise).
+# Dependabot version updates — DISABLED BY DEFAULT (this file is a TEMPLATE).
 #
-# This config stays VALID on purpose: Dependabot requires a non-empty
-# `updates:` key, so we cannot just comment everything out — that fails
-# config validation. Instead every ecosystem is kept but throttled with
-# `open-pull-requests-limit: 0`, which disables version-update PRs.
+# Dependabot only ever reads `.github/dependabot.yml`. While this file keeps
+# its `.example` suffix it is invisible to Dependabot, so there are NO
+# scheduled runs and NO version-update PRs. This is the reliable way to fully
+# turn version updates off — `open-pull-requests-limit: 0` does NOT do that
+# (Dependabot still runs on schedule, it just opens 0 PRs).
 #
-#   • To RE-ENABLE an ecosystem: set its `open-pull-requests-limit` back to
-#     a positive number (e.g. 10).
-#   • To PAUSE again: set it back to 0.
+# TO ENABLE (e.g. after forking this template):
 #
-# Security/CVE update PRs are NOT affected by this limit — they still flow
-# (they are governed by the repo's security settings, not this file).
+#     mv .github/dependabot.yml.example .github/dependabot.yml
+#     git commit -am "ci: enable Dependabot version updates"
+#
+# Per-ecosystem tuning (see each block below):
+#     open-pull-requests-limit: 10  → normal updates (the default shipped here)
+#     open-pull-requests-limit: 0   → pause that ecosystem's version PRs
+#     delete a `- package-ecosystem:` block → drop that ecosystem entirely
+#
+# Dependabot *security / CVE* alerts and security-update PRs are SEPARATE:
+# they come from repo Settings (Security → Code security), not this file, and
+# keep working whether or not this template is enabled.
 # ──────────────────────────────────────────────────────────────────────────
 version: 2
 updates:
@@ -20,7 +28,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - go
@@ -35,7 +43,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - ci
@@ -49,7 +57,7 @@ updates:
     directory: /services/api-gateway
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
@@ -60,7 +68,7 @@ updates:
     directory: /services/pipeline-service
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
@@ -71,7 +79,7 @@ updates:
     directory: /services/stream-manager
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
@@ -82,7 +90,7 @@ updates:
     directory: /services/event-service
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
@@ -93,7 +101,7 @@ updates:
     directory: /services/dataplane-runner
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
@@ -104,7 +112,7 @@ updates:
     directory: /services/inference-router
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
@@ -115,7 +123,7 @@ updates:
     directory: /services/llm-gateway
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
@@ -126,7 +134,7 @@ updates:
     directory: /services/agent-service
     schedule:
       interval: weekly
-    open-pull-requests-limit: 0 # set to 10 to re-enable
+    open-pull-requests-limit: 10 # 0 to pause this ecosystem
     labels:
       - dependencies
       - docker
