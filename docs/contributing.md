@@ -200,6 +200,22 @@ See [`console.md`](./console.md) for the full design.
 
 ---
 
+## Dependency updates (Dependabot)
+
+Dependabot **version-update PRs are currently disabled** — the config in
+[`.github/dependabot.yml`](../.github/dependabot.yml) has its `updates:`
+block commented out to avoid PR noise. CVE/security alerts are unaffected
+(those are governed by repo settings, not this file).
+
+- **Re-enable:** uncomment the `updates:` block in `.github/dependabot.yml`.
+- **Disable again:** comment it back out.
+- The file documents both toggles at the top — no need to delete anything.
+
+Until it's re-enabled, bump dependencies manually as part of the change
+that needs them (`go get -u ./... && go mod tidy`, then `task test`).
+
+---
+
 ## Where next
 
 - [`testing.md`](./testing.md).
