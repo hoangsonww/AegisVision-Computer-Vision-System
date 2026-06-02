@@ -7,6 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.12](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.11...v0.5.12) (2026-06-02)
+
+
+### CI
+
+* disable Dependabot version updates by shipping config as a template ([1ad528d](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/1ad528da65c9f4219fe00a07b2497da02cd2edfc))
+* disable Dependabot version updates, ship config as a template ([56c836f](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/56c836f7f085f010b7becb40c4a34a23fb3d76ae))
+
 ## [0.5.11](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.10...v0.5.11) (2026-06-02)
 
 
