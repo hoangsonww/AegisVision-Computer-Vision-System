@@ -101,7 +101,7 @@ dependencies:
     - any-glob-to-any-file:
       - '**/go.mod'
       - '**/go.sum'
-      - '.github/dependabot.yml'
+      - '.github/dependabot.yml*'
 
 breaking-change:
   - head-branch: ['^break/', '^breaking/']
