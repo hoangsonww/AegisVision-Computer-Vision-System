@@ -202,14 +202,21 @@ See [`console.md`](./console.md) for the full design.
 
 ## Dependency updates (Dependabot)
 
-Dependabot **version-update PRs are currently disabled** — the config in
-[`.github/dependabot.yml`](../.github/dependabot.yml) has its `updates:`
-block commented out to avoid PR noise. CVE/security alerts are unaffected
-(those are governed by repo settings, not this file).
+Dependabot **version-update PRs are currently paused** — every ecosystem in
+[`.github/dependabot.yml`](../.github/dependabot.yml) is kept but throttled
+with `open-pull-requests-limit: 0` to avoid PR noise. CVE/security alerts are
+unaffected (those are governed by repo settings, not this file, and ignore
+this limit).
 
-- **Re-enable:** uncomment the `updates:` block in `.github/dependabot.yml`.
-- **Disable again:** comment it back out.
-- The file documents both toggles at the top — no need to delete anything.
+The config stays **valid** on purpose: Dependabot requires a non-empty
+`updates:` key, so commenting the block out would fail config validation
+(`did not contain a required property of 'updates'`). The limit-0 approach
+disables version PRs while keeping the file parseable.
+
+- **Re-enable an ecosystem:** set its `open-pull-requests-limit` back to a
+  positive number (e.g. `10`).
+- **Pause again:** set it back to `0`.
+- The file documents the toggle at the top — no need to delete anything.
 
 Until it's re-enabled, bump dependencies manually as part of the change
 that needs them (`go get -u ./... && go mod tidy`, then `task test`).

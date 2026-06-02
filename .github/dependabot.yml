@@ -1,120 +1,134 @@
 # ──────────────────────────────────────────────────────────────────────────
-# Dependabot is currently DISABLED (too many PRs / noise).
+# Dependabot version-update PRs are PAUSED (too much PR noise).
 #
-# To RE-ENABLE: uncomment the `updates:` block below (everything under it).
-# To DISABLE again: comment the `updates:` block back out.
+# This config stays VALID on purpose: Dependabot requires a non-empty
+# `updates:` key, so we cannot just comment everything out — that fails
+# config validation. Instead every ecosystem is kept but throttled with
+# `open-pull-requests-limit: 0`, which disables version-update PRs.
 #
-# Note: this only controls Dependabot *version-update* PRs. Security alerts /
-# security updates are governed by repo settings, not this file.
+#   • To RE-ENABLE an ecosystem: set its `open-pull-requests-limit` back to
+#     a positive number (e.g. 10).
+#   • To PAUSE again: set it back to 0.
+#
+# Security/CVE update PRs are NOT affected by this limit — they still flow
+# (they are governed by the repo's security settings, not this file).
 # ──────────────────────────────────────────────────────────────────────────
 version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - go
+    reviewers:
+      - hoangsonww
+    commit-message:
+      prefix: chore
+      include: scope
 
-# updates:
-#   - package-ecosystem: gomod
-#     directory: /
-#     schedule:
-#       interval: weekly
-#       day: monday
-#     open-pull-requests-limit: 10
-#     labels:
-#       - dependencies
-#       - go
-#     reviewers:
-#       - hoangsonww
-#     commit-message:
-#       prefix: chore
-#       include: scope
-#
-#   - package-ecosystem: github-actions
-#     directory: /
-#     schedule:
-#       interval: weekly
-#       day: monday
-#     labels:
-#       - dependencies
-#       - ci
-#     reviewers:
-#       - hoangsonww
-#     commit-message:
-#       prefix: chore
-#       include: scope
-#
-#   - package-ecosystem: docker
-#     directory: /services/api-gateway
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
-#
-#   - package-ecosystem: docker
-#     directory: /services/pipeline-service
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
-#
-#   - package-ecosystem: docker
-#     directory: /services/stream-manager
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
-#
-#   - package-ecosystem: docker
-#     directory: /services/event-service
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
-#
-#   - package-ecosystem: docker
-#     directory: /services/dataplane-runner
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
-#
-#   - package-ecosystem: docker
-#     directory: /services/inference-router
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
-#
-#   - package-ecosystem: docker
-#     directory: /services/llm-gateway
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
-#
-#   - package-ecosystem: docker
-#     directory: /services/agent-service
-#     schedule:
-#       interval: weekly
-#     labels:
-#       - dependencies
-#       - docker
-#     reviewers:
-#       - hoangsonww
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - ci
+    reviewers:
+      - hoangsonww
+    commit-message:
+      prefix: chore
+      include: scope
+
+  - package-ecosystem: docker
+    directory: /services/api-gateway
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
+
+  - package-ecosystem: docker
+    directory: /services/pipeline-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
+
+  - package-ecosystem: docker
+    directory: /services/stream-manager
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
+
+  - package-ecosystem: docker
+    directory: /services/event-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
+
+  - package-ecosystem: docker
+    directory: /services/dataplane-runner
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
+
+  - package-ecosystem: docker
+    directory: /services/inference-router
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
+
+  - package-ecosystem: docker
+    directory: /services/llm-gateway
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
+
+  - package-ecosystem: docker
+    directory: /services/agent-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0 # set to 10 to re-enable
+    labels:
+      - dependencies
+      - docker
+    reviewers:
+      - hoangsonww
