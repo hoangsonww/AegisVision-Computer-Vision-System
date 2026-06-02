@@ -81,14 +81,31 @@ jobs:
           cosign sign-blob --yes --bundle "${BUNDLE}.cosign.bundle" "$BUNDLE"
           [[ -s "${BUNDLE}.cosign.bundle" ]] || { echo "::error::cosign produced no bundle file"; exit 1; }
       - name: attach bundle to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
-          fail_on_unmatched_files: true
-          files: |
-            dist/aegisvision-airgap-*.tar.*
-            dist/aegisvision-airgap-*.sha256
-            dist/aegisvision-airgap-*.cosign.bundle
+        # Use `gh release upload --clobber` instead of action-gh-release@v2:
+        # the action uploads the assets fine but then issues a separate
+        # "update asset metadata" PATCH that intermittently 404s when the
+        # asset already exists (re-runs / pre-existing release assets),
+        # failing the job even though every file uploaded. `gh ... --clobber`
+        # is idempotent (delete-then-upload per asset, no metadata PATCH).
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          # Single prefix glob — the tarball, its .sha256, and the
+          # .cosign.bundle all share the aegisvision-airgap- prefix, so this
+          # matches all three without the overlapping-glob duplicates the old
+          # `*.tar.*` patterns produced.
+          files=( dist/aegisvision-airgap-* )
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no aegisvision-airgap-* assets found in dist/ to upload"
+            ls -la dist/ || true
+            exit 1
+          fi
+          echo "uploading ${#files[@]} asset(s) to ${TAG}:"
+          printf '  %s\n' "${files[@]}"
+          gh release upload "$TAG" "${files[@]}" --clobber
 
   promote-image:
     name: promote aegisvision image (ci-sha → version + latest)
