@@ -1,110 +1,120 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Dependabot is currently DISABLED (too many PRs / noise).
+#
+# To RE-ENABLE: uncomment the `updates:` block below (everything under it).
+# To DISABLE again: comment the `updates:` block back out.
+#
+# Note: this only controls Dependabot *version-update* PRs. Security alerts /
+# security updates are governed by repo settings, not this file.
+# ──────────────────────────────────────────────────────────────────────────
 version: 2
-updates:
-  - package-ecosystem: gomod
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-      - go
-    reviewers:
-      - hoangsonww
-    commit-message:
-      prefix: chore
-      include: scope
 
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    labels:
-      - dependencies
-      - ci
-    reviewers:
-      - hoangsonww
-    commit-message:
-      prefix: chore
-      include: scope
-
-  - package-ecosystem: docker
-    directory: /services/api-gateway
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
-
-  - package-ecosystem: docker
-    directory: /services/pipeline-service
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
-
-  - package-ecosystem: docker
-    directory: /services/stream-manager
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
-
-  - package-ecosystem: docker
-    directory: /services/event-service
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
-
-  - package-ecosystem: docker
-    directory: /services/dataplane-runner
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
-
-  - package-ecosystem: docker
-    directory: /services/inference-router
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
-
-  - package-ecosystem: docker
-    directory: /services/llm-gateway
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
-
-  - package-ecosystem: docker
-    directory: /services/agent-service
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - docker
-    reviewers:
-      - hoangsonww
+# updates:
+#   - package-ecosystem: gomod
+#     directory: /
+#     schedule:
+#       interval: weekly
+#       day: monday
+#     open-pull-requests-limit: 10
+#     labels:
+#       - dependencies
+#       - go
+#     reviewers:
+#       - hoangsonww
+#     commit-message:
+#       prefix: chore
+#       include: scope
+#
+#   - package-ecosystem: github-actions
+#     directory: /
+#     schedule:
+#       interval: weekly
+#       day: monday
+#     labels:
+#       - dependencies
+#       - ci
+#     reviewers:
+#       - hoangsonww
+#     commit-message:
+#       prefix: chore
+#       include: scope
+#
+#   - package-ecosystem: docker
+#     directory: /services/api-gateway
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
+#
+#   - package-ecosystem: docker
+#     directory: /services/pipeline-service
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
+#
+#   - package-ecosystem: docker
+#     directory: /services/stream-manager
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
+#
+#   - package-ecosystem: docker
+#     directory: /services/event-service
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
+#
+#   - package-ecosystem: docker
+#     directory: /services/dataplane-runner
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
+#
+#   - package-ecosystem: docker
+#     directory: /services/inference-router
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
+#
+#   - package-ecosystem: docker
+#     directory: /services/llm-gateway
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
+#
+#   - package-ecosystem: docker
+#     directory: /services/agent-service
+#     schedule:
+#       interval: weekly
+#     labels:
+#       - dependencies
+#       - docker
+#     reviewers:
+#       - hoangsonww
