@@ -795,3 +795,4 @@ via [`CITATION.cff`](./CITATION.cff).
 </sub>
 
 </div>
+<!-- SOLID refactor touch 2026-06-03 -->
