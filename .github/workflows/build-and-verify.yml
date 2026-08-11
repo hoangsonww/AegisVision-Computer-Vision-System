@@ -127,7 +127,7 @@ jobs:
       - name: breaking-change check (PR only)
         if: github.event_name == 'pull_request'
         working-directory: proto
-        run: buf breaking --against ".git#branch=${{ github.event.repository.default_branch }},subdir=proto"
+        run: buf breaking --against "../.git#branch=${{ github.event.repository.default_branch }},subdir=proto"
 
   # ----------------------------------------------------------------------
   # 3. Helm lint every chart, conformance test ensures golden-path coverage.
