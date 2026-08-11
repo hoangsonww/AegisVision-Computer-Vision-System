@@ -7,6 +7,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.13](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.12...v0.5.13) (2026-08-11)
+
+
+### CI
+
+* compare protobuf changes against PR base commit ([b7b7f4f](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/b7b7f4ffb20af784c2621cd16269f6bab625697a))
+* resolve Buf comparison from proto directory ([eb156c3](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/eb156c3129e2fbfb50f2628ccbdbed8aad30cfa4))
+* retire CodeQL workflow and cancel superseded runs ([4b62f35](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/4b62f35366db3774ba09fb3ff91408656dd7469a))
+* retire CodeQL workflow and cancel superseded runs ([2e7d271](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/2e7d27158c56acb40bfb826ee899ad7cf4e8c688))
+* run Buf breaking check against local checkout ([95c6a06](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/95c6a06547f81ea8e0a07e39e4b6e807a6a49c4f))
+
 ## [0.5.12](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.11...v0.5.12) (2026-06-02)
 
 
