@@ -40,7 +40,7 @@ jobs:
       VERSION: ${{ needs.release-please.outputs.version }}
       REGISTRY: ghcr.io/hoangsonww
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { fetch-depth: 0 }
       - name: set up crane + cosign + syft + zstd
         run: |
