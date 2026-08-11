@@ -7,6 +7,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 Releases below v1.0.0 are pre-GA; minor version bumps may include
 breaking changes per semver §4. The first GA release will be v1.0.0.
 
+## [0.5.14](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.13...v0.5.14) (2026-08-11)
+
+
+### CI
+
+* allow manual build verification runs ([2e7ba4c](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/2e7ba4ccaece5f7c20feb70849f3e3d9ebb1ec4e))
+* allow manual build verification runs ([271873d](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/271873dff563caa21f5520004bc556a97d33d009))
+* cancel superseded lint runs ([98e23e1](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/98e23e1c6c0cd72bb9b5472aa3e96743aa4b592b))
+* cancel superseded lint runs ([89e61c0](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/commit/89e61c0730e51a857d5c208d2659fe652032daeb))
+
 ## [0.5.13](https://github.com/hoangsonww/AegisVision-Computer-Vision-System/compare/v0.5.12...v0.5.13) (2026-08-11)
 
 
